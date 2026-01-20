@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  camunda:
+    image: camunda/camunda-bpm-platform:run-latest
+    container_name: acme-camunda
+    ports:
+      - "${CAMUNDA_PORT}:8080"
+    volumes:
+      # Here you map the folder where you save your .bpmn files
+      - ./camunda-resources/:/camunda/configuration/resources
+    environment:
+      - CAMUNDA_BPM_RUN_AUTH_ENABLED=false # disable login for convenience in dev
+    networks:
+      - acme-network
+
+# service-fleet:
+#   build: ./service-fleet-management
+#   networks:
+#     - acme-network
+
+#  service-bank:
+#    build: ./service-bank
+
+
+networks:
+  acme-network:
+    driver: bridge
