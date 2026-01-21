@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   camunda:
     image: camunda/camunda-bpm-platform:run-latest
@@ -11,15 +9,17 @@ services:
       - ./camunda-resources/:/camunda/configuration/resources
     environment:
       - CAMUNDA_BPM_RUN_AUTH_ENABLED=false # disable login for convenience in dev
+      #- CAMUNDA_BPM_GENERIC_PROPERTIES_GENERAL_ENFORCE-HISTORY-TIME-TO-LIVE=false
+      #- enforceHistoryTimeToLive=false
     networks:
       - acme-network
 
-# service-fleet:
+# fleet:
 #   build: ./service-fleet-management
 #   networks:
 #     - acme-network
 
-#  service-bank:
+#  bank:
 #    build: ./service-bank
 
 

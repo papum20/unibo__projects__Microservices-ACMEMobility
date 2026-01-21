@@ -1,0 +1,23 @@
+## Script
+JUEL (Java Unified Expression Language)  
+```
+${variable}
+${expression}
+```
+
+## Connector Input
+Content-Type:
+* Nella mappa headers, la chiave Content-Type deve avere valore text/xml (oppure application/soap+xml se usi SOAP 1.2, ma text/xml è lo standard più comune per SOAP 1.1).
+* rest: application/json
+Method: È sempre POST. SOAP viaggia via HTTP POST.
+URL: È l'indirizzo del tuo container Jolie (es. http://bank-service:8000/BankPort).
+Payload: Qui incollerai l'XML completo (<soapenv:Envelope>...).
+
+## Forms
+Simulate human interaction.  
+Alternative: input values manually at BPMN start.  
+
+
+## TODO
+* passaggio carta, come avviene, se solo a inizio
+* altri service task
