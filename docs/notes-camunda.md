@@ -1,3 +1,7 @@
+## Time
+TTL: `P10D` (10 days)  
+timer: `PT5M` (5 minutes)  
+
 ## Script
 JUEL (Java Unified Expression Language)  
 ```
@@ -19,5 +23,4 @@ Alternative: input values manually at BPMN start.
 
 
 ## TODO
-* passaggio carta, come avviene, se solo a inizio
 * altri service task

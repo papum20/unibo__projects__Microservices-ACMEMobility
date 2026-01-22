@@ -22,6 +22,17 @@ services:
 #  bank:
 #    build: ./service-bank
 
+  config-loader:
+    build: ./service-config-loader
+    container_name: acme-config-loader
+    environment:
+      - URL_CAMUNDA=http://camunda:8080/engine-rest
+      - URL_BANK=http://bank-service:8000
+      - URL_STATION=http://stations-service:5000
+      - BANK_CAUTION=10
+    depends_on:
+      - camunda
+
 
 networks:
   acme-network:
