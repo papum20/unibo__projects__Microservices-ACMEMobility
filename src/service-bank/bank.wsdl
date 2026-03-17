@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:tns="http://acmemobility.bank/wsdl"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             targetNamespace="http://acmemobility.bank/wsdl"
+             name="BankService">
+
+  <!-- ==================== TYPES ==================== -->
+  <types>
+    <xsd:schema targetNamespace="http://acmemobility.bank/wsdl">
+
+      <!-- preAuth -->
+      <xsd:element name="preAuthRequest">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="cardId" type="xsd:string"/>
+            <xsd:element name="amount" type="xsd:double"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="preAuthResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="token" type="xsd:string"/>
+            <xsd:element name="success" type="xsd:boolean"/>
+            <xsd:element name="message" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- charge -->
+      <xsd:element name="chargeRequest">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="token" type="xsd:string"/>
+            <xsd:element name="finalAmount" type="xsd:double"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="chargeResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="success" type="xsd:boolean"/>
+            <xsd:element name="chargedAmount" type="xsd:double"/>
+            <xsd:element name="message" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- unlock -->
+      <xsd:element name="unlockRequest">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="token" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="unlockResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="success" type="xsd:boolean"/>
+            <xsd:element name="releasedAmount" type="xsd:double"/>
+            <xsd:element name="message" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- cancelAuthorization -->
+      <xsd:element name="cancelAuthorizationRequest">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="token" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="cancelAuthorizationResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="success" type="xsd:boolean"/>
+            <xsd:element name="chargedAmount" type="xsd:double"/>
+            <xsd:element name="message" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+    </xsd:schema>
+  </types>
+
+  <!-- ==================== MESSAGES ==================== -->
+  <message name="preAuthInput">
+    <part name="parameters" element="tns:preAuthRequest"/>
+  </message>
+  <message name="preAuthOutput">
+    <part name="parameters" element="tns:preAuthResponse"/>
+  </message>
+
+  <message name="chargeInput">
+    <part name="parameters" element="tns:chargeRequest"/>
+  </message>
+  <message name="chargeOutput">
+    <part name="parameters" element="tns:chargeResponse"/>
+  </message>
+
+  <message name="unlockInput">
+    <part name="parameters" element="tns:unlockRequest"/>
+  </message>
+  <message name="unlockOutput">
+    <part name="parameters" element="tns:unlockResponse"/>
+  </message>
+
+  <message name="cancelAuthorizationInput">
+    <part name="parameters" element="tns:cancelAuthorizationRequest"/>
+  </message>
+  <message name="cancelAuthorizationOutput">
+    <part name="parameters" element="tns:cancelAuthorizationResponse"/>
+  </message>
+
+  <!-- ==================== PORT TYPE ==================== -->
+  <portType name="BankPortType">
+    <operation name="preAuth">
+      <input message="tns:preAuthInput"/>
+      <output message="tns:preAuthOutput"/>
+    </operation>
+    <operation name="charge">
+      <input message="tns:chargeInput"/>
+      <output message="tns:chargeOutput"/>
+    </operation>
+    <operation name="unlock">
+      <input message="tns:unlockInput"/>
+      <output message="tns:unlockOutput"/>
+    </operation>
+    <operation name="cancelAuthorization">
+      <input message="tns:cancelAuthorizationInput"/>
+      <output message="tns:cancelAuthorizationOutput"/>
+    </operation>
+  </portType>
+
+  <!-- ==================== BINDING ==================== -->
+  <binding name="BankBinding" type="tns:BankPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+
+    <operation name="preAuth">
+      <soap:operation soapAction="preAuth"/>
+      <input><soap:body use="literal"/></input>
+      <output><soap:body use="literal"/></output>
+    </operation>
+
+    <operation name="charge">
+      <soap:operation soapAction="charge"/>
+      <input><soap:body use="literal"/></input>
+      <output><soap:body use="literal"/></output>
+    </operation>
+
+    <operation name="unlock">
+      <soap:operation soapAction="unlock"/>
+      <input><soap:body use="literal"/></input>
+      <output><soap:body use="literal"/></output>
+    </operation>
+
+    <operation name="cancelAuthorization">
+      <soap:operation soapAction="cancelAuthorization"/>
+      <input><soap:body use="literal"/></input>
+      <output><soap:body use="literal"/></output>
+    </operation>
+
+  </binding>
+
+  <!-- ==================== SERVICE ==================== -->
+  <service name="BankService">
+    <port name="BankPort" binding="tns:BankBinding">
+      <soap:address location="http://bank-service:8080"/>
+    </port>
+  </service>
+
+</definitions>
