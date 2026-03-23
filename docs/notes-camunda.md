@@ -21,6 +21,3 @@ Payload: Qui incollerai l'XML completo (<soapenv:Envelope>...).
 Simulate human interaction.  
 Alternative: input values manually at BPMN start.  
 
-
-## TODO
-* altri service task

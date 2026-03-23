@@ -11,3 +11,14 @@ Project for the Microservice Architecture course at University of Bologna 2025/2
 
 http://localhost:8080/camunda/app/cockpit/  
 Login: demo / demo  
+
+
+## Commands
+
+```bash
+./start.sh
+```
+
+```bash
+docker compose down
+```
