@@ -17,3 +17,7 @@
 * rename config loader/ACME
 * reserve vehicle (keep reserved)
 * .env works in docker?
+
+## bank
+* why exposing on both http and soap?
+* `execution { concurrent }` ? not to `exit 0`

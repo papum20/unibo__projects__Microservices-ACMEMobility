@@ -181,7 +181,7 @@
       <bpmn2:incoming>Flow_1uh4ilj</bpmn2:incoming>
       <bpmn2:outgoing>Flow_1ti1rs6</bpmn2:outgoing>
     </bpmn2:serviceTask>
-    <bpmn2:serviceTask id="Activity_0e69l6x" name="unnlock vehicle" camunda:type="external" camunda:topic="station-lock">
+    <bpmn2:serviceTask id="Activity_0e69l6x" name="unnlock vehicle" camunda:type="external" camunda:topic="station-unlock">
       <bpmn2:extensionElements>
         <camunda:inputOutput>
           <camunda:outputParameter name="vehicleId">${vehicleId}</camunda:outputParameter>
@@ -535,9 +535,6 @@
       <bpmndi:BPMNShape id="Lane_00wt0t8_di" bpmnElement="Lane_00wt0t8" isHorizontal="true">
         <dc:Bounds x="370" y="730" width="2650" height="875" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0o4zoor_di" bpmnElement="Activity_0tvj09s">
-        <dc:Bounds x="620" y="1200" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_14k9ls8_di" bpmnElement="Activity_14k9ls8" isExpanded="true">
         <dc:Bounds x="1200" y="1200" width="320" height="260" />
         <bpmndi:BPMNLabel />
@@ -700,6 +697,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_11mqf19_di" bpmnElement="Activity_0bze99r">
         <dc:Bounds x="1910" y="1220" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1g4otkx_di" bpmnElement="Activity_0wj8r51">
         <dc:Bounds x="1910" y="1070" width="100" height="80" />
@@ -715,6 +713,9 @@
         <bpmndi:BPMNLabel>
           <dc:Bounds x="889" y="1043" width="62" height="14" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0o4zoor_di" bpmnElement="Activity_0tvj09s">
+        <dc:Bounds x="620" y="1200" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_03jtsl5_di" bpmnElement="Event_0kt26kv">
         <dc:Bounds x="1382" y="1182" width="36" height="36" />
@@ -1146,14 +1147,6 @@
         <dc:Bounds x="2870" y="1218" width="118" height="64" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Association_1224vm5_di" bpmnElement="Association_1224vm5">
-        <di:waypoint x="3120" y="985" />
-        <di:waypoint x="3210" y="953" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_1k5o1nl_di" bpmnElement="Association_1k5o1nl">
-        <di:waypoint x="2878" y="1314" />
-        <di:waypoint x="2894" y="1282" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_03488ap_di" bpmnElement="Flow_03488ap">
         <di:waypoint x="952" y="170" />
         <di:waypoint x="160" y="170" />
@@ -1335,6 +1328,14 @@
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1985" y="1823" width="70" height="14" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1224vm5_di" bpmnElement="Association_1224vm5">
+        <di:waypoint x="3120" y="985" />
+        <di:waypoint x="3210" y="953" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1k5o1nl_di" bpmnElement="Association_1k5o1nl">
+        <di:waypoint x="2878" y="1314" />
+        <di:waypoint x="2894" y="1282" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

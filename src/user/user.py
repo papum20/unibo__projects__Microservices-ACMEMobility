@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 
 
-# expected .env in the parent directory of this file
+# expected .env in the parent directory
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 

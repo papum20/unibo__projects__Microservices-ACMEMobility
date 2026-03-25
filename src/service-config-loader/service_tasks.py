@@ -1,25 +1,33 @@
-import os
 from datetime import datetime, timezone
 import time
 import logging
 import requests
+import xml.etree.ElementTree as ET
 from zeep import Client, exceptions as zeep_exceptions
 from camunda.external_task.external_task import ExternalTask, TaskResult
 from camunda.external_task.external_task_worker import ExternalTaskWorker
+
+from util import get_env_or_exit
+
+
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # --- CONFIGURATION (Loaded directly from Environment) ---
-CAMUNDA_URL         = os.environ.get('URL_CAMUNDA', 'http://camunda:8080/engine-rest')
-BANK_WSDL_URL       = os.environ.get('URL_BANK_WSDL', 'http://bank-service:8000/bank?wsdl') # Jolie SOAP WSDL
-STATION_BASE_URL    = os.environ.get('URL_STATION', 'http://stations-service:5000')
-FLEET_BASE_URL      = os.environ.get('URL_FLEET', 'http://fleet-service:4000')
-BANK_BASE_URL		= os.environ.get('URL_BANK', 'http://bank-service:8000')
-STATION_BASE_URL	= os.environ.get('URL_STATION', 'http://stations-service:5000')
+CAMUNDA_URL         = get_env_or_exit('URL_CAMUNDA')
+BANK_WSDL_URL       = get_env_or_exit('URL_BANK_WSDL')
+STATION_BASE_URL    = get_env_or_exit('URL_STATION')
+FLEET_BASE_URL      = get_env_or_exit('URL_FLEET')
+BANK_BASE_URL		= get_env_or_exit('URL_BANK')
+STATION_BASE_URL	= get_env_or_exit('URL_STATION')
 
-BANK_CAUTION        = int(os.environ.get('BANK_CAUTION', 10))
+EP_BANK_PREAUTH			= get_env_or_exit('ENDPOINT_BANK_PREAUTH')
+EP_BANK_CHARGE			= get_env_or_exit('ENDPOINT_BANK_CHARGE')
+EP_BANK_UNLOCK_CAUTION	= get_env_or_exit('ENDPOINT_BANK_UNLOCK_CAUTION')
+
+BANK_CAUTION        = int(get_env_or_exit('BANK_CAUTION'))
 
 
 
@@ -78,20 +86,76 @@ def handle_config(task: ExternalTask) -> TaskResult:
 # BANK SERVICES (JOLIE - SOAP via Zeep)
 # =====================================================================
 
+#def handle_bank_preauth(task: ExternalTask) -> TaskResult:
+#    """Topic: bank-preauth (block 10€ caution money)"""
+#    logger.info("Executing SOAP PreAuth for process %s", task.get_process_instance_id())
+#    try:
+#        # Initialize SOAP Client
+#        client = Client(wsdl=BANK_WSDL_URL)
+#        # Call the Jolie SOAP operation (assuming operation is named 'preAuthorize')
+#        response = client.service.preAuth(cardId="USER-CARD-1234", amount=BANK_CAUTION)
+#
+#        logger.info("Bank answered: %s", response.message)
+#        
+#        # We save the bank token to Camunda so we can use it later
+#        return task.complete({"bankToken": response.token, "cautionBlocked": response.success})
+#    except Exception as e:
+#        logger.error("SOAP Error in PreAuth: %s", e)
+#        return task.failure(error_message="Bank PreAuth Failed", error_details=str(e), max_retries=0, retry_timeout=0)
+
 def handle_bank_preauth(task: ExternalTask) -> TaskResult:
     """Topic: bank-preauth (block 10€ caution money)"""
     logger.info("Executing SOAP PreAuth for process %s", task.get_process_instance_id())
+    
+    # In a real app, you might get the card ID from Camunda variables. 
+    # For now, we simulate it:
+    card_id = "USER-CARD-1234"
+    
+    # 1. The exact XML that worked in your terminal!
+    soap_body = f"""<?xml version="1.0" encoding="UTF-8"?>
+    <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+        <SOAP-ENV:Body>
+            <preAuth>
+                <cardId>{card_id}</cardId>
+                <amount>{BANK_CAUTION}</amount>
+            </preAuth>
+        </SOAP-ENV:Body>
+    </SOAP-ENV:Envelope>"""
+    
+    headers = {'Content-Type': 'text/xml; charset=utf-8'}
+    
     try:
-        # Initialize SOAP Client
-        client = Client(wsdl=BANK_WSDL_URL)
-        # Call the Jolie SOAP operation (assuming operation is named 'preAuthorize')
-        response = client.service.preAuthorize(amount=BANK_CAUTION)
+        # 2. Send the POST request to the Bank's SOAP port (8080 in the Docker network)
+        # Note: If your docker-compose service is named 'bank-service', use that here:
+        response = requests.post("http://bank-service:8080/", data=soap_body, headers=headers)
         
-        # We save the bank token to Camunda so we can use it later
-        return task.complete({"bankToken": response.token, "cautionBlocked": True})
+        if response.status_code == 200:
+            # 3. Parse the XML response to extract the token
+            root = ET.fromstring(response.content)
+            
+            # ET.fromstring allows us to search for the tags, ignoring namespaces using ".//"
+            token_element = root.find(".//token")
+            success_element = root.find(".//success")
+            
+            if token_element is not None:
+                token = token_element.text
+                success = (success_element.text == 'true')
+                
+                logger.info("Bank PreAuth Success! Token: %s", token)
+                
+                # 4. Save the token to Camunda variables
+                return task.complete({
+                    "bankToken": token,
+                    "cautionBlocked": success
+                })
+            else:
+                return task.failure("Parse Error", "Could not find <token> in SOAP response", 0, 0)
+        else:
+            return task.failure("SOAP HTTP Error", f"Code {response.status_code}", 0, 0)
+            
     except Exception as e:
-        logger.error("SOAP Error in PreAuth: %s", e)
-        return task.failure(error_message="Bank PreAuth Failed", error_details=str(e), max_retries=0, retry_timeout=0)
+        logger.error(f"Connection Error: {e}")
+        return task.failure("Connection Error", str(e), 0, 0)
 
 def handle_bank_charge(task: ExternalTask) -> TaskResult:
     """Topic: bank-charge (charge user)"""

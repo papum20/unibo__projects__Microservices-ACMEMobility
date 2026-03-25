@@ -3,7 +3,7 @@ services:
     image: camunda/camunda-bpm-platform:run-latest
     container_name: acme-camunda
     ports:
-      - "${CAMUNDA_PORT}:8080"
+      - "${PORT_CAMUNDA}:8080"
     volumes:
       # Here you map the folder where you save your .bpmn files
       - ./camunda-resources/:/camunda/configuration/resources
@@ -15,30 +15,35 @@ services:
       - CAMUNDA_BPM_RUN_EXAMPLE_INVOICE_ENABLED=false
       - CAMUNDA_BPM_RUN_WELCOME_APP_ENABLED=false
     networks:
-      - acme-network
+      - orchestration-network
 
 # fleet:
 #   build: ./service-fleet-management
 #   networks:
 #     - acme-network
 
-#  bank:
-#    build: ./service-bank
+  bank-service:
+    build: ./service-bank
+    networks:
+      - bank-network
 
   config-loader:
     build: ./service-config-loader
     container_name: acme-config-loader
-    environment:
-      - URL_CAMUNDA=http://camunda:8080/engine-rest
-      - URL_BANK=http://bank-service:8000
-      - URL_STATION=http://stations-service:5000
-      - BANK_CAUTION=10
+    env_file:
+      - .env
     depends_on:
       - camunda
     networks:
       - acme-network
+      - bank-network
+      - orchestration-network
 
 
 networks:
   acme-network:
+    driver: bridge
+  bank-network:
+    driver: bridge
+  orchestration-network:
     driver: bridge
