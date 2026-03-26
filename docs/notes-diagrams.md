@@ -4,3 +4,4 @@ pre-auth token: identifies the session started with the caution money deposit
 
 implementation:
 * everything with external tasks for consistency, manageability, debugging
+* timers: some may be lower, for the sake of testing and presentation

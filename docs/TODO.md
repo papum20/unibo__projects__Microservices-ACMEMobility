@@ -2,6 +2,9 @@
 
 # TODO
 
+## docs
+* make presentation bpmn like the camnda one (eg service tasks)
+
 ## Camunda
 * altri service task
 * whats track vehicle in the loop?
@@ -21,3 +24,4 @@
 ## bank
 * why exposing on both http and soap?
 * `execution { concurrent }` ? not to `exit 0`
+* generate wsdl via script automatically in docker (if needed)

@@ -35,6 +35,8 @@
     <bpmn2:messageFlow id="Flow_0d9e85h" name="vehicle id" sourceRef="Activity_0bze99r" targetRef="Participant_1kdt5om" />
     <bpmn2:messageFlow id="Flow_0s090dq" name="battery status" sourceRef="Participant_0klft1h" targetRef="Activity_1vxniv4" />
     <bpmn2:messageFlow id="Flow_0b4k60o" name="notify success" sourceRef="Participant_1kdt5om" targetRef="Activity_0bze99r" />
+    <bpmn2:messageFlow id="Flow_1t1e9be" name="vehicle id" sourceRef="Activity_13sarlw" targetRef="Participant_0klft1h" />
+    <bpmn2:messageFlow id="Flow_056l9yt" name="notify success" sourceRef="Participant_0klft1h" targetRef="Activity_13sarlw" />
     <bpmn2:group id="Group_1l9au2a" categoryValueRef="CategoryValue_1pi17m7" />
     <bpmn2:textAnnotation id="TextAnnotation_1bthklw">
       <bpmn2:text>ACMEMobility infrastracture</bpmn2:text>
@@ -96,6 +98,7 @@
         <bpmn2:flowNodeRef>Activity_0xqs3bt</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_1g2ix8y</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_0tvj09s</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Activity_13sarlw</bpmn2:flowNodeRef>
       </bpmn2:lane>
     </bpmn2:laneSet>
     <bpmn2:subProcess id="Activity_14k9ls8" name="ride">
@@ -119,7 +122,7 @@
         <bpmn2:incoming>Flow_0z210ba</bpmn2:incoming>
         <bpmn2:outgoing>Flow_1ln952t</bpmn2:outgoing>
         <bpmn2:timerEventDefinition id="TimerEventDefinition_0ypb3dt">
-          <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression">PT30S</bpmn2:timeDuration>
+          <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression">PT5S</bpmn2:timeDuration>
         </bpmn2:timerEventDefinition>
       </bpmn2:intermediateCatchEvent>
       <bpmn2:task id="Activity_1kwkkh8" name="request vehicle information">
@@ -159,7 +162,6 @@
       <bpmn2:incoming>Flow_1976dxj</bpmn2:incoming>
       <bpmn2:incoming>Flow_0i9c3f7</bpmn2:incoming>
       <bpmn2:outgoing>Flow_0mg09ij</bpmn2:outgoing>
-      <bpmn2:outgoing>Flow_14fdxbj</bpmn2:outgoing>
     </bpmn2:parallelGateway>
     <bpmn2:exclusiveGateway id="Gateway_1ixpr0z">
       <bpmn2:incoming>Flow_1vunasc</bpmn2:incoming>
@@ -364,11 +366,12 @@
     <bpmn2:sequenceFlow id="Flow_0y2aj3j" sourceRef="Gateway_0f7qf99" targetRef="Activity_0gpuobx" />
     <bpmn2:sequenceFlow id="Flow_0i9c3f7" sourceRef="Activity_0gpuobx" targetRef="Gateway_0sydpvs" />
     <bpmn2:boundaryEvent id="Event_0kt26kv" name="acknowledge parked vehicle" attachedToRef="Activity_14k9ls8">
+      <bpmn2:outgoing>Flow_14fdxbj</bpmn2:outgoing>
       <bpmn2:messageEventDefinition id="MessageEventDefinition_1k31puj" messageRef="Message_1mgein2" />
     </bpmn2:boundaryEvent>
-    <bpmn2:sequenceFlow id="Flow_14fdxbj" sourceRef="Gateway_0sydpvs" targetRef="Activity_1vxniv4" />
+    <bpmn2:sequenceFlow id="Flow_14fdxbj" sourceRef="Event_0kt26kv" targetRef="Activity_1vxniv4" />
     <bpmn2:sequenceFlow id="Flow_0inzan5" sourceRef="Activity_1vxniv4" targetRef="Activity_0bze99r" />
-    <bpmn2:sequenceFlow id="Flow_10tmghx" sourceRef="Activity_0bze99r" targetRef="Activity_0wj8r51" />
+    <bpmn2:sequenceFlow id="Flow_10tmghx" sourceRef="Activity_13sarlw" targetRef="Activity_0wj8r51" />
     <bpmn2:serviceTask id="Activity_0gpuobx" name="start vehicle tracking" camunda:type="external" camunda:topic="fleet-track-start">
       <bpmn2:incoming>Flow_0y2aj3j</bpmn2:incoming>
       <bpmn2:outgoing>Flow_0i9c3f7</bpmn2:outgoing>
@@ -379,7 +382,7 @@
     </bpmn2:serviceTask>
     <bpmn2:serviceTask id="Activity_0bze99r" name="lock vehicle" camunda:type="external" camunda:topic="station-lock">
       <bpmn2:incoming>Flow_0inzan5</bpmn2:incoming>
-      <bpmn2:outgoing>Flow_10tmghx</bpmn2:outgoing>
+      <bpmn2:outgoing>Flow_17u7rv1</bpmn2:outgoing>
     </bpmn2:serviceTask>
     <bpmn2:serviceTask id="Activity_0wj8r51" name="calculate amount to charge" camunda:type="external" camunda:topic="acme-calculate-charge">
       <bpmn2:incoming>Flow_10tmghx</bpmn2:incoming>
@@ -401,6 +404,11 @@
     <bpmn2:serviceTask id="Activity_0tvj09s" name="reserve vehicle" camunda:type="external" camunda:topic="acme-reserve">
       <bpmn2:incoming>Flow_0zej2pl</bpmn2:incoming>
       <bpmn2:outgoing>Flow_1r7kfgr</bpmn2:outgoing>
+    </bpmn2:serviceTask>
+    <bpmn2:sequenceFlow id="Flow_17u7rv1" sourceRef="Activity_0bze99r" targetRef="Activity_13sarlw" />
+    <bpmn2:serviceTask id="Activity_13sarlw" name="stop vehicle tracking">
+      <bpmn2:incoming>Flow_17u7rv1</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_10tmghx</bpmn2:outgoing>
     </bpmn2:serviceTask>
   </bpmn2:process>
   <bpmn2:process id="Process_12yb2r3" isExecutable="false" camunda:historyTimeToLive="P180D">
@@ -534,6 +542,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_00wt0t8_di" bpmnElement="Lane_00wt0t8" isHorizontal="true">
         <dc:Bounds x="370" y="730" width="2650" height="875" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1gatdzn_di" bpmnElement="Activity_13sarlw">
+        <dc:Bounds x="2090" y="1220" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_14k9ls8_di" bpmnElement="Activity_14k9ls8" isExpanded="true">
         <dc:Bounds x="1200" y="1200" width="320" height="260" />
@@ -954,8 +965,8 @@
         <di:waypoint x="1215" y="990" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_14fdxbj_di" bpmnElement="Flow_14fdxbj">
-        <di:waypoint x="1265" y="990" />
-        <di:waypoint x="1630" y="990" />
+        <di:waypoint x="1414" y="1189" />
+        <di:waypoint x="1630" y="1180" />
         <di:waypoint x="1630" y="1220" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0inzan5_di" bpmnElement="Flow_0inzan5">
@@ -963,8 +974,13 @@
         <di:waypoint x="1910" y="1260" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_10tmghx_di" bpmnElement="Flow_10tmghx">
-        <di:waypoint x="1960" y="1220" />
-        <di:waypoint x="1960" y="1150" />
+        <di:waypoint x="2110" y="1220" />
+        <di:waypoint x="2110" y="1130" />
+        <di:waypoint x="2010" y="1130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_17u7rv1_di" bpmnElement="Flow_17u7rv1">
+        <di:waypoint x="2010" y="1260" />
+        <di:waypoint x="2090" y="1260" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Participant_1lu36b9_di" bpmnElement="Participant_1lu36b9" isHorizontal="true">
         <dc:Bounds x="670" y="80" width="2350" height="390" />
@@ -1136,6 +1152,20 @@
       <bpmndi:BPMNShape id="BPMNShape_1ekuqwm" bpmnElement="Lane_1do875r" isHorizontal="true">
         <dc:Bounds x="700" y="1810" width="2320" height="90" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1t1e9be_di" bpmnElement="Flow_1t1e9be">
+        <di:waypoint x="2110" y="1300" />
+        <di:waypoint x="2110" y="1700" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2067" y="1713" width="46" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_056l9yt_di" bpmnElement="Flow_056l9yt">
+        <di:waypoint x="2170" y="1700" />
+        <di:waypoint x="2170" y="1300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2150" y="1713" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Group_1l9au2a_di" bpmnElement="Group_1l9au2a">
         <dc:Bounds x="300" y="700" width="2820" height="1290" />
       </bpmndi:BPMNShape>
