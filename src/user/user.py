@@ -1,7 +1,6 @@
 import os
 import requests
 import sys
-import json
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -26,14 +25,17 @@ MESSAGE_USER_CANCEL				= get_env_or_exit("MESSAGE_USER_CANCEL")
 MESSAGE_USER_RESERVE_SCAN		= get_env_or_exit("MESSAGE_USER_RESERVE_SCAN")
 MESSAGE_USER_PARKED				= get_env_or_exit("MESSAGE_USER_PARKED")
 
+REQUEST_TIMEOUT_SECONDS = 10
 
 
-def send_message(message_name, vehicle_id, variables=None):
+
+def send_message(message_name, vehicle_id, user_id, variables=None):
 	payload = {
 		"messageName": message_name,
-		"businessKey": vehicle_id, # Link actions to this specific vehicle
+		"businessKey": vehicle_id,	# Used by Camunda to index process instances (e.g. to this specific vehicle)
 		"processVariables": {
-			"vehicleId": {"value": vehicle_id, "type": "String"}
+			"vehicleId": {"value": vehicle_id, "type": "String"},
+			"userId": {"value": user_id, "type": "String"}
 		}
 	}
 	
@@ -42,7 +44,7 @@ def send_message(message_name, vehicle_id, variables=None):
 			v_type = "Boolean" if isinstance(v, bool) else "String"
 			payload["processVariables"][k] = {"value": v, "type": v_type}
 
-	response = requests.post(URL_CAMUNDA_MESSAGE, json=payload)
+	response = requests.post(URL_CAMUNDA_MESSAGE, json=payload, timeout=REQUEST_TIMEOUT_SECONDS)
 	
 	if response.status_code in [200, 204]:
 		print(f"Success: {message_name} sent for {vehicle_id}")
@@ -52,36 +54,37 @@ def send_message(message_name, vehicle_id, variables=None):
 
 
 def print_usage():
-	print("\nUsage: python user_actions.py [action] [vehicle_id]")
+	print("\nUsage: python user_actions.py [action] [vehicle_id] [user_id]")
 	print("Actions: scan, reserve, cancel, scan_reserved, park")
-	print("Example: python user_actions.py scan V-001\n")
+	print("Example: python user_actions.py scan V-001 User-001\n")
 
 
 
 if __name__ == "__main__":
-	if len(sys.argv) < 3:
+	if len(sys.argv) < 4:
 		print_usage()
 		sys.exit(1)
 
-	action = sys.argv[1]
-	vid = sys.argv[2]
+	action		= sys.argv[1]
+	vehicle_id	= sys.argv[2]
+	user_id		= sys.argv[3]
 
 
 	if action == "scan":
-		send_message(MESSAGE_USER_START_IMMEDIATE, vid, variables={"isImmediate": True})
+		send_message(MESSAGE_USER_START_IMMEDIATE, vehicle_id, user_id, variables={"isImmediate": True})
 	
 	elif action == "reserve":
 		# We add a timestamp for the cancellation logic
-		send_message(MESSAGE_USER_START_RESERVE, vid, variables={"isImmediate": False})
+		send_message(MESSAGE_USER_START_RESERVE, vehicle_id, user_id, variables={"isImmediate": False})
 	
 	elif action == "cancel":
-		send_message(MESSAGE_USER_CANCEL, vid)
+		send_message(MESSAGE_USER_CANCEL, vehicle_id, user_id)
 	
 	elif action == "scan_reserved":
-		send_message(MESSAGE_USER_RESERVE_SCAN, vid)
+		send_message(MESSAGE_USER_RESERVE_SCAN, vehicle_id, user_id)
 	
 	elif action == "park":
-		send_message(MESSAGE_USER_PARKED, vid)
+		send_message(MESSAGE_USER_PARKED, vehicle_id, user_id)
 	
 	else:
 		print("Unknown action.")

@@ -1,11 +1,8 @@
 from datetime import datetime, timezone
-import time
 import logging
 import requests
 import xml.etree.ElementTree as ET
-from zeep import Client, exceptions as zeep_exceptions
 from camunda.external_task.external_task import ExternalTask, TaskResult
-from camunda.external_task.external_task_worker import ExternalTaskWorker
 
 from util import get_env_or_exit
 
@@ -16,18 +13,57 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Read Configuration from Docker Environment
-CAMUNDA_URL         = get_env_or_exit('URL_CAMUNDA')
-BANK_WSDL_URL       = get_env_or_exit('URL_BANK_WSDL')
-STATION_BASE_URL    = get_env_or_exit('URL_STATION')
-FLEET_BASE_URL      = get_env_or_exit('URL_FLEET')
-BANK_BASE_URL		= get_env_or_exit('URL_BANK')
-STATION_BASE_URL	= get_env_or_exit('URL_STATION')
+URL_CAMUNDA         = get_env_or_exit('URL_CAMUNDA')
+URL_BANK_WSDL       = get_env_or_exit('URL_BANK_WSDL')
+URL_STATION_BASE    = get_env_or_exit('URL_STATION')
+URL_FLEET_BASE      = get_env_or_exit('URL_FLEET')
+URL_BANK_BASE		= get_env_or_exit('URL_BANK')
+URL_STATION_BASE	= get_env_or_exit('URL_STATION')
 
 EP_BANK_PREAUTH			= get_env_or_exit('ENDPOINT_BANK_PREAUTH')
 EP_BANK_CHARGE			= get_env_or_exit('ENDPOINT_BANK_CHARGE')
 EP_BANK_UNLOCK_CAUTION	= get_env_or_exit('ENDPOINT_BANK_UNLOCK_CAUTION')
 
 BANK_CAUTION        = int(get_env_or_exit('BANK_CAUTION'))
+
+CAMUNDA_USER_ID					= get_env_or_exit('CAMUNDA_VAR_USER_ID')
+CAMUNDA_VEHICLE_ID				= get_env_or_exit('CAMUNDA_VAR_VEHICLE_ID')
+CAMUNDA_IS_IMMEDIATE			= get_env_or_exit('CAMUNDA_VAR_IS_IMMEDIATE')
+CAMUNDA_RESERVE_TIME			= get_env_or_exit('CAMUNDA_VAR_RESERVE_TIME')
+CAMUNDA_BANK_TOKEN				= get_env_or_exit('CAMUNDA_VAR_BANK_TOKEN')
+CAMUNDA_AMOUNT_TO_CHARGE		= get_env_or_exit('CAMUNDA_VAR_AMOUNT_TO_CHARGE')
+CAMUNDA_CONVERT_CAUTION_STATUS	= get_env_or_exit('CAMUNDA_VAR_CONVERT_CAUTION_STATUS')
+CAMUNDA_CAUTION_BLOCKED			= get_env_or_exit('CAMUNDA_VAR_CAUTION_BLOCKED')
+CAMUNDA_PAYMENT_STATUS			= get_env_or_exit('CAMUNDA_VAR_PAYMENT_STATUS')
+CAMUNDA_BATTERY_LEVEL			= get_env_or_exit('CAMUNDA_VAR_BATTERY_LEVEL')
+CAMUNDA_VEHICLE_UNLOCKED		= get_env_or_exit('CAMUNDA_VAR_VEHICLE_UNLOCKED')
+CAMUNDA_CANCEL_MINUTES			= get_env_or_exit('CAMUNDA_VAR_CANCEL_MINUTES')
+CAMUNDA_AMOUNT_BASE				= get_env_or_exit('CAMUNDA_VAR_AMOUNT_BASE')
+CAMUNDA_PENALTY_APPLIED			= get_env_or_exit('CAMUNDA_VAR_PENALTY_APPLIED')
+
+
+REQUEST_TIMEOUT_SECONDS = 10
+REQUEST_MAX_RETRIES		= 3
+REQUEST_RETRY_DELAY_MS	= 5000
+
+SOAP_HEADERS = {'Content-Type': 'text/xml; charset=utf-8'}
+
+
+def get_user_saved_card(user_id):
+	"""Simulate fetching the user's saved card from a database or external service."""
+	return f"USER-{user_id}-CARD-1234"
+
+def get_soap_body(body_content: str) -> str:
+	return f"""<?xml version="1.0" encoding="UTF-8"?>
+		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+			<SOAP-ENV:Body>
+				{body_content}
+			</SOAP-ENV:Body>
+		</SOAP-ENV:Envelope>"""
+
+def soap_request(url: str, data: str) -> requests.Response:
+	"""throws requests.exceptions.Timeout if the request takes too long"""
+	return requests.post(url, data=data, headers=SOAP_HEADERS, timeout=REQUEST_TIMEOUT_SECONDS)
 
 
 
@@ -56,8 +92,8 @@ def handle_config(task: ExternalTask) -> TaskResult:
 	# We send both Base URLs and Endpoints separately
 	config_variables = {
 		# Base URLs
-		"urlBank": BANK_BASE_URL,
-		"urlStation": STATION_BASE_URL,
+		"urlBank": URL_BANK_BASE,
+		"urlStation": URL_STATION_BASE,
 
 		# Bank
 		"epBankPreAuth": ep_bank_preauth,
@@ -90,29 +126,20 @@ def handle_bank_preauth(task: ExternalTask) -> TaskResult:
 	"""Topic: bank-preauth (block 10€ caution money)"""
 	logger.info("Executing SOAP PreAuth for process %s", task.get_process_instance_id())
 	
-	# In a real app, you might get the card ID from Camunda variables. 
-	# For now, we simulate it:
-	card_id = "USER-CARD-1234"
-	
-	soap_body = f"""<?xml version="1.0" encoding="UTF-8"?>
-	<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
-		<SOAP-ENV:Body>
-			<preAuth>
-				<cardId>{card_id}</cardId>
-				<amount>{BANK_CAUTION}</amount>
-			</preAuth>
-		</SOAP-ENV:Body>
-	</SOAP-ENV:Envelope>"""
-	
-	headers = {'Content-Type': 'text/xml; charset=utf-8'}
+	card_id		= get_user_saved_card(task.get_variable(CAMUNDA_USER_ID))
+	soap_body	= get_soap_body(
+		f"""<preAuth>
+			<cardId>{card_id}</cardId>
+			<amount>{BANK_CAUTION}</amount>
+		</preAuth>""")
 	
 	try:
-		response = requests.post(BANK_WSDL_URL, data=soap_body, headers=headers)
+		response = soap_request(URL_BANK_WSDL, soap_body)
 		
 		if response.status_code == 200:
 			root = ET.fromstring(response.content)
 			
-			# search for the tags, ignoring namespaces using ".//"
+			# search for the tags, ignoring namespaces, using ".//"
 			token_element   = root.find(".//token")
 			success_element = root.find(".//success")
 			
@@ -124,14 +151,21 @@ def handle_bank_preauth(task: ExternalTask) -> TaskResult:
 				
 				# Save the token to Camunda variables
 				return task.complete({
-					"bankToken"         : token,
-					"cautionBlocked"    : success
+					CAMUNDA_BANK_TOKEN		: token,
+					CAMUNDA_CAUTION_BLOCKED	: success
 				})
 			else:
 				return task.failure("Parse Error", "Could not find <token> in SOAP response", 0, 0)
 		else:
 			return task.failure("SOAP HTTP Error", f"Code {response.status_code}", 0, 0)
-			
+	except requests.exceptions.Timeout:
+		logger.error("Bank service timed out!")
+		return task.failure(
+			error_message="Bank Service Timeout", 
+			error_details="The bank service took more than 10 seconds to respond.",
+			max_retries=REQUEST_MAX_RETRIES, 
+			retry_timeout=REQUEST_RETRY_DELAY_MS
+		)
 	except Exception as e:
 		logger.error("Connection Error: %s", e)
 		return task.failure("Connection Error", str(e), 0, 0)
@@ -141,13 +175,38 @@ def handle_bank_charge(task: ExternalTask) -> TaskResult:
 	"""Topic: bank-charge (charge user)"""
 	logger.info("Executing SOAP Charge")
 	# Get variables from Camunda context
-	token = task.get_variable("bankToken")
-	amount = task.get_variable("finalAmountToCharge") # Calculated in another task
+	token		= task.get_variable(CAMUNDA_BANK_TOKEN)
+	amount		= task.get_variable(CAMUNDA_AMOUNT_TO_CHARGE)
+	soap_body	= get_soap_body(
+		f"""<charge>
+			<token>{token}</token>
+			<amount>{amount}</amount>
+		</charge>""")
 	
 	try:
-		client = Client(wsdl=BANK_WSDL_URL)
-		client.service.charge(token=token, amount=amount)
-		return task.complete({"paymentStatus": "success"})
+		response = soap_request(URL_BANK_WSDL, soap_body)
+
+		if response.status_code == 200:
+			root = ET.fromstring(response.content)
+			status_element = root.find(".//status")
+			
+			if status_element is not None:
+				status = status_element.text
+				logger.info("Bank Charge Status: %s", status)
+				
+				return task.complete({CAMUNDA_PAYMENT_STATUS: status})
+			else:
+				return task.failure("Parse Error", "Could not find <status> in SOAP response", 0, 0)
+		else:
+			return task.failure("SOAP HTTP Error", f"Code {response.status_code}", 0, 0)
+	except requests.exceptions.Timeout:
+		logger.error("Bank service timed out!")
+		return task.failure(
+			error_message="Bank Service Timeout", 
+			error_details="The bank service took more than 10 seconds to respond.",
+			max_retries=REQUEST_MAX_RETRIES, 
+			retry_timeout=REQUEST_RETRY_DELAY_MS
+		)
 	except Exception as e:
 		logger.error("SOAP Error in Charge: %s", e)
 		return task.failure(error_message="Charge Failed", error_details=str(e), max_retries=0, retry_timeout=0)
@@ -156,14 +215,78 @@ def handle_bank_charge(task: ExternalTask) -> TaskResult:
 def handle_bank_unlock_caution(task: ExternalTask) -> TaskResult:
 	"""Topic: bank-unlock-caution"""
 	logger.info("Executing SOAP Unlock Caution")
-	token = task.get_variable("bankToken")
+
+	token		= task.get_variable(CAMUNDA_BANK_TOKEN)
+	soap_body	= get_soap_body(
+		f"""<unlockCaution>
+			<token>{token}</token>
+		</unlockCaution>""")
+
 	try:
-		client = Client(wsdl=BANK_WSDL_URL)
-		client.service.unlockCaution(token=token)
-		return task.complete({"cautionUnlocked": True})
+		response = soap_request(URL_BANK_WSDL, soap_body)
+
+		if response.status_code == 200:
+			root = ET.fromstring(response.content)
+			success_element = root.find(".//success")
+			
+			if success_element is not None:
+				success = (success_element.text == 'true')  # type: ignore
+				logger.info("Bank Unlock Caution Success: %s", success)
+				return task.complete({"cautionUnlocked": success})
+			else:
+				return task.failure("Parse Error", "Could not find <success> in SOAP response", 0, 0)
+		else:
+			return task.failure("SOAP HTTP Error", f"Code {response.status_code}", 0, 0)
+	except requests.exceptions.Timeout:
+		logger.error("Bank service timed out!")
+		return task.failure(
+			error_message="Bank Service Timeout", 
+			error_details="The bank service took more than 10 seconds to respond.",
+			max_retries=REQUEST_MAX_RETRIES, 
+			retry_timeout=REQUEST_RETRY_DELAY_MS
+		)
 	except Exception as e:
 		logger.error("SOAP Error in Unlock Caution: %s", e)
 		return task.failure(error_message="Unlock Caution Failed", error_details=str(e), max_retries=0, retry_timeout=0)
+
+
+def handle_bank_convert_caution(task: ExternalTask) -> TaskResult:
+	"""Topic: bank-convert-caution (convert blocked caution into actual charge)"""
+	logger.info("Executing SOAP Convert Caution to Charge")
+
+	token		= task.get_variable(CAMUNDA_BANK_TOKEN)
+	soap_body	= get_soap_body(
+		f"""<convertCaution>
+			<token>{token}</token>
+		</convertCaution>""")
+	
+	try:
+		response = soap_request(URL_BANK_WSDL, soap_body)
+
+		if response.status_code == 200:
+			root = ET.fromstring(response.content)
+			status_element = root.find(".//status")
+			
+			if status_element is not None:
+				status = status_element.text
+				logger.info("Bank Convert Caution Status: %s", status)
+				
+				return task.complete({CAMUNDA_CONVERT_CAUTION_STATUS: status})
+			else:
+				return task.failure("Parse Error", "Could not find <status> in SOAP response", 0, 0)
+		else:
+			return task.failure("SOAP HTTP Error", f"Code {response.status_code}", 0, 0)
+	except requests.exceptions.Timeout:
+		logger.error("Bank service timed out!")
+		return task.failure(
+			error_message="Bank Service Timeout", 
+			error_details="The bank service took more than 10 seconds to respond.",
+			max_retries=REQUEST_MAX_RETRIES, 
+			retry_timeout=REQUEST_RETRY_DELAY_MS
+		)
+	except Exception as e:
+		logger.error("SOAP Error in Convert Caution: %s", e)
+		return task.failure(error_message="Convert Caution Failed", error_details=str(e), max_retries=0, retry_timeout=0)
 
 
 
@@ -173,7 +296,7 @@ def handle_bank_unlock_caution(task: ExternalTask) -> TaskResult:
 
 def handle_station_unlock(task: ExternalTask) -> TaskResult:
 	"""Topic: station-unlock (unlock vehicle)"""
-	vehicle_id = task.get_variable("vehicleId") or "V-123"
+	vehicle_id = task.get_variable("vehicleId")
 	logger.info("Sending REST request to Station to unlock %s", vehicle_id)
 	
 	try:
@@ -189,7 +312,7 @@ def handle_station_unlock(task: ExternalTask) -> TaskResult:
 
 def handle_station_lock(task: ExternalTask) -> TaskResult:
 	"""Topic: station-lock (lock vehicle)"""
-	vehicle_id = task.get_variable("vehicleId") or "V-123"
+	vehicle_id = task.get_variable("vehicleId")
 	logger.info("Sending REST request to Station to lock %s", vehicle_id)
 	
 	# Simulate success

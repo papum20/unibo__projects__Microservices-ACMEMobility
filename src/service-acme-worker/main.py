@@ -54,7 +54,7 @@ TOPIC_MAP = {
 	TOPIC_BANK_PREAUTH				: handle_bank_preauth,
 	TOPIC_BANK_CHARGE				: handle_bank_charge,
 	TOPIC_BANK_UNLOCK_CAUTION		: handle_bank_unlock_caution,
-	TOPIC_BANK_CONVERT_CAUTION		: handle_bank_charge,  # reuse charge logic
+	TOPIC_BANK_CONVERT_CAUTION		: handle_bank_charge,
 	TOPIC_STATION_UNLOCK			: handle_station_unlock,
 	TOPIC_STATION_LOCK				: handle_station_lock,
 	TOPIC_FLEET_TRACK_INFO			: handle_fleet_track_info,

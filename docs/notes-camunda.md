@@ -21,3 +21,5 @@ Payload: Qui incollerai l'XML completo (<soapenv:Envelope>...).
 Simulate human interaction.  
 Alternative: input values manually at BPMN start.  
 
+## Calls
+**`businessKey`**: Used by Camunda to index process instances (e.g. to this specific vehicle)
