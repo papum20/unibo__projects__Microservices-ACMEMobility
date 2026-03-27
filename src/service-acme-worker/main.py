@@ -9,6 +9,7 @@ from service_tasks import (
 	handle_bank_unlock_caution,
 	handle_station_unlock,
 	handle_station_lock,
+	handle_fleet_track_info,
 	handle_fleet_track_start,
 	handle_fleet_track_stop,
 	handle_fleet_fetch_battery,
@@ -26,28 +27,45 @@ from util import get_env_or_exit
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Read Configuration from Docker Environment (Base URLs)
+# Read Configuration from Docker Environment
 CAMUNDA_URL			= get_env_or_exit('URL_CAMUNDA')
 BANK_BASE_URL		= get_env_or_exit('URL_BANK')
 STATION_BASE_URL	= get_env_or_exit('URL_STATION')
 BANK_CAUTION		= get_env_or_exit('BANK_CAUTION')
 
+TOPIC_BANK_PREAUTH				= get_env_or_exit('TOPIC_BANK_PREAUTH')
+TOPIC_BANK_CHARGE				= get_env_or_exit('TOPIC_BANK_CHARGE')
+TOPIC_BANK_CONVERT_CAUTION		= get_env_or_exit('TOPIC_BANK_CONVERT_CAUTION')
+TOPIC_BANK_UNLOCK_CAUTION		= get_env_or_exit('TOPIC_BANK_UNLOCK_CAUTION')
+TOPIC_STATION_LOCK				= get_env_or_exit('TOPIC_STATION_LOCK')
+TOPIC_STATION_UNLOCK			= get_env_or_exit('TOPIC_STATION_UNLOCK')
+TOPIC_FLEET_TRACK_INFO			= get_env_or_exit('TOPIC_FLEET_TRACK_INFO')
+TOPIC_FLEET_TRACK_START			= get_env_or_exit('TOPIC_FLEET_TRACK_START')
+TOPIC_FLEET_TRACK_STOP			= get_env_or_exit('TOPIC_FLEET_TRACK_STOP')
+TOPIC_FLEET_FETCH_BATTERY		= get_env_or_exit('TOPIC_FLEET_FETCH_BATTERY')
+TOPIC_ACME_APPLY_PENALTY		= get_env_or_exit('TOPIC_ACME_APPLY_PENALTY')
+TOPIC_ACME_CALCULATE_CHARGE		= get_env_or_exit('TOPIC_ACME_CALCULATE_CHARGE')
+TOPIC_ACME_CANCELLATION_DELAY	= get_env_or_exit('TOPIC_ACME_CANCELLATION_DELAY')
+TOPIC_ACME_NOTIFY_REJECTION		= get_env_or_exit('TOPIC_ACME_NOTIFY_REJECTION')
+TOPIC_ACME_RESERVE				= get_env_or_exit('TOPIC_ACME_RESERVE')
+
 # BPMN Topic Names -> Python Functions
 TOPIC_MAP = {
-	"bank-preauth"				: handle_bank_preauth,
-	"bank-charge"				: handle_bank_charge,
-	"bank-unlock-caution"		: handle_bank_unlock_caution,
-	"bank-convert-caution"		: handle_bank_charge,  # reuse charge logic
-	"station-unlock"			: handle_station_unlock,
-	"station-lock"				: handle_station_lock,
-	"fleet-track-start"			: handle_fleet_track_start,
-	"fleet-track-stop"			: handle_fleet_track_stop,
-	"fleet-fetch-battery"		: handle_fleet_fetch_battery,
-	"acme-reserve"				: handle_reserve_vehicle,
-	"acme-cancellation-delay"	: handle_check_cancellation_delay,
-	"acme-calculate-charge"		: handle_calculate_charge,
-	"acme-apply-penalty"		: handle_add_penalty,
-	"acme-notify-rejection"		: handle_rejection
+	TOPIC_BANK_PREAUTH				: handle_bank_preauth,
+	TOPIC_BANK_CHARGE				: handle_bank_charge,
+	TOPIC_BANK_UNLOCK_CAUTION		: handle_bank_unlock_caution,
+	TOPIC_BANK_CONVERT_CAUTION		: handle_bank_charge,  # reuse charge logic
+	TOPIC_STATION_UNLOCK			: handle_station_unlock,
+	TOPIC_STATION_LOCK				: handle_station_lock,
+	TOPIC_FLEET_TRACK_INFO			: handle_fleet_track_info,
+	TOPIC_FLEET_TRACK_START			: handle_fleet_track_start,
+	TOPIC_FLEET_TRACK_STOP			: handle_fleet_track_stop,
+	TOPIC_FLEET_FETCH_BATTERY		: handle_fleet_fetch_battery,
+	TOPIC_ACME_RESERVE				: handle_reserve_vehicle,
+	TOPIC_ACME_CANCELLATION_DELAY	: handle_check_cancellation_delay,
+	TOPIC_ACME_CALCULATE_CHARGE		: handle_calculate_charge,
+	TOPIC_ACME_APPLY_PENALTY		: handle_add_penalty,
+	TOPIC_ACME_NOTIFY_REJECTION		: handle_rejection
 }
 
 

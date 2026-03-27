@@ -15,7 +15,7 @@ from util import get_env_or_exit
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# --- CONFIGURATION (Loaded directly from Environment) ---
+# Read Configuration from Docker Environment
 CAMUNDA_URL         = get_env_or_exit('URL_CAMUNDA')
 BANK_WSDL_URL       = get_env_or_exit('URL_BANK_WSDL')
 STATION_BASE_URL    = get_env_or_exit('URL_STATION')
@@ -200,6 +200,25 @@ def handle_station_lock(task: ExternalTask) -> TaskResult:
 # =====================================================================
 # FLEET MANAGEMENT SERVICES (REST)
 # =====================================================================
+
+def handle_fleet_track_info(task: ExternalTask) -> TaskResult:
+	"""Topic: fleet-track-info (get vehicle tracking info)"""
+	vehicle_id = task.get_variable("vehicleId")
+	logger.info("Fetching tracking info for %s from Fleet Service", vehicle_id)
+	
+	# Simulate API call to Fleet Management to get tracking info...
+	# response = requests.get(f"{FLEET_BASE_URL}/vehicle/track-status", params={"id": vehicle_id})
+	# data = response.json()
+	
+	# Simulated response
+	#data = {
+	#	"location": "POINT(45.4642 9.1900)", # Milan coordinates as example
+	#	"speed": 25, # km/h
+	#	"status": "moving"
+	#}
+	data = {}
+	
+	return task.complete({"trackingInfo": data})
 
 def handle_fleet_track_start(task: ExternalTask) -> TaskResult:
 	"""Topic: fleet-track-start (start vehicle tracking)"""

@@ -1,6 +1,6 @@
 services:
   camunda:
-    image: camunda/camunda-bpm-platform:run-latest
+    build: ./camunda
     container_name: acme-camunda
     ports:
       - "${PORT_CAMUNDA}:8080"
@@ -27,9 +27,9 @@ services:
     networks:
       - bank-network
 
-  config-loader:
-    build: ./service-config-loader
-    container_name: acme-config-loader
+  acme-worker:
+    build: ./service-acme-worker
+    container_name: acme-worker
     env_file:
       - .env
     depends_on:
