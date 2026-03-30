@@ -1,17 +1,58 @@
+from typing import Callable
 
-import os
-import sys
-
+from camunda.external_task.external_task import ExternalTask, TaskResult
 import requests
 
+from get_env import config
 
 
-def get_env_or_exit(key: str) -> str:
-	val = os.environ.get(key)
-	if val is None:
-		print(f"Missing required environment variable (make sure .env is configured in the parent directory): {key}", file=sys.stderr)
-		sys.exit(2)
-	return val
+
+#
+# REQUESTS
+#
+
+def func_success_status(
+	status_var	: str
+) -> Callable[[ExternalTask, requests.Response], TaskResult]:
+	def _func_success(
+		task		: ExternalTask,
+		# pylint: disable=W0613
+		response	: requests.Response,
+	) -> TaskResult:
+		return task.complete({status_var: True})
+	return _func_success
+
+
+def perform_request(
+	task			: ExternalTask,
+	func_request	: Callable,
+	func_success	: Callable[[ExternalTask, requests.Response], TaskResult],
+	action_name		: str,
+	status_var		: str
+) -> TaskResult:
+	"""Helper to perform a fleet request with common error handling and logging."""
+	config.logger.info("Starting %s", action_name)
+	
+	try:
+		response = func_request()
+		if response.status_code == 200:
+			config.logger.info("%s completed successfully", action_name)
+			return func_success(task, response)
+		else:
+			config.logger.error("Failed action %s: %s - %s", action_name, response.status_code, response.text)
+			return task.complete({status_var: False})
+	except requests.exceptions.Timeout:
+		config.logger.error("%s timed out!", action_name)
+		return task.failure(
+			error_message	= f"{action_name} Timeout",
+			error_details	= f"{action_name} took more than 10 seconds to respond.",
+			max_retries		= REQUEST_MAX_RETRIES,
+			retry_timeout	= REQUEST_RETRY_DELAY_MS
+		)
+	except Exception as e:
+		config.logger.error("Connection Error: %s", e)
+		return task.failure("Connection Error", str(e), 0, 0)
+
 
 
 #

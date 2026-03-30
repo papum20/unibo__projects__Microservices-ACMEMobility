@@ -88,6 +88,8 @@ init {
     println@Console("SOAP  -> port 8080  (Camunda direct)")()
 }
 
+execution { concurrent }
+
 // ---- Main ----
 main {
 

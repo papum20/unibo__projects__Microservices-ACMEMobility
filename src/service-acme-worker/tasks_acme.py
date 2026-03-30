@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 import logging
 from camunda.external_task.external_task import ExternalTask, TaskResult
 
-from get_env import envConfig
+from get_env import config
 
 
 
@@ -37,14 +37,14 @@ def handle_config(task: ExternalTask) -> TaskResult:
 	# We send both Base URLs and Endpoints separately
 	config_variables = {
 		# Base URLs
-		"urlBank": envConfig.URL_BANK_BASE,
-		"urlStation": envConfig.URL_STATION_BASE,
+		"urlBank": config.URL_BANK_BASE,
+		"urlStation": config.URL_STATION_BASE,
 
 		# Bank
 		"epBankPreAuth": ep_bank_preauth,
 		"epBankCharge": ep_bank_charge,
 		"epBankUnlock": ep_bank_unlock,
-		"valBankCaution": envConfig.BANK_CAUTION,
+		"valBankCaution": config.BANK_CAUTION,
 
 		# Station
 		"epStationUnlock": ep_station_unlock,

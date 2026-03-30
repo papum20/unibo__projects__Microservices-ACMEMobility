@@ -5,8 +5,8 @@
 The Bank Service is implemented in Jolie and exposes the same business logic through two different interfaces to support diverse integrations: a **REST/JSON** interface for standard web clients, and a **SOAP/XML** interface for enterprise orchestrators (BPMS).
 
 ### Base URLs
-*   **REST (JSON):** `http://<bank-service-host>:8000`
-*   **SOAP (XML):** `http://<bank-service-host>:8080`
+*   **REST (JSON):** `http://<bank-service-host>:<PORT_BANK:REST>`
+*   **SOAP (XML):** `http://<bank-service-host>:<PORT_BANK:SOAP>/?wsdl`
 
 ---
 

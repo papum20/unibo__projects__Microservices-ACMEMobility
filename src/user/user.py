@@ -54,9 +54,10 @@ def send_message(message_name, vehicle_id, user_id, variables=None):
 
 
 def print_usage():
-	print("\nUsage: python user_actions.py [action] [vehicle_id] [user_id]")
+	print("\nUsage: python user.py <action> <user_id> <vehicle_id> [station_id]")
 	print("Actions: scan, reserve, cancel, scan_reserved, park")
-	print("Example: python user_actions.py scan V-001 User-001\n")
+	print("Example: python user.py scan u001 v001")
+	print("Example: python user.py park u001 v001 s001\n")
 
 
 
@@ -65,16 +66,15 @@ if __name__ == "__main__":
 		print_usage()
 		sys.exit(1)
 
-	action		= sys.argv[1]
-	vehicle_id	= sys.argv[2]
-	user_id		= sys.argv[3]
+	action			= sys.argv[1]
+	user_id			= sys.argv[2]
+	vehicle_id		= sys.argv[3]
 
 
 	if action == "scan":
 		send_message(MESSAGE_USER_START_IMMEDIATE, vehicle_id, user_id, variables={"isImmediate": True})
 	
 	elif action == "reserve":
-		# We add a timestamp for the cancellation logic
 		send_message(MESSAGE_USER_START_RESERVE, vehicle_id, user_id, variables={"isImmediate": False})
 	
 	elif action == "cancel":
@@ -84,7 +84,12 @@ if __name__ == "__main__":
 		send_message(MESSAGE_USER_RESERVE_SCAN, vehicle_id, user_id)
 	
 	elif action == "park":
-		send_message(MESSAGE_USER_PARKED, vehicle_id, user_id)
+		if len(sys.argv) < 5:
+			print_usage()
+			sys.exit(1)
+		station_id = sys.argv[4]
+
+		send_message("Msg_VehicleParked", vehicle_id, user_id, variables={"stationId": station_id})
 	
 	else:
 		print("Unknown action.")

@@ -1,11 +1,24 @@
-from util import get_env_or_exit
+import os
+import sys
+import logging
 
 
 
+# Configure Logging
+logging.basicConfig(level=logging.INFO)
 
 
 
-class EnvConfig:
+def get_env_or_exit(key: str) -> str:
+	val = os.environ.get(key)
+	if val is None:
+		print(f"Missing required environment variable (make sure .env is configured in the parent directory): {key}", file=sys.stderr)
+		sys.exit(2)
+	return val
+
+
+
+class Config:
 
 	# Read Configuration from Docker Environment
 	URL_CAMUNDA         = get_env_or_exit('URL_CAMUNDA')
@@ -17,24 +30,48 @@ class EnvConfig:
 
 	EP_BANK_PREAUTH			= get_env_or_exit('ENDPOINT_BANK_PREAUTH')
 	EP_BANK_CHARGE			= get_env_or_exit('ENDPOINT_BANK_CHARGE')
+	EP_BANK_CONVERT_CAUTION	= get_env_or_exit('ENDPOINT_BANK_CONVERT_CAUTION')
 	EP_BANK_UNLOCK_CAUTION	= get_env_or_exit('ENDPOINT_BANK_UNLOCK_CAUTION')
 
-	BANK_CAUTION        = int(get_env_or_exit('BANK_CAUTION'))
+	EP_FLEET_TRACK_INFO		= get_env_or_exit('ENDPOINT_FLEET_TRACK_INFO')
+	EP_FLEET_TRACK_START	= get_env_or_exit('ENDPOINT_FLEET_TRACK_START')
+	EP_FLEET_TRACK_STOP		= get_env_or_exit('ENDPOINT_FLEET_TRACK_STOP')
+	EP_FLEET_FETCH_BATTERY	= get_env_or_exit('ENDPOINT_FLEET_FETCH_BATTERY')
 
+	EP_STATION_LOCK		= get_env_or_exit('ENDPOINT_STATION_LOCK')
+	EP_STATION_UNLOCK	= get_env_or_exit('ENDPOINT_STATION_UNLOCK')
+
+	BANK_CAUTION	= int(get_env_or_exit('BANK_CAUTION'))
+
+
+	CAMUNDA_AMOUNT_BASE				= get_env_or_exit('CAMUNDA_VAR_AMOUNT_BASE')
+	CAMUNDA_AMOUNT_TO_CHARGE		= get_env_or_exit('CAMUNDA_VAR_AMOUNT_TO_CHARGE')
+	CAMUNDA_CANCEL_MINUTES			= get_env_or_exit('CAMUNDA_VAR_CANCEL_MINUTES')
+	CAMUNDA_IS_IMMEDIATE			= get_env_or_exit('CAMUNDA_VAR_IS_IMMEDIATE')
+	CAMUNDA_PENALTY_APPLIED			= get_env_or_exit('CAMUNDA_VAR_PENALTY_APPLIED')
+	CAMUNDA_RESERVE_TIME			= get_env_or_exit('CAMUNDA_VAR_RESERVE_TIME')
+	CAMUNDA_STATION_ID				= get_env_or_exit('CAMUNDA_VAR_STATION_ID')
 	CAMUNDA_USER_ID					= get_env_or_exit('CAMUNDA_VAR_USER_ID')
 	CAMUNDA_VEHICLE_ID				= get_env_or_exit('CAMUNDA_VAR_VEHICLE_ID')
-	CAMUNDA_IS_IMMEDIATE			= get_env_or_exit('CAMUNDA_VAR_IS_IMMEDIATE')
-	CAMUNDA_RESERVE_TIME			= get_env_or_exit('CAMUNDA_VAR_RESERVE_TIME')
+
 	CAMUNDA_BANK_TOKEN				= get_env_or_exit('CAMUNDA_VAR_BANK_TOKEN')
-	CAMUNDA_AMOUNT_TO_CHARGE		= get_env_or_exit('CAMUNDA_VAR_AMOUNT_TO_CHARGE')
-	CAMUNDA_CONVERT_CAUTION_STATUS	= get_env_or_exit('CAMUNDA_VAR_CONVERT_CAUTION_STATUS')
-	CAMUNDA_CAUTION_BLOCKED			= get_env_or_exit('CAMUNDA_VAR_CAUTION_BLOCKED')
-	CAMUNDA_PAYMENT_STATUS			= get_env_or_exit('CAMUNDA_VAR_PAYMENT_STATUS')
-	CAMUNDA_BATTERY_LEVEL			= get_env_or_exit('CAMUNDA_VAR_BATTERY_LEVEL')
-	CAMUNDA_VEHICLE_UNLOCKED		= get_env_or_exit('CAMUNDA_VAR_VEHICLE_UNLOCKED')
-	CAMUNDA_CANCEL_MINUTES			= get_env_or_exit('CAMUNDA_VAR_CANCEL_MINUTES')
-	CAMUNDA_AMOUNT_BASE				= get_env_or_exit('CAMUNDA_VAR_AMOUNT_BASE')
-	CAMUNDA_PENALTY_APPLIED			= get_env_or_exit('CAMUNDA_VAR_PENALTY_APPLIED')
+	CAMUNDA_STATUS_CAUTION_BLOCKED	= get_env_or_exit('CAMUNDA_VAR_STATUS_CAUTION_BLOCKED')
+	CAMUNDA_STATUS_CAUTION_UNLOCKED	= get_env_or_exit('CAMUNDA_VAR_STATUS_CAUTION_UNLOCKED')
+	CAMUNDA_STATUS_CONVERT_CAUTION	= get_env_or_exit('CAMUNDA_VAR_STATUS_CONVERT_CAUTION')
+	CAMUNDA_STATUS_PAYMENT			= get_env_or_exit('CAMUNDA_VAR_STATUS_PAYMENT')
+
+	CAMUNDA_BATTERY_LEVEL				= get_env_or_exit('CAMUNDA_VAR_BATTERY_LEVEL')
+	CAMUNDA_STATUS_TRACKING_STARTED		= get_env_or_exit('CAMUNDA_VAR_STATUS_TRACKING_STARTED')
+	CAMUNDA_STATUS_TRACKING_STOPPED		= get_env_or_exit('CAMUNDA_VAR_STATUS_TRACKING_STOPPED')
+	CAMUNDA_STATUS_VEHICLE_LOCKED		= get_env_or_exit('CAMUNDA_VAR_STATUS_VEHICLE_LOCKED')
+	CAMUNDA_STATUS_VEHICLE_UNLOCKED		= get_env_or_exit('CAMUNDA_VAR_STATUS_VEHICLE_UNLOCKED')
+	CAMUNDA_TRACKING_INFO				= get_env_or_exit('CAMUNDA_VAR_TRACKING_INFO')
+	CAMUNDA_FIELD_TRACKING_COORD		= get_env_or_exit('CAMUNDA_FIELD_TRACKING_COORD')
+	CAMUNDA_FIELD_TRACKING_COORD_LAT	= get_env_or_exit('CAMUNDA_FIELD_TRACKING_COORD_LAT')
+	CAMUNDA_FIELD_TRACKING_COORD_LONG	= get_env_or_exit('CAMUNDA_FIELD_TRACKING_COORD_LONG')
+	CAMUNDA_FIELD_TRACKING_SPEED_KMH	= get_env_or_exit('CAMUNDA_FIELD_TRACKING_SPEED_KMH')
+	CAMUNDA_FIELD_TRACKING_STATUS		= get_env_or_exit('CAMUNDA_FIELD_TRACKING_STATUS')
+
 
 	TOPIC_BANK_PREAUTH				= get_env_or_exit('TOPIC_BANK_PREAUTH')
 	TOPIC_BANK_CHARGE				= get_env_or_exit('TOPIC_BANK_CHARGE')
@@ -53,4 +90,7 @@ class EnvConfig:
 	TOPIC_ACME_RESERVE				= get_env_or_exit('TOPIC_ACME_RESERVE')
 
 
-envConfig = EnvConfig()
+	logger = logging.getLogger(__name__)
+
+
+config = Config()

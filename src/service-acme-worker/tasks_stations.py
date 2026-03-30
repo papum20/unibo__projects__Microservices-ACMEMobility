@@ -1,16 +1,12 @@
-from datetime import datetime, timezone
-import logging
 import requests
-import xml.etree.ElementTree as ET
 from camunda.external_task.external_task import ExternalTask, TaskResult
 
-from get_env import envConfig
-
-
-
-# Configure Logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from db import DATABASE, Vehicle
+from get_env import config
+from util import (
+	REQUEST_TIMEOUT_SECONDS,
+	perform_request,
+)
 
 
 
@@ -18,27 +14,83 @@ logger = logging.getLogger(__name__)
 # STATION SERVICES (REST)
 # =====================================================================
 
-def handle_station_unlock(task: ExternalTask) -> TaskResult:
-	"""Topic: station-unlock (unlock vehicle)"""
-	vehicle_id = task.get_variable("vehicleId")
-	logger.info("Sending REST request to Station to unlock %s", vehicle_id)
-	
-	try:
-		# Example REST call
-		# response = requests.post(f"{STATION_BASE_URL}/vehicle/unlock", json={"id": vehicle_id})
-		# response.raise_for_status()
-		
-		return task.complete({"vehicleUnlocked": True})
-	except Exception as e:
-		logger.error("Station Unlock Failed: %s", e)
-		return task.failure(error_message="Station Unlock Failed", error_details=str(e), max_retries=0, retry_timeout=0)
-
 
 def handle_station_lock(task: ExternalTask) -> TaskResult:
 	"""Topic: station-lock (lock vehicle)"""
-	vehicle_id = task.get_variable("vehicleId")
-	logger.info("Sending REST request to Station to lock %s", vehicle_id)
-	
-	# Simulate success
-	return task.complete({"vehicleLocked": True})
+
+	station_id	= task.get_variable(config.CAMUNDA_STATION_ID)
+	vehicle_id	= task.get_variable(config.CAMUNDA_VEHICLE_ID)
+
+	vehicle	= DATABASE.get_vehicle(vehicle_id)
+	if vehicle is None:
+		config.logger.error("Vehicle %s not found!", vehicle_id)
+		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
+
+	def func_success(
+		task		: ExternalTask,
+		# pylint: disable=W0613
+		response	: requests.Response
+	) -> TaskResult:
+		DATABASE.update_vehicle( Vehicle(
+			vehicle_id		= vehicle_id,
+			status			= Vehicle.Status.CHARGING,
+			reserved_by		= vehicle.reserved_by,
+			rented_by		= vehicle.rented_by,
+			current_station	= station_id
+		))
+		config.logger.info("Vehicle %s locked successfully at station %s!", vehicle_id, station_id)
+		return task.complete({config.CAMUNDA_STATUS_VEHICLE_LOCKED: True})
+
+	return perform_request(
+		task,
+		func_request	= lambda: requests.post(config.URL_STATION_BASE + config.EP_STATION_LOCK, json={
+				"vehicleId": vehicle_id,
+				"stationId": station_id
+			}, timeout	= REQUEST_TIMEOUT_SECONDS),
+		func_success	= func_success,
+		action_name		= "Lock Vehicle at Station",
+		status_var		= config.CAMUNDA_STATUS_VEHICLE_LOCKED
+	)
+
+
+def handle_station_unlock(task: ExternalTask) -> TaskResult:
+	"""Topic: station-unlock (unlock vehicle)"""
+
+	vehicle_id	= task.get_variable(config.CAMUNDA_VEHICLE_ID)
+
+	vehicle	= DATABASE.get_vehicle(vehicle_id)
+	if vehicle is None:
+		config.logger.error("Vehicle %s not found!", vehicle_id)
+		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
+
+	stationId = vehicle.current_station
+	if stationId is None:
+		config.logger.error("Vehicle %s is not at any station!", vehicle_id)
+		return task.failure("Vehicle Not at Station", f"Vehicle {vehicle_id} is not at any station.", 0, 0)
+
+	def func_success(
+		task		: ExternalTask,
+		# pylint: disable=W0613
+		response	: requests.Response
+	) -> TaskResult:
+		DATABASE.update_vehicle( Vehicle(
+			vehicle_id		= vehicle_id,
+			status			= Vehicle.Status.AVAILABLE,
+			reserved_by		= vehicle.reserved_by,
+			rented_by		= vehicle.rented_by,
+			current_station	= stationId
+		))
+		config.logger.info("Vehicle %s unlocked successfully at station %s!", vehicle_id, stationId)
+		return task.complete({config.CAMUNDA_STATUS_VEHICLE_LOCKED: True})
+
+	return perform_request(
+		task,
+		func_request	= lambda: requests.post(config.URL_STATION_BASE + config.EP_STATION_UNLOCK, json={
+				"vehicleId": vehicle_id,
+				"stationId": stationId
+			}, timeout	= REQUEST_TIMEOUT_SECONDS),
+		func_success	= func_success,
+		action_name		= "Unlock Vehicle at Station",
+		status_var		= config.CAMUNDA_STATUS_VEHICLE_UNLOCKED
+	)
 

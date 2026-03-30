@@ -10,11 +10,6 @@ services:
     networks:
       - orchestration-network
 
-# fleet:
-#   build: ./service-fleet-management
-#   networks:
-#     - acme-network
-
   bank-service:
     build: ./service-bank
     networks:
@@ -32,11 +27,20 @@ services:
       - bank-network
       - orchestration-network
 
+# fleet:
+#   build: ./service-fleet-management
+#   networks:
+#     - acme-network
+
+# 5-10 stations
+
 
 networks:
   acme-network:
     driver: bridge
   bank-network:
+    driver: bridge
+  fleet-internal-network:
     driver: bridge
   orchestration-network:
     driver: bridge
