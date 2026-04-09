@@ -7,7 +7,7 @@
 //   preAuth             -> blocks 10€ on the card, returns a token
 //   charge              -> charges the final amount (rental cost)
 //   unlock              -> releases the caution (normal end of rental)
-//   cancelAuthorization -> converts caution to charge (late cancellation / no-show)
+//   convertCaution -> converts caution to charge (late cancellation / no-show)
 // ============================================================
 
 include "console.iol"
@@ -43,10 +43,10 @@ type UnlockResponse: void {
     .message: string
 }
 
-type CancelAuthorizationRequest: void {
+type ConvertCautionRequest: void {
     .token: string
 }
-type CancelAuthorizationResponse: void {
+type ConvertCautionResponse: void {
     .success: bool
     .chargedAmount: double
     .message: string
@@ -58,7 +58,7 @@ interface BankInterface {
         preAuth( PreAuthorizeRequest )( PreAuthorizeResponse ),
         charge( ChargeRequest )( ChargeResponse ),
         unlock( UnlockRequest )( UnlockResponse ),
-        cancelAuthorization( CancelAuthorizationRequest )( CancelAuthorizationResponse )
+        convertCaution( ConvertCautionRequest )( ConvertCautionResponse )
 }
 
 // ---- REST/HTTP port on 8000 (for Camunda Python workers) ----
@@ -84,9 +84,11 @@ inputPort BankSOAP {
 // ---- Init ----
 init {
     println@Console("=== Bank Service started ===")();
-    println@Console("REST  -> port 8000  (/preAuth, /charge, /unlock, /cancelAuthorization)")();
+    println@Console("REST  -> port 8000  (/preAuth, /charge, /unlock, /convertCaution)")();
     println@Console("SOAP  -> port 8080  (Camunda direct)")()
 }
+
+execution { concurrent }
 
 // ---- Main ----
 main {
@@ -159,8 +161,8 @@ main {
         println@Console("[BANK] unlock (release caution) -> " + token)()
     } ]
 
-    // --- cancelAuthorization: converts caution to charge (late cancellation / no-show) ---
-    [ cancelAuthorization( req )( res ) {
+    // --- convertCaution: converts caution to charge (late cancellation / no-show) ---
+    [ convertCaution( req )( res ) {
         token = req.token;
 
         if ( is_defined( global.authorizations.(token) ) ) {
@@ -182,6 +184,6 @@ main {
             res.message       = "Token not found: " + token
         };
 
-        println@Console("[BANK] cancelAuthorization -> " + token)()
+        println@Console("[BANK] convertCaution -> " + token)()
     } ]
 }
