@@ -33,6 +33,8 @@
     <bpmn2:messageFlow id="Flow_08xmqy3" sourceRef="Event_1jtpfea" targetRef="Activity_1vz5gma" />
     <bpmn2:messageFlow id="Flow_0hk2i49" name="vehicle id" sourceRef="Activity_0t33uuv" targetRef="Event_1g666ml" />
     <bpmn2:messageFlow id="Flow_1c90hmz" sourceRef="Event_15c5818" targetRef="Activity_0t33uuv" />
+    <bpmn2:messageFlow id="Flow_0b82vbu" sourceRef="Activity_1kftfvd" targetRef="Event_0ufo1i7" />
+    <bpmn2:messageFlow id="Flow_0ic99yh" sourceRef="Event_0sczxrv" targetRef="Activity_1kftfvd" />
     <bpmn2:group id="Group_1l9au2a" categoryValueRef="CategoryValue_1pi17m7" />
     <bpmn2:textAnnotation id="TextAnnotation_1bthklw">
       <bpmn2:text>ACMEMobility infrastracture</bpmn2:text>
@@ -88,6 +90,7 @@
         <bpmn2:flowNodeRef>Activity_0wj8r51</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_14k9ls8</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_0kt26kv</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Activity_1kftfvd</bpmn2:flowNodeRef>
       </bpmn2:lane>
     </bpmn2:laneSet>
     <bpmn2:sequenceFlow id="Flow_15fmyyk" sourceRef="Gateway_0f7qf99" targetRef="Event_0t9nx7w" />
@@ -200,7 +203,6 @@
       <bpmn2:incoming>Flow_1976dxj</bpmn2:incoming>
       <bpmn2:incoming>Flow_1as8d87</bpmn2:incoming>
       <bpmn2:outgoing>Flow_0mg09ij</bpmn2:outgoing>
-      <bpmn2:outgoing>Flow_1vvmp74</bpmn2:outgoing>
     </bpmn2:parallelGateway>
     <bpmn2:sequenceFlow id="Flow_10hvmk0" sourceRef="Activity_0krnps6" targetRef="Gateway_1ixpr0z" />
     <bpmn2:sequenceFlow id="Flow_1vunasc" sourceRef="Gateway_0f3bphh" targetRef="Gateway_1ixpr0z" />
@@ -349,24 +351,30 @@
     </bpmn2:task>
     <bpmn2:sequenceFlow id="Flow_1tsjfoq" sourceRef="Gateway_0f7qf99" targetRef="Activity_0hv679s" />
     <bpmn2:sequenceFlow id="Flow_1as8d87" sourceRef="Activity_0hv679s" targetRef="Gateway_0sydpvs" />
-    <bpmn2:sequenceFlow id="Flow_1vvmp74" sourceRef="Gateway_0sydpvs" targetRef="Activity_0b5yz79" />
+    <bpmn2:sequenceFlow id="Flow_1vvmp74" sourceRef="Event_0kt26kv" targetRef="Activity_0b5yz79" />
     <bpmn2:sequenceFlow id="Flow_0y8eumn" sourceRef="Activity_0b5yz79" targetRef="Activity_1vz5gma" />
-    <bpmn2:sequenceFlow id="Flow_02aymtn" sourceRef="Activity_1vz5gma" targetRef="Activity_0wj8r51" />
+    <bpmn2:sequenceFlow id="Flow_02aymtn" sourceRef="Activity_1kftfvd" targetRef="Activity_0wj8r51" />
     <bpmn2:task id="Activity_0b5yz79" name="fetch battery">
       <bpmn2:incoming>Flow_1vvmp74</bpmn2:incoming>
       <bpmn2:outgoing>Flow_0y8eumn</bpmn2:outgoing>
     </bpmn2:task>
     <bpmn2:task id="Activity_1vz5gma" name="lock vehicle">
       <bpmn2:incoming>Flow_0y8eumn</bpmn2:incoming>
-      <bpmn2:outgoing>Flow_02aymtn</bpmn2:outgoing>
+      <bpmn2:outgoing>Flow_0hz7cyn</bpmn2:outgoing>
     </bpmn2:task>
     <bpmn2:task id="Activity_0wj8r51" name="calculate amount to charge">
       <bpmn2:incoming>Flow_02aymtn</bpmn2:incoming>
       <bpmn2:outgoing>Flow_1m4ivnj</bpmn2:outgoing>
     </bpmn2:task>
     <bpmn2:boundaryEvent id="Event_0kt26kv" name="acknowledge parked vehicle" attachedToRef="Activity_14k9ls8">
+      <bpmn2:outgoing>Flow_1vvmp74</bpmn2:outgoing>
       <bpmn2:messageEventDefinition id="MessageEventDefinition_1k31puj" />
     </bpmn2:boundaryEvent>
+    <bpmn2:task id="Activity_1kftfvd" name="stop vehicle tracking">
+      <bpmn2:incoming>Flow_0hz7cyn</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_02aymtn</bpmn2:outgoing>
+    </bpmn2:task>
+    <bpmn2:sequenceFlow id="Flow_0hz7cyn" sourceRef="Activity_1vz5gma" targetRef="Activity_1kftfvd" />
     <bpmn2:textAnnotation id="TextAnnotation_19ri2kw">
       <bpmn2:text>Not a terminate end event: manual action could still be running</bpmn2:text>
     </bpmn2:textAnnotation>
@@ -570,6 +578,10 @@
         <bpmn2:flowNodeRef>Activity_1edj3mh</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_0nbh2tl</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_15c5818</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Event_0sczxrv</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Event_1w4npj8</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Activity_0gbtl8j</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Event_0ufo1i7</bpmn2:flowNodeRef>
       </bpmn2:lane>
     </bpmn2:laneSet>
     <bpmn2:endEvent id="Event_10ivzuz">
@@ -629,6 +641,25 @@
       <bpmn2:messageEventDefinition id="MessageEventDefinition_18llb1d" />
     </bpmn2:intermediateThrowEvent>
     <bpmn2:sequenceFlow id="Flow_0pzxh8h" sourceRef="Event_15c5818" targetRef="Event_0nbh2tl" />
+    <bpmn2:intermediateThrowEvent id="Event_0sczxrv" name="notify success">
+      <bpmn2:incoming>Flow_0fr94bq</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_0f25rua</bpmn2:outgoing>
+      <bpmn2:messageEventDefinition id="MessageEventDefinition_1qn8ft7" />
+    </bpmn2:intermediateThrowEvent>
+    <bpmn2:endEvent id="Event_1w4npj8">
+      <bpmn2:incoming>Flow_0f25rua</bpmn2:incoming>
+    </bpmn2:endEvent>
+    <bpmn2:task id="Activity_0gbtl8j" name="stop vehicle tracking">
+      <bpmn2:incoming>Flow_08e8ujc</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_0fr94bq</bpmn2:outgoing>
+    </bpmn2:task>
+    <bpmn2:startEvent id="Event_0ufo1i7">
+      <bpmn2:outgoing>Flow_08e8ujc</bpmn2:outgoing>
+      <bpmn2:messageEventDefinition id="MessageEventDefinition_17pxy80" />
+    </bpmn2:startEvent>
+    <bpmn2:sequenceFlow id="Flow_0fr94bq" sourceRef="Activity_0gbtl8j" targetRef="Event_0sczxrv" />
+    <bpmn2:sequenceFlow id="Flow_0f25rua" sourceRef="Event_0sczxrv" targetRef="Event_1w4npj8" />
+    <bpmn2:sequenceFlow id="Flow_08e8ujc" sourceRef="Event_0ufo1i7" targetRef="Activity_0gbtl8j" />
   </bpmn2:process>
   <bpmn2:process id="Process_179mq9m" isExecutable="false">
     <bpmn2:laneSet id="LaneSet_0xop2qo">
@@ -688,16 +719,18 @@
         <dc:Bounds x="-140" y="-10" width="2650" height="875" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_02aymtn_di" bpmnElement="Flow_02aymtn">
-        <di:waypoint x="1410" y="480" />
-        <di:waypoint x="1410" y="430" />
+        <di:waypoint x="1550" y="480" />
+        <di:waypoint x="1570" y="480" />
+        <di:waypoint x="1570" y="390" />
+        <di:waypoint x="1460" y="390" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0y8eumn_di" bpmnElement="Flow_0y8eumn">
         <di:waypoint x="1180" y="520" />
         <di:waypoint x="1360" y="520" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1vvmp74_di" bpmnElement="Flow_1vvmp74">
-        <di:waypoint x="755" y="250" />
-        <di:waypoint x="1130" y="250" />
+        <di:waypoint x="900" y="440" />
+        <di:waypoint x="1130" y="440" />
         <di:waypoint x="1130" y="480" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1as8d87_di" bpmnElement="Flow_1as8d87">
@@ -909,6 +942,14 @@
         <di:waypoint x="510" y="170" />
         <di:waypoint x="642" y="170" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0hz7cyn_di" bpmnElement="Flow_0hz7cyn">
+        <di:waypoint x="1460" y="520" />
+        <di:waypoint x="1540" y="520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_1kftfvd_di" bpmnElement="Activity_1kftfvd">
+        <dc:Bounds x="1540" y="480" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_14k9ls8_di" bpmnElement="Activity_14k9ls8" isExpanded="true">
         <dc:Bounds x="692" y="460" width="318" height="260" />
         <bpmndi:BPMNLabel />
@@ -1463,6 +1504,18 @@
         <di:waypoint x="830" y="1070" />
         <di:waypoint x="872" y="1070" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_00646b7" bpmnElement="Flow_0fr94bq">
+        <di:waypoint x="1600" y="1128" />
+        <di:waypoint x="1622" y="1128" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1i0idtx" bpmnElement="Flow_0f25rua">
+        <di:waypoint x="1640" y="1146" />
+        <di:waypoint x="1640" y="1192" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_02m1q4b" bpmnElement="Flow_08e8ujc">
+        <di:waypoint x="1550" y="1048" />
+        <di:waypoint x="1550" y="1088" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Event_10ivzuz_di" bpmnElement="Event_10ivzuz">
         <dc:Bounds x="642" y="1202" width="36" height="36" />
       </bpmndi:BPMNShape>
@@ -1510,6 +1563,22 @@
         <bpmndi:BPMNLabel>
           <dc:Bounds x="897" y="1033" width="87" height="14" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0v5uug3" bpmnElement="Event_0sczxrv">
+        <dc:Bounds x="1622" y="1110" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1668" y="1121" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0d1gaut" bpmnElement="Event_1w4npj8">
+        <dc:Bounds x="1622" y="1192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_127jc4d" bpmnElement="Activity_0gbtl8j">
+        <dc:Bounds x="1500" y="1088" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1eq7m6q" bpmnElement="Event_0ufo1i7">
+        <dc:Bounds x="1532" y="1012" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_1b678yw" bpmnElement="Participant_1kdt5om" isHorizontal="true">
         <dc:Bounds x="160" y="1310" width="2350" height="230" />
@@ -1563,6 +1632,14 @@
       <bpmndi:BPMNShape id="Event_0skxacd_di" bpmnElement="Event_1h7st5w">
         <dc:Bounds x="1362" y="1332" width="36" height="36" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0b82vbu_di" bpmnElement="Flow_0b82vbu">
+        <di:waypoint x="1550" y="560" />
+        <di:waypoint x="1550" y="1012" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ic99yh_di" bpmnElement="Flow_0ic99yh">
+        <di:waypoint x="1640" y="1110" />
+        <di:waypoint x="1640" y="550" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Group_1l9au2a_di" bpmnElement="Group_1l9au2a">
         <dc:Bounds x="-210" y="-40" width="2820" height="1600" />
       </bpmndi:BPMNShape>

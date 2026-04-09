@@ -35,6 +35,8 @@
     <bpmn2:messageFlow id="Flow_0d9e85h" name="vehicle id" sourceRef="Activity_0bze99r" targetRef="Participant_1kdt5om" />
     <bpmn2:messageFlow id="Flow_0s090dq" name="battery status" sourceRef="Participant_0klft1h" targetRef="Activity_1vxniv4" />
     <bpmn2:messageFlow id="Flow_0b4k60o" name="notify success" sourceRef="Participant_1kdt5om" targetRef="Activity_0bze99r" />
+    <bpmn2:messageFlow id="Flow_1t1e9be" name="vehicle id" sourceRef="Activity_13sarlw" targetRef="Participant_0klft1h" />
+    <bpmn2:messageFlow id="Flow_056l9yt" name="notify success" sourceRef="Participant_0klft1h" targetRef="Activity_13sarlw" />
     <bpmn2:group id="Group_1l9au2a" categoryValueRef="CategoryValue_1pi17m7" />
     <bpmn2:textAnnotation id="TextAnnotation_1bthklw">
       <bpmn2:text>ACMEMobility infrastracture</bpmn2:text>
@@ -52,15 +54,11 @@
         <bpmn2:flowNodeRef>Event_0t9nx7w</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_0f7qf99</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_1e4nsee</bpmn2:flowNodeRef>
-        <bpmn2:flowNodeRef>Activity_0tvj09s</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_1lnorv8</bpmn2:flowNodeRef>
-        <bpmn2:flowNodeRef>Event_1g2ix8y</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_198mv77</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_0sydpvs</bpmn2:flowNodeRef>
-        <bpmn2:flowNodeRef>Activity_0wj8r51</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_1ixpr0z</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_0f3bphh</bpmn2:flowNodeRef>
-        <bpmn2:flowNodeRef>Activity_0krnps6</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_0by1b4q</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_029xvbh</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_0e69l6x</bpmn2:flowNodeRef>
@@ -84,19 +82,23 @@
         <bpmn2:flowNodeRef>Gateway_0d5h9ei</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_0py7o6q</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_0lh4esc</bpmn2:flowNodeRef>
-        <bpmn2:flowNodeRef>Activity_0xqs3bt</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_00746uo</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_1xhyr2k</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_1a7pf26</bpmn2:flowNodeRef>
-        <bpmn2:flowNodeRef>Activity_014kr5a</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_0ipqsi2</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_077bmsk</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_0vpco51</bpmn2:flowNodeRef>
-        <bpmn2:flowNodeRef>Activity_0gpuobx</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_14k9ls8</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_0kt26kv</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Activity_0gpuobx</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_1vxniv4</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_0bze99r</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Activity_0wj8r51</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Activity_0krnps6</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Activity_0xqs3bt</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Event_1g2ix8y</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Activity_0tvj09s</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Activity_13sarlw</bpmn2:flowNodeRef>
       </bpmn2:lane>
     </bpmn2:laneSet>
     <bpmn2:subProcess id="Activity_14k9ls8" name="ride">
@@ -120,31 +122,15 @@
         <bpmn2:incoming>Flow_0z210ba</bpmn2:incoming>
         <bpmn2:outgoing>Flow_1ln952t</bpmn2:outgoing>
         <bpmn2:timerEventDefinition id="TimerEventDefinition_0ypb3dt">
-          <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression">PT30S</bpmn2:timeDuration>
+          <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression">PT5S</bpmn2:timeDuration>
         </bpmn2:timerEventDefinition>
       </bpmn2:intermediateCatchEvent>
-      <bpmn2:task id="Activity_1kwkkh8" name="request vehicle information">
-        <bpmn2:extensionElements>
-          <camunda:connector>
-            <camunda:inputOutput>
-              <camunda:inputParameter name="url">${urlFleet}${epFleetTrackStatus}</camunda:inputParameter>
-              <camunda:inputParameter name="method">POST</camunda:inputParameter>
-              <camunda:inputParameter name="payload">{"vehicleId": ${vehicleId}}</camunda:inputParameter>
-              <camunda:inputParameter name="headers">
-                <camunda:map>
-                  <camunda:entry key="Content-Type">application/json</camunda:entry>
-                </camunda:map>
-              </camunda:inputParameter>
-              <camunda:outputParameter name="fleetTrackStatus">${response}</camunda:outputParameter>
-            </camunda:inputOutput>
-            <camunda:connectorId>http-connector</camunda:connectorId>
-          </camunda:connector>
-        </bpmn2:extensionElements>
-        <bpmn2:incoming>Flow_04i15po</bpmn2:incoming>
-        <bpmn2:outgoing>Flow_16td7n2</bpmn2:outgoing>
-      </bpmn2:task>
       <bpmn2:sequenceFlow id="Flow_04i15po" sourceRef="Gateway_17xwdqj" targetRef="Activity_1kwkkh8" />
       <bpmn2:sequenceFlow id="Flow_16td7n2" sourceRef="Activity_1kwkkh8" targetRef="Activity_040v1l7" />
+      <bpmn2:serviceTask id="Activity_1kwkkh8" name="request vehicle information" camunda:type="external" camunda:topic="fleet-track-info">
+        <bpmn2:incoming>Flow_04i15po</bpmn2:incoming>
+        <bpmn2:outgoing>Flow_16td7n2</bpmn2:outgoing>
+      </bpmn2:serviceTask>
     </bpmn2:subProcess>
     <bpmn2:intermediateThrowEvent id="Event_0t9nx7w" name="notify vehicle was unlocked">
       <bpmn2:incoming>Flow_15fmyyk</bpmn2:incoming>
@@ -161,20 +147,11 @@
       <bpmn2:outgoing>Flow_0zej2pl</bpmn2:outgoing>
       <bpmn2:outgoing>Flow_1vu0hfp</bpmn2:outgoing>
     </bpmn2:exclusiveGateway>
-    <bpmn2:task id="Activity_0tvj09s" name="reserve vehicle">
-      <bpmn2:incoming>Flow_0zej2pl</bpmn2:incoming>
-      <bpmn2:outgoing>Flow_1r7kfgr</bpmn2:outgoing>
-    </bpmn2:task>
     <bpmn2:exclusiveGateway id="Gateway_1lnorv8">
       <bpmn2:incoming>Flow_1vu0hfp</bpmn2:incoming>
       <bpmn2:incoming>Flow_1vjd40w</bpmn2:incoming>
       <bpmn2:outgoing>Flow_0lcctm1</bpmn2:outgoing>
     </bpmn2:exclusiveGateway>
-    <bpmn2:intermediateCatchEvent id="Event_1g2ix8y" name="QR scanned">
-      <bpmn2:incoming>Flow_0anh0mt</bpmn2:incoming>
-      <bpmn2:outgoing>Flow_1vjd40w</bpmn2:outgoing>
-      <bpmn2:messageEventDefinition id="MessageEventDefinition_1vawuxe" messageRef="Message_11oq1eu" />
-    </bpmn2:intermediateCatchEvent>
     <bpmn2:eventBasedGateway id="Gateway_198mv77">
       <bpmn2:incoming>Flow_1r7kfgr</bpmn2:incoming>
       <bpmn2:outgoing>Flow_1dy771t</bpmn2:outgoing>
@@ -185,12 +162,7 @@
       <bpmn2:incoming>Flow_1976dxj</bpmn2:incoming>
       <bpmn2:incoming>Flow_0i9c3f7</bpmn2:incoming>
       <bpmn2:outgoing>Flow_0mg09ij</bpmn2:outgoing>
-      <bpmn2:outgoing>Flow_14fdxbj</bpmn2:outgoing>
     </bpmn2:parallelGateway>
-    <bpmn2:task id="Activity_0wj8r51" name="calculate amount to charge">
-      <bpmn2:incoming>Flow_10tmghx</bpmn2:incoming>
-      <bpmn2:outgoing>Flow_1m4ivnj</bpmn2:outgoing>
-    </bpmn2:task>
     <bpmn2:exclusiveGateway id="Gateway_1ixpr0z">
       <bpmn2:incoming>Flow_1vunasc</bpmn2:incoming>
       <bpmn2:incoming>Flow_10hvmk0</bpmn2:incoming>
@@ -201,67 +173,18 @@
       <bpmn2:outgoing>Flow_1hikny7</bpmn2:outgoing>
       <bpmn2:outgoing>Flow_1vunasc</bpmn2:outgoing>
     </bpmn2:exclusiveGateway>
-    <bpmn2:task id="Activity_0krnps6" name="add 10% penalty">
-      <bpmn2:incoming>Flow_1hikny7</bpmn2:incoming>
-      <bpmn2:outgoing>Flow_10hvmk0</bpmn2:outgoing>
-    </bpmn2:task>
-    <bpmn2:serviceTask id="Activity_0by1b4q" name="block 10€ caution money">
-      <bpmn2:extensionElements>
-        <camunda:connector>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="url">${urlBank}${epBankPreAuth}</camunda:inputParameter>
-            <camunda:inputParameter name="method">POST</camunda:inputParameter>
-            <camunda:inputParameter name="payload">{"amount": ${valBankCaution}, "userId": "${userId}"}</camunda:inputParameter>
-            <camunda:inputParameter name="headers">
-              <camunda:map>
-                <camunda:entry key="Content-Type">text/xml</camunda:entry>
-              </camunda:map>
-            </camunda:inputParameter>
-            <camunda:outputParameter name="userToken">${response}</camunda:outputParameter>
-          </camunda:inputOutput>
-          <camunda:connectorId>http-connector</camunda:connectorId>
-        </camunda:connector>
-      </bpmn2:extensionElements>
-      <bpmn2:incoming>Flow_15fb38y</bpmn2:incoming>
+    <bpmn2:serviceTask id="Activity_0by1b4q" name="block 10€ caution money" camunda:type="external" camunda:topic="bank-preauth">
+      <bpmn2:extensionElements />
+      <bpmn2:incoming>Flow_16vv9q3</bpmn2:incoming>
       <bpmn2:outgoing>Flow_07dtv52</bpmn2:outgoing>
     </bpmn2:serviceTask>
-    <bpmn2:serviceTask id="Activity_029xvbh" name="charge user">
-      <bpmn2:extensionElements>
-        <camunda:connector>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="url">${urlBank}${epBankCharge}</camunda:inputParameter>
-            <camunda:inputParameter name="method">POST</camunda:inputParameter>
-            <camunda:inputParameter name="payload">{"amount": ${rideCost}, "token": "${userToken}"}</camunda:inputParameter>
-            <camunda:inputParameter name="headers">
-              <camunda:map>
-                <camunda:entry key="Content-Type">application/json</camunda:entry>
-              </camunda:map>
-            </camunda:inputParameter>
-            <camunda:outputParameter name="bankChargeStatus">${response}</camunda:outputParameter>
-          </camunda:inputOutput>
-          <camunda:connectorId>http-connector</camunda:connectorId>
-        </camunda:connector>
-      </bpmn2:extensionElements>
+    <bpmn2:serviceTask id="Activity_029xvbh" name="charge user" camunda:type="external" camunda:topic="bank-charge">
+      <bpmn2:extensionElements />
       <bpmn2:incoming>Flow_1uh4ilj</bpmn2:incoming>
       <bpmn2:outgoing>Flow_1ti1rs6</bpmn2:outgoing>
     </bpmn2:serviceTask>
-    <bpmn2:serviceTask id="Activity_0e69l6x" name="unlock vehicle">
-      <bpmn2:extensionElements>
-        <camunda:connector>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="url">${urlStation}${epStationUnlock}</camunda:inputParameter>
-            <camunda:inputParameter name="method">POST</camunda:inputParameter>
-            <camunda:inputParameter name="payload">{"vehicleId": ${vehicleId}}</camunda:inputParameter>
-            <camunda:inputParameter name="headers">
-              <camunda:map>
-                <camunda:entry key="Content-Type">application/json</camunda:entry>
-              </camunda:map>
-            </camunda:inputParameter>
-            <camunda:outputParameter name="stationUnlockStatus">${response}</camunda:outputParameter>
-          </camunda:inputOutput>
-          <camunda:connectorId>http-connector</camunda:connectorId>
-        </camunda:connector>
-      </bpmn2:extensionElements>
+    <bpmn2:serviceTask id="Activity_0e69l6x" name="unlock vehicle" camunda:type="external" camunda:topic="station-unlock">
+      <bpmn2:extensionElements />
       <bpmn2:incoming>Flow_0lcctm1</bpmn2:incoming>
       <bpmn2:outgoing>Flow_17wxsd9</bpmn2:outgoing>
     </bpmn2:serviceTask>
@@ -277,23 +200,8 @@
       <bpmn2:outgoing>Flow_0sic6mn</bpmn2:outgoing>
       <bpmn2:messageEventDefinition id="MessageEventDefinition_0zyf68z" messageRef="Message_38pl2rh" />
     </bpmn2:intermediateThrowEvent>
-    <bpmn2:serviceTask id="Activity_1e0jzf6" name="unlock caution">
-      <bpmn2:extensionElements>
-        <camunda:connector>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="url">${urlBank}${epBankUnlock}</camunda:inputParameter>
-            <camunda:inputParameter name="method">POST</camunda:inputParameter>
-            <camunda:inputParameter name="payload">{"token": "${userToken}"}</camunda:inputParameter>
-            <camunda:inputParameter name="headers">
-              <camunda:map>
-                <camunda:entry key="Content-Type">text/xml</camunda:entry>
-              </camunda:map>
-            </camunda:inputParameter>
-            <camunda:outputParameter name="bankUnlockStatus">${response}</camunda:outputParameter>
-          </camunda:inputOutput>
-          <camunda:connectorId>http-connector</camunda:connectorId>
-        </camunda:connector>
-      </bpmn2:extensionElements>
+    <bpmn2:serviceTask id="Activity_1e0jzf6" name="unlock caution" camunda:type="external" camunda:topic="bank-unlock-caution">
+      <bpmn2:extensionElements />
       <bpmn2:incoming>Flow_0gj0lw5</bpmn2:incoming>
       <bpmn2:outgoing>Flow_08ep7v7</bpmn2:outgoing>
     </bpmn2:serviceTask>
@@ -305,26 +213,11 @@
     <bpmn2:endEvent id="Event_1lh4kem">
       <bpmn2:incoming>Flow_19m1bau</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:serviceTask id="Activity_1u45vh2" name="convert caution to payment">
-      <bpmn2:extensionElements>
-        <camunda:connector>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="url">${URL_BANK}</camunda:inputParameter>
-            <camunda:inputParameter name="method">POST</camunda:inputParameter>
-            <camunda:inputParameter name="payload">{"token": "${userToken}"}</camunda:inputParameter>
-            <camunda:inputParameter name="headers">
-              <camunda:map>
-                <camunda:entry key="Content-Type">text/xml</camunda:entry>
-              </camunda:map>
-            </camunda:inputParameter>
-            <camunda:outputParameter name="userToken">${response}</camunda:outputParameter>
-          </camunda:inputOutput>
-          <camunda:connectorId>http-connector</camunda:connectorId>
-        </camunda:connector>
-      </bpmn2:extensionElements>
+    <bpmn2:serviceTask id="Activity_1u45vh2" name="convert caution to payment" camunda:type="external" camunda:topic="bank-convert-caution">
+      <bpmn2:extensionElements />
       <bpmn2:incoming>Flow_0gwsri1</bpmn2:incoming>
     </bpmn2:serviceTask>
-    <bpmn2:sendTask id="Activity_1k3hedn" name="rental rejected">
+    <bpmn2:sendTask id="Activity_1k3hedn" name="rental rejected" camunda:type="external" camunda:topic="notify-rejection">
       <bpmn2:incoming>Flow_11mhdhg</bpmn2:incoming>
       <bpmn2:outgoing>Flow_1w382ul</bpmn2:outgoing>
     </bpmn2:sendTask>
@@ -370,7 +263,7 @@
     <bpmn2:sequenceFlow id="Flow_15fmyyk" sourceRef="Gateway_0f7qf99" targetRef="Event_0t9nx7w" />
     <bpmn2:sequenceFlow id="Flow_1976dxj" sourceRef="Event_0t9nx7w" targetRef="Gateway_0sydpvs" />
     <bpmn2:sequenceFlow id="Flow_17wxsd9" sourceRef="Activity_0e69l6x" targetRef="Gateway_0f7qf99" />
-    <bpmn2:sequenceFlow id="Flow_16vv9q3" sourceRef="Gateway_1xhyr2k" targetRef="Activity_014kr5a" />
+    <bpmn2:sequenceFlow id="Flow_16vv9q3" sourceRef="Gateway_1xhyr2k" targetRef="Activity_0by1b4q" />
     <bpmn2:sequenceFlow id="Flow_07dtv52" sourceRef="Activity_0by1b4q" targetRef="Gateway_1e4nsee" />
     <bpmn2:sequenceFlow id="Flow_1vu0hfp" name="immediate" sourceRef="Gateway_1e4nsee" targetRef="Gateway_1lnorv8">
       <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression">${isImmediate}</bpmn2:conditionExpression>
@@ -391,7 +284,7 @@
     <bpmn2:sequenceFlow id="Flow_1vunasc" sourceRef="Gateway_0f3bphh" targetRef="Gateway_1ixpr0z" />
     <bpmn2:sequenceFlow id="Flow_1uh4ilj" sourceRef="Gateway_1ixpr0z" targetRef="Activity_029xvbh" />
     <bpmn2:sequenceFlow id="Flow_1hikny7" name="battery &#60; 15%" sourceRef="Gateway_0f3bphh" targetRef="Activity_0krnps6">
-      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression">${fleetBatteryPerc lt 15}</bpmn2:conditionExpression>
+      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression">${battery_perc lt 15}</bpmn2:conditionExpression>
     </bpmn2:sequenceFlow>
     <bpmn2:sequenceFlow id="Flow_0m4gwzl" sourceRef="Event_1hhw63q" targetRef="Gateway_1rf3qak" />
     <bpmn2:sequenceFlow id="Flow_1ti1rs6" sourceRef="Activity_029xvbh" targetRef="Event_1jbngpw" />
@@ -436,64 +329,25 @@
       <bpmn2:messageEventDefinition id="MessageEventDefinition_1dzyy63" messageRef="Message_347n1i4" />
     </bpmn2:intermediateCatchEvent>
     <bpmn2:sequenceFlow id="Flow_1mr5aid" sourceRef="Activity_0xqs3bt" targetRef="Gateway_0py7o6q" />
-    <bpmn2:scriptTask id="Activity_0xqs3bt" name="calculate cancellation delay" scriptFormat="javascript">
-      <bpmn2:incoming>Flow_1kfmsvm</bpmn2:incoming>
-      <bpmn2:outgoing>Flow_1mr5aid</bpmn2:outgoing>
-      <bpmn2:script>var now = new Date().getTime();
-var start = execution.getVariable("reserveTime");
-var diffMinutes = (now - start) / (1000 * 60); // Convert ms in minutes
-execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
-    </bpmn2:scriptTask>
     <bpmn2:sequenceFlow id="Flow_0nbgkqe" sourceRef="Event_1a7pf26" targetRef="Gateway_1xhyr2k" />
     <bpmn2:sequenceFlow id="Flow_03j8ooz" sourceRef="Event_00746uo" targetRef="Gateway_1xhyr2k" />
     <bpmn2:startEvent id="Event_00746uo" name="receive reservation">
-      <bpmn2:extensionElements>
-        <camunda:executionListener event="end">
-          <camunda:script scriptFormat="javascript">execution.setVariable("reserveTime", new Date().getTime());</camunda:script>
-        </camunda:executionListener>
-        <camunda:executionListener event="start">
-          <camunda:script scriptFormat="javascript">execution.setVariable("isImmediate", false);</camunda:script>
-        </camunda:executionListener>
-      </bpmn2:extensionElements>
+      <bpmn2:extensionElements />
       <bpmn2:outgoing>Flow_03j8ooz</bpmn2:outgoing>
       <bpmn2:messageEventDefinition id="MessageEventDefinition_1dxrgwp" messageRef="Message_0v8sgs8" />
     </bpmn2:startEvent>
-    <bpmn2:sequenceFlow id="Flow_15fb38y" sourceRef="Activity_014kr5a" targetRef="Activity_0by1b4q" />
     <bpmn2:exclusiveGateway id="Gateway_1xhyr2k">
       <bpmn2:incoming>Flow_03j8ooz</bpmn2:incoming>
       <bpmn2:incoming>Flow_0nbgkqe</bpmn2:incoming>
       <bpmn2:outgoing>Flow_16vv9q3</bpmn2:outgoing>
     </bpmn2:exclusiveGateway>
     <bpmn2:startEvent id="Event_1a7pf26" name="receive immediate request">
-      <bpmn2:extensionElements>
-        <camunda:executionListener event="start">
-          <camunda:script scriptFormat="javascript">execution.setVariable("isImmediate", true);</camunda:script>
-        </camunda:executionListener>
-      </bpmn2:extensionElements>
+      <bpmn2:extensionElements />
       <bpmn2:outgoing>Flow_0nbgkqe</bpmn2:outgoing>
       <bpmn2:messageEventDefinition id="MessageEventDefinition_1xlutwi" messageRef="Message_13psg3h" />
     </bpmn2:startEvent>
-    <bpmn2:serviceTask id="Activity_014kr5a" name="load configuration" camunda:type="external" camunda:topic="config-loader">
-      <bpmn2:incoming>Flow_16vv9q3</bpmn2:incoming>
-      <bpmn2:outgoing>Flow_15fb38y</bpmn2:outgoing>
-    </bpmn2:serviceTask>
-    <bpmn2:serviceTask id="Activity_0ipqsi2" name="unlock caution">
-      <bpmn2:extensionElements>
-        <camunda:connector>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="url">${urlBank}${epBankUnlock}</camunda:inputParameter>
-            <camunda:inputParameter name="method">POST</camunda:inputParameter>
-            <camunda:inputParameter name="payload">{"token": "${userToken}"}</camunda:inputParameter>
-            <camunda:inputParameter name="headers">
-              <camunda:map>
-                <camunda:entry key="Content-Type">text/xml</camunda:entry>
-              </camunda:map>
-            </camunda:inputParameter>
-            <camunda:outputParameter name="bankUnlockStatus">${response}</camunda:outputParameter>
-          </camunda:inputOutput>
-          <camunda:connectorId>http-connector</camunda:connectorId>
-        </camunda:connector>
-      </bpmn2:extensionElements>
+    <bpmn2:serviceTask id="Activity_0ipqsi2" name="unlock caution" camunda:type="external" camunda:topic="bank-unlock-caution">
+      <bpmn2:extensionElements />
       <bpmn2:incoming>Flow_0mw5imv</bpmn2:incoming>
       <bpmn2:outgoing>Flow_03x5c1w</bpmn2:outgoing>
     </bpmn2:serviceTask>
@@ -505,58 +359,53 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
       <bpmn2:outgoing>Flow_1g83bwb</bpmn2:outgoing>
       <bpmn2:errorEventDefinition id="ErrorEventDefinition_0pgkva8" />
     </bpmn2:boundaryEvent>
-    <bpmn2:task id="Activity_0gpuobx" name="start vehicle tracking">
-      <bpmn2:incoming>Flow_0y2aj3j</bpmn2:incoming>
-      <bpmn2:outgoing>Flow_0i9c3f7</bpmn2:outgoing>
-    </bpmn2:task>
     <bpmn2:sequenceFlow id="Flow_0y2aj3j" sourceRef="Gateway_0f7qf99" targetRef="Activity_0gpuobx" />
     <bpmn2:sequenceFlow id="Flow_0i9c3f7" sourceRef="Activity_0gpuobx" targetRef="Gateway_0sydpvs" />
     <bpmn2:boundaryEvent id="Event_0kt26kv" name="acknowledge parked vehicle" attachedToRef="Activity_14k9ls8">
+      <bpmn2:outgoing>Flow_14fdxbj</bpmn2:outgoing>
       <bpmn2:messageEventDefinition id="MessageEventDefinition_1k31puj" messageRef="Message_1mgein2" />
     </bpmn2:boundaryEvent>
-    <bpmn2:task id="Activity_1vxniv4" name="fetch vehicle battery">
-      <bpmn2:extensionElements>
-        <camunda:connector>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="url">${urlFleet}${epFleetBattery}</camunda:inputParameter>
-            <camunda:inputParameter name="method">POST</camunda:inputParameter>
-            <camunda:inputParameter name="payload">{"vehicleId": ${vehicleId}}</camunda:inputParameter>
-            <camunda:inputParameter name="headers">
-              <camunda:map>
-                <camunda:entry key="Content-Type">application/json</camunda:entry>
-              </camunda:map>
-            </camunda:inputParameter>
-            <camunda:outputParameter name="fleetBatteryPerc">${response}</camunda:outputParameter>
-          </camunda:inputOutput>
-          <camunda:connectorId>http-connector</camunda:connectorId>
-        </camunda:connector>
-      </bpmn2:extensionElements>
+    <bpmn2:sequenceFlow id="Flow_14fdxbj" sourceRef="Event_0kt26kv" targetRef="Activity_1vxniv4" />
+    <bpmn2:sequenceFlow id="Flow_0inzan5" sourceRef="Activity_1vxniv4" targetRef="Activity_0bze99r" />
+    <bpmn2:sequenceFlow id="Flow_10tmghx" sourceRef="Activity_13sarlw" targetRef="Activity_0wj8r51" />
+    <bpmn2:serviceTask id="Activity_0gpuobx" name="start vehicle tracking" camunda:type="external" camunda:topic="fleet-track-start">
+      <bpmn2:incoming>Flow_0y2aj3j</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_0i9c3f7</bpmn2:outgoing>
+    </bpmn2:serviceTask>
+    <bpmn2:serviceTask id="Activity_1vxniv4" name="fetch vehicle battery" camunda:type="external" camunda:topic="fleet-fetch-battery">
       <bpmn2:incoming>Flow_14fdxbj</bpmn2:incoming>
       <bpmn2:outgoing>Flow_0inzan5</bpmn2:outgoing>
-    </bpmn2:task>
-    <bpmn2:sequenceFlow id="Flow_14fdxbj" sourceRef="Gateway_0sydpvs" targetRef="Activity_1vxniv4" />
-    <bpmn2:task id="Activity_0bze99r" name="lock vehicle">
-      <bpmn2:extensionElements>
-        <camunda:connector>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="url">${urlStation}${epStationLock}</camunda:inputParameter>
-            <camunda:inputParameter name="method">POST</camunda:inputParameter>
-            <camunda:inputParameter name="payload">{"vehicleId": ${vehicleId}}</camunda:inputParameter>
-            <camunda:inputParameter name="headers">
-              <camunda:map>
-                <camunda:entry key="Content-Type">application/json</camunda:entry>
-              </camunda:map>
-            </camunda:inputParameter>
-            <camunda:outputParameter name="stationLockStatus">${response}</camunda:outputParameter>
-          </camunda:inputOutput>
-          <camunda:connectorId>http-connector</camunda:connectorId>
-        </camunda:connector>
-      </bpmn2:extensionElements>
+    </bpmn2:serviceTask>
+    <bpmn2:serviceTask id="Activity_0bze99r" name="lock vehicle" camunda:type="external" camunda:topic="station-lock">
       <bpmn2:incoming>Flow_0inzan5</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_17u7rv1</bpmn2:outgoing>
+    </bpmn2:serviceTask>
+    <bpmn2:serviceTask id="Activity_0wj8r51" name="calculate amount to charge" camunda:type="external" camunda:topic="acme-calculate-charge">
+      <bpmn2:incoming>Flow_10tmghx</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_1m4ivnj</bpmn2:outgoing>
+    </bpmn2:serviceTask>
+    <bpmn2:serviceTask id="Activity_0krnps6" name="add 10% penalty" camunda:type="external" camunda:topic="acme-apply-penalty">
+      <bpmn2:incoming>Flow_1hikny7</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_10hvmk0</bpmn2:outgoing>
+    </bpmn2:serviceTask>
+    <bpmn2:serviceTask id="Activity_0xqs3bt" name="calculate cancellation delay" camunda:type="external" camunda:topic="acme-cancellation-delay">
+      <bpmn2:incoming>Flow_1kfmsvm</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_1mr5aid</bpmn2:outgoing>
+    </bpmn2:serviceTask>
+    <bpmn2:intermediateCatchEvent id="Event_1g2ix8y" name="QR scanned">
+      <bpmn2:incoming>Flow_0anh0mt</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_1vjd40w</bpmn2:outgoing>
+      <bpmn2:messageEventDefinition id="MessageEventDefinition_1vawuxe" messageRef="Message_11oq1eu" />
+    </bpmn2:intermediateCatchEvent>
+    <bpmn2:serviceTask id="Activity_0tvj09s" name="reserve vehicle" camunda:type="external" camunda:topic="acme-reserve">
+      <bpmn2:incoming>Flow_0zej2pl</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_1r7kfgr</bpmn2:outgoing>
+    </bpmn2:serviceTask>
+    <bpmn2:sequenceFlow id="Flow_17u7rv1" sourceRef="Activity_0bze99r" targetRef="Activity_13sarlw" />
+    <bpmn2:serviceTask id="Activity_13sarlw" name="stop vehicle tracking" camunda:type="external" camunda:topic="fleet-track-stop">
+      <bpmn2:incoming>Flow_17u7rv1</bpmn2:incoming>
       <bpmn2:outgoing>Flow_10tmghx</bpmn2:outgoing>
-    </bpmn2:task>
-    <bpmn2:sequenceFlow id="Flow_0inzan5" sourceRef="Activity_1vxniv4" targetRef="Activity_0bze99r" />
-    <bpmn2:sequenceFlow id="Flow_10tmghx" sourceRef="Activity_0bze99r" targetRef="Activity_0wj8r51" />
+    </bpmn2:serviceTask>
   </bpmn2:process>
   <bpmn2:process id="Process_12yb2r3" isExecutable="false" camunda:historyTimeToLive="P180D">
     <bpmn2:exclusiveGateway id="Gateway_1iab5um" default="Flow_0fy14tj">
@@ -608,7 +457,7 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
     <bpmn2:intermediateThrowEvent id="Event_0wm0aec" name="park vehicle and notify">
       <bpmn2:incoming>Flow_048bpo3</bpmn2:incoming>
       <bpmn2:outgoing>Flow_0b36g4q</bpmn2:outgoing>
-      <bpmn2:messageEventDefinition id="MessageEventDefinition_0x5170t" />
+      <bpmn2:messageEventDefinition id="MessageEventDefinition_0x5170t" messageRef="Message_1mgein2" />
     </bpmn2:intermediateThrowEvent>
     <bpmn2:intermediateCatchEvent id="Event_0c495b0" name="receive confirmation">
       <bpmn2:incoming>Flow_0b36g4q</bpmn2:incoming>
@@ -710,9 +559,8 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
           <dc:Bounds x="1450" y="1223" width="60" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1kwkkh8_di" bpmnElement="Activity_1kwkkh8">
+      <bpmndi:BPMNShape id="Activity_1wvc1y8_di" bpmnElement="Activity_1kwkkh8">
         <dc:Bounds x="1280" y="1350" width="100" height="80" />
-        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1foigaf_di" bpmnElement="Flow_1foigaf">
         <di:waypoint x="1278" y="1259" />
@@ -746,18 +594,8 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
       <bpmndi:BPMNShape id="Gateway_1e4nsee_di" bpmnElement="Gateway_1e4nsee" isMarkerVisible="true">
         <dc:Bounds x="645" y="1305" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0tvj09s_di" bpmnElement="Activity_0tvj09s">
-        <dc:Bounds x="620" y="1200" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1lnorv8_di" bpmnElement="Gateway_1lnorv8" isMarkerVisible="true">
         <dc:Bounds x="855" y="1135" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1g2ix8y_di" bpmnElement="Event_1g2ix8y">
-        <dc:Bounds x="862" y="1072" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="889" y="1043" width="62" height="14" />
-        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0ygcuaw_di" bpmnElement="Gateway_198mv77">
         <dc:Bounds x="645" y="1065" width="50" height="50" />
@@ -765,22 +603,15 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
       <bpmndi:BPMNShape id="Gateway_1ayt9kz_di" bpmnElement="Gateway_0sydpvs">
         <dc:Bounds x="1215" y="965" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0wj8r51_di" bpmnElement="Activity_0wj8r51">
-        <dc:Bounds x="1910" y="1070" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1ixpr0z_di" bpmnElement="Gateway_1ixpr0z" isMarkerVisible="true">
         <dc:Bounds x="1895" y="975" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0f3bphh_di" bpmnElement="Gateway_0f3bphh" isMarkerVisible="true">
         <dc:Bounds x="1805" y="975" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0krnps6_di" bpmnElement="Activity_0krnps6">
-        <dc:Bounds x="1780" y="840" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1q2e789_di" bpmnElement="Activity_0by1b4q">
         <dc:Bounds x="510" y="1290" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0aintwu_di" bpmnElement="Activity_029xvbh">
         <dc:Bounds x="2050" y="960" width="100" height="80" />
@@ -841,10 +672,6 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
       <bpmndi:BPMNShape id="Event_0lh4esc_di" bpmnElement="Event_0lh4esc">
         <dc:Bounds x="652" y="982" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1fwf3d2_di" bpmnElement="Activity_0xqs3bt">
-        <dc:Bounds x="620" y="870" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1b32cwh_di" bpmnElement="Event_00746uo">
         <dc:Bounds x="392" y="1092" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -860,26 +687,42 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
           <dc:Bounds x="375" y="1236" width="90" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0g1wakm_di" bpmnElement="Activity_014kr5a">
-        <dc:Bounds x="380" y="1290" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_1q3v71u" bpmnElement="Activity_0ipqsi2">
         <dc:Bounds x="2570" y="1320" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0oad8iq_di" bpmnElement="Event_077bmsk">
         <dc:Bounds x="2522" y="982" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0gpuobx_di" bpmnElement="Activity_0gpuobx">
+      <bpmndi:BPMNShape id="Activity_0hafxl3_di" bpmnElement="Activity_0gpuobx">
         <dc:Bounds x="1070" y="950" width="100" height="80" />
-        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1vxniv4_di" bpmnElement="Activity_1vxniv4">
+      <bpmndi:BPMNShape id="Activity_0vc1k6v_di" bpmnElement="Activity_1vxniv4">
         <dc:Bounds x="1580" y="1220" width="100" height="80" />
-        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0bze99r_di" bpmnElement="Activity_0bze99r">
+      <bpmndi:BPMNShape id="Activity_11mqf19_di" bpmnElement="Activity_0bze99r">
         <dc:Bounds x="1910" y="1220" width="100" height="80" />
         <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1g4otkx_di" bpmnElement="Activity_0wj8r51">
+        <dc:Bounds x="1910" y="1070" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0jo3wle_di" bpmnElement="Activity_0krnps6">
+        <dc:Bounds x="1780" y="840" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0jlhgy7_di" bpmnElement="Activity_0xqs3bt">
+        <dc:Bounds x="620" y="870" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1g2ix8y_di" bpmnElement="Event_1g2ix8y">
+        <dc:Bounds x="862" y="1072" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="889" y="1043" width="62" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0o4zoor_di" bpmnElement="Activity_0tvj09s">
+        <dc:Bounds x="620" y="1200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1gatdzn_di" bpmnElement="Activity_13sarlw">
+        <dc:Bounds x="2090" y="1220" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_03jtsl5_di" bpmnElement="Event_0kt26kv">
         <dc:Bounds x="1382" y="1182" width="36" height="36" />
@@ -925,7 +768,8 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_16vv9q3_di" bpmnElement="Flow_16vv9q3">
         <di:waypoint x="470" y="1185" />
-        <di:waypoint x="470" y="1290" />
+        <di:waypoint x="470" y="1330" />
+        <di:waypoint x="510" y="1330" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_07dtv52_di" bpmnElement="Flow_07dtv52">
         <di:waypoint x="610" y="1330" />
@@ -984,9 +828,7 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0gwsri1_di" bpmnElement="Flow_0gwsri1">
         <di:waypoint x="825" y="810" />
-        <di:waypoint x="1738" y="810" />
-        <di:waypoint x="1738" y="770" />
-        <di:waypoint x="2650" y="770" />
+        <di:waypoint x="2650" y="810" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1m4ivnj_di" bpmnElement="Flow_1m4ivnj">
         <di:waypoint x="1910" y="1110" />
@@ -1110,10 +952,6 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
         <di:waypoint x="423" y="1123" />
         <di:waypoint x="455" y="1150" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_15fb38y_di" bpmnElement="Flow_15fb38y">
-        <di:waypoint x="480" y="1330" />
-        <di:waypoint x="510" y="1330" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0y2aj3j_di" bpmnElement="Flow_0y2aj3j">
         <di:waypoint x="1045" y="990" />
         <di:waypoint x="1070" y="990" />
@@ -1123,8 +961,8 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
         <di:waypoint x="1215" y="990" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_14fdxbj_di" bpmnElement="Flow_14fdxbj">
-        <di:waypoint x="1265" y="990" />
-        <di:waypoint x="1630" y="990" />
+        <di:waypoint x="1414" y="1189" />
+        <di:waypoint x="1630" y="1180" />
         <di:waypoint x="1630" y="1220" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0inzan5_di" bpmnElement="Flow_0inzan5">
@@ -1132,8 +970,13 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
         <di:waypoint x="1910" y="1260" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_10tmghx_di" bpmnElement="Flow_10tmghx">
-        <di:waypoint x="1960" y="1220" />
-        <di:waypoint x="1960" y="1150" />
+        <di:waypoint x="2110" y="1220" />
+        <di:waypoint x="2110" y="1130" />
+        <di:waypoint x="2010" y="1130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_17u7rv1_di" bpmnElement="Flow_17u7rv1">
+        <di:waypoint x="2010" y="1260" />
+        <di:waypoint x="2090" y="1260" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Participant_1lu36b9_di" bpmnElement="Participant_1lu36b9" isHorizontal="true">
         <dc:Bounds x="670" y="80" width="2350" height="390" />
@@ -1446,7 +1289,7 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
         <di:waypoint x="1100" y="1030" />
         <di:waypoint x="1100" y="1700" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1057" y="1713" width="46" height="14" />
+          <dc:Bounds x="1057" y="1713.0000000000027" width="46" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1ht05pn_di" bpmnElement="Flow_1ht05pn">
@@ -1460,28 +1303,28 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
         <di:waypoint x="1330" y="1430" />
         <di:waypoint x="1330" y="1700" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1287" y="1713" width="46" height="14" />
+          <dc:Bounds x="1287" y="1713.0000000000005" width="46" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0jxap4u_di" bpmnElement="Flow_0jxap4u">
         <di:waypoint x="1350" y="1700" />
         <di:waypoint x="1350" y="1430" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1352" y="1713" width="56" height="14" />
+          <dc:Bounds x="1353" y="1713" width="55" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0m7kek6_di" bpmnElement="Flow_0m7kek6">
         <di:waypoint x="1630" y="1300" />
         <di:waypoint x="1630" y="1700" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1577" y="1713" width="46" height="14" />
+          <dc:Bounds x="1577" y="1712.9999999999998" width="46" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0d9e85h_di" bpmnElement="Flow_0d9e85h">
         <di:waypoint x="1960" y="1300" />
         <di:waypoint x="1960" y="1810" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1917" y="1823" width="46" height="14" />
+          <dc:Bounds x="1917" y="1823.0000000000018" width="46" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0s090dq_di" bpmnElement="Flow_0s090dq">
@@ -1496,6 +1339,20 @@ execution.setVariable("cancelMinutes", diffMinutes);</bpmn2:script>
         <di:waypoint x="1980" y="1300" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1985" y="1823" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1t1e9be_di" bpmnElement="Flow_1t1e9be">
+        <di:waypoint x="2110" y="1300" />
+        <di:waypoint x="2110" y="1700" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2067" y="1713" width="46" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_056l9yt_di" bpmnElement="Flow_056l9yt">
+        <di:waypoint x="2170" y="1700" />
+        <di:waypoint x="2170" y="1300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2150" y="1713" width="70" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_1224vm5_di" bpmnElement="Association_1224vm5">

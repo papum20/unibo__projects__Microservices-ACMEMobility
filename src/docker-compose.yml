@@ -1,39 +1,46 @@
 services:
   camunda:
-    image: camunda/camunda-bpm-platform:run-latest
+    build: ./camunda
     container_name: acme-camunda
     ports:
-      - "${CAMUNDA_PORT}:8080"
+      - "${PORT_CAMUNDA}:8080"
     volumes:
       # Here you map the folder where you save your .bpmn files
       - ./camunda-resources/:/camunda/configuration/resources
-    environment:
-      - CAMUNDA_BPM_RUN_AUTH_ENABLED=false # disable login for convenience in dev
-      #- CAMUNDA_BPM_GENERIC_PROPERTIES_GENERAL_ENFORCE-HISTORY-TIME-TO-LIVE=false
-      #- enforceHistoryTimeToLive=false
+    networks:
+      - orchestration-network
+
+  bank-service:
+    build: ./service-bank
+    networks:
+      - bank-network
+
+  acme-worker:
+    build: ./service-acme-worker
+    container_name: acme-worker
+    env_file:
+      - .env
+    depends_on:
+      - camunda
     networks:
       - acme-network
+      - bank-network
+      - orchestration-network
 
 # fleet:
 #   build: ./service-fleet-management
 #   networks:
 #     - acme-network
 
-#  bank:
-#    build: ./service-bank
-
-  config-loader:
-    build: ./service-config-loader
-    container_name: acme-config-loader
-    environment:
-      - URL_CAMUNDA=http://camunda:8080/engine-rest
-      - URL_BANK=http://bank-service:8000
-      - URL_STATION=http://stations-service:5000
-      - BANK_CAUTION=10
-    depends_on:
-      - camunda
+# 5-10 stations
 
 
 networks:
   acme-network:
+    driver: bridge
+  bank-network:
+    driver: bridge
+  fleet-internal-network:
+    driver: bridge
+  orchestration-network:
     driver: bridge
