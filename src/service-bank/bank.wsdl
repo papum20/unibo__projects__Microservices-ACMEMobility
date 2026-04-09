@@ -66,15 +66,15 @@
         </xsd:complexType>
       </xsd:element>
 
-      <!-- cancelAuthorization -->
-      <xsd:element name="cancelAuthorizationRequest">
+      <!-- convertCaution -->
+      <xsd:element name="convertCautionRequest">
         <xsd:complexType>
           <xsd:sequence>
             <xsd:element name="token" type="xsd:string"/>
           </xsd:sequence>
         </xsd:complexType>
       </xsd:element>
-      <xsd:element name="cancelAuthorizationResponse">
+      <xsd:element name="convertCautionResponse">
         <xsd:complexType>
           <xsd:sequence>
             <xsd:element name="success" type="xsd:boolean"/>
@@ -109,11 +109,11 @@
     <part name="parameters" element="tns:unlockResponse"/>
   </message>
 
-  <message name="cancelAuthorizationInput">
-    <part name="parameters" element="tns:cancelAuthorizationRequest"/>
+  <message name="convertCautionInput">
+    <part name="parameters" element="tns:convertCautionRequest"/>
   </message>
-  <message name="cancelAuthorizationOutput">
-    <part name="parameters" element="tns:cancelAuthorizationResponse"/>
+  <message name="convertCautionOutput">
+    <part name="parameters" element="tns:convertCautionResponse"/>
   </message>
 
   <!-- ==================== PORT TYPE ==================== -->
@@ -130,9 +130,9 @@
       <input message="tns:unlockInput"/>
       <output message="tns:unlockOutput"/>
     </operation>
-    <operation name="cancelAuthorization">
-      <input message="tns:cancelAuthorizationInput"/>
-      <output message="tns:cancelAuthorizationOutput"/>
+    <operation name="convertCaution">
+      <input message="tns:convertCautionInput"/>
+      <output message="tns:convertCautionOutput"/>
     </operation>
   </portType>
 
@@ -158,8 +158,8 @@
       <output><soap:body use="literal"/></output>
     </operation>
 
-    <operation name="cancelAuthorization">
-      <soap:operation soapAction="cancelAuthorization"/>
+    <operation name="convertCaution">
+      <soap:operation soapAction="convertCaution"/>
       <input><soap:body use="literal"/></input>
       <output><soap:body use="literal"/></output>
     </operation>
