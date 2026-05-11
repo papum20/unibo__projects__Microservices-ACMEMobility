@@ -17,13 +17,16 @@ def get_env_or_exit(key: str) -> str:
 		sys.exit(2)
 	return val
 
-URL_CAMUNDA_MESSAGE = get_env_or_exit("URL_CAMUNDA_MESSAGE")
+URL_CAMUNDA_MESSAGE		= get_env_or_exit("URL_CAMUNDA_MESSAGE")
+URL_STATION_HW			= get_env_or_exit("URL_STATION_HW")
+EP_STATION_HW_INSERT	= get_env_or_exit("ENDPOINT_STATION_HW_INSERT")
 
 MESSAGE_USER_START_IMMEDIATE	= get_env_or_exit("MESSAGE_USER_START_IMMEDIATE")
 MESSAGE_USER_START_RESERVE		= get_env_or_exit("MESSAGE_USER_START_RESERVE")
 MESSAGE_USER_CANCEL				= get_env_or_exit("MESSAGE_USER_CANCEL")
 MESSAGE_USER_RESERVE_SCAN		= get_env_or_exit("MESSAGE_USER_RESERVE_SCAN")
-MESSAGE_USER_PARKED				= get_env_or_exit("MESSAGE_USER_PARKED")
+MESSAGE_USER_LOCKED				= get_env_or_exit("MESSAGE_USER_LOCKED")
+MESSAGE_USER_ASSISTANCE_LOCK	= get_env_or_exit("MESSAGE_USER_ASSISTANCE_LOCK")
 
 REQUEST_TIMEOUT_SECONDS = 10
 
@@ -55,7 +58,7 @@ def send_message(message_name, vehicle_id, user_id, variables=None):
 
 def print_usage():
 	print("\nUsage: python user.py <action> <user_id> <vehicle_id> [station_id]")
-	print("Actions: scan, reserve, cancel, scan_reserved, park")
+	print("Actions: scan, reserve, cancel, scan_reserved, park, lock, lock-assistance")
 	print("Example: python user.py scan u001 v001")
 	print("Example: python user.py park u001 v001 s001\n")
 
@@ -89,7 +92,28 @@ if __name__ == "__main__":
 			sys.exit(1)
 		station_id = sys.argv[4]
 
-		send_message("Msg_VehicleParked", vehicle_id, user_id, variables={"stationId": station_id})
+		# Simulate the physical insertion into the station hardware
+		hardware_resp = requests.post(f"{URL_STATION_HW}{EP_STATION_HW_INSERT}", timeout=REQUEST_TIMEOUT_SECONDS,
+			json={
+				"stationId": station_id,
+				"vehicleId": vehicle_id
+			})
+		if hardware_resp.status_code == 200:
+			print(f"Hardware sensor detected {vehicle_id} at {station_id}!")
+		else:
+			print(f"Physical insertion failed: {hardware_resp.text}")
+			sys.exit(1)
+	
+	elif action == "lock":
+		if len(sys.argv) < 5:
+			print_usage()
+			sys.exit(1)
+		station_id = sys.argv[4]
+
+		send_message(MESSAGE_USER_LOCKED, vehicle_id, user_id, variables={"stationId": station_id})
+
+	elif action == "lock-assistance":
+		send_message(MESSAGE_USER_ASSISTANCE_LOCK, vehicle_id, user_id)
 	
 	else:
 		print("Unknown action.")
