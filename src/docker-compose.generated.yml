@@ -1,0 +1,69 @@
+services:
+  camunda:
+    build: ./camunda
+    container_name: acme-camunda
+    ports:
+      - "${PORT_CAMUNDA}:8080"
+    volumes:
+      # Here you map the folder where you save your .bpmn files
+      - ./camunda-resources/:/camunda/configuration/resources
+    networks:
+      - orchestration-network
+
+  bank-service:
+    build: ./service-bank
+    networks:
+      - bank-network
+
+  acme-worker:
+    build: ./service-acme-worker
+    container_name: acme-worker
+    env_file:
+      - .env
+    depends_on:
+      - camunda
+    networks:
+      - acme-network
+      - bank-network
+      - orchestration-network
+
+  # fleet:
+  #   build: ./service-fleet-management
+  #   networks:
+  #     - acme-network
+
+  # 5-10 stations
+
+  # Use dot prefix (.station-template) for templates so they don't create containers
+  .station-template: &station-template
+    build: ./service-stations
+    networks:
+      - acme-network
+
+  station-BOLOGNA-01:
+    # Merge all properties from station-template
+    <<: *station-template
+    container_name: station-${STATION_SUFFIX_01}
+  station-BOLOGNA-02:
+    <<: *station-template
+    container_name: station-${STATION_SUFFIX_02}
+  station-BOLOGNA-03:
+    <<: *station-template
+    container_name: station-${STATION_SUFFIX_03}
+  station-BOLOGNA-04:
+    <<: *station-template
+    container_name: station-${STATION_SUFFIX_04}
+  station-BOLOGNA-05:
+    <<: *station-template
+    container_name: station-${STATION_SUFFIX_05}
+
+
+networks:
+  acme-network:
+    driver: bridge
+  bank-network:
+    driver: bridge
+  fleet-internal-network:
+    driver: bridge
+  orchestration-network:
+    driver: bridge

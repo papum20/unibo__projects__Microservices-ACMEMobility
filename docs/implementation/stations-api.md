@@ -12,8 +12,7 @@ Sends a physical command to the station's hardware to release the vehicle from t
 *   **Request Body (JSON):**
 ```json
 {
-  "vehicleId": "V-123",
-  "stationId": "STATION-BOLOGNA-01" 
+  "vehicleId": "V-123"
 }
 ```
 *   **Response (200 OK):**
@@ -33,8 +32,7 @@ Sends a physical command to the station's hardware to lock the vehicle back into
 *   **Request Body (JSON):**
 ```json
 {
-  "vehicleId": "V-123",
-  "stationId": "STATION-BOLOGNA-02"
+  "vehicleId": "V-123"
 }
 ```
 *   **Response (200 OK):**
@@ -52,13 +50,14 @@ Simulate the action of parking a vehicle, i.e. inserting it into a station dock.
 
 *   **Method:** `POST`
 *   **Request Body (JSON):**
-```json{
-  "vehicleId": "V-123",
-  "stationId": "STATION-BOLOGNA-01"
+```json
+{
+  vehicleId: "V-123"
 }
 ```
 *   **Response (200 OK):**
-```json{
+```json
+{
   "success": true,
   "vehicleId": "V-123",
   "status": "PARKED",

@@ -89,6 +89,12 @@ class Config:
 	TOPIC_ACME_NOTIFY_REJECTION		= get_env_or_exit('TOPIC_ACME_NOTIFY_REJECTION')
 	TOPIC_ACME_RESERVE				= get_env_or_exit('TOPIC_ACME_RESERVE')
 
+	STATION_ID_01 = get_env_or_exit('STATION_ID_01')
+	STATION_ID_02 = get_env_or_exit('STATION_ID_02')
+	STATION_ID_03 = get_env_or_exit('STATION_ID_03')
+	STATION_ID_04 = get_env_or_exit('STATION_ID_04')
+	STATION_ID_05 = get_env_or_exit('STATION_ID_05')
+
 
 	logger = logging.getLogger(__name__)
 
