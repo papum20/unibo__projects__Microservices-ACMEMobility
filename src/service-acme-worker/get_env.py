@@ -23,10 +23,14 @@ class Config:
 	# Read Configuration from Docker Environment
 	URL_CAMUNDA         = get_env_or_exit('URL_CAMUNDA')
 	URL_BANK_WSDL       = get_env_or_exit('URL_BANK_WSDL')
-	URL_STATION_BASE    = get_env_or_exit('URL_STATION')
 	URL_FLEET_BASE      = get_env_or_exit('URL_FLEET')
 	URL_BANK_BASE		= get_env_or_exit('URL_BANK')
-	URL_STATION_BASE	= get_env_or_exit('URL_STATION')
+
+	URL_STATION_01_BASE	= get_env_or_exit('URL_STATION_01')
+	URL_STATION_02_BASE	= get_env_or_exit('URL_STATION_02')
+	URL_STATION_03_BASE	= get_env_or_exit('URL_STATION_03')
+	URL_STATION_04_BASE	= get_env_or_exit('URL_STATION_04')
+	URL_STATION_05_BASE	= get_env_or_exit('URL_STATION_05')
 
 	EP_BANK_PREAUTH			= get_env_or_exit('ENDPOINT_BANK_PREAUTH')
 	EP_BANK_CHARGE			= get_env_or_exit('ENDPOINT_BANK_CHARGE')
@@ -94,6 +98,15 @@ class Config:
 	STATION_ID_03 = get_env_or_exit('STATION_ID_03')
 	STATION_ID_04 = get_env_or_exit('STATION_ID_04')
 	STATION_ID_05 = get_env_or_exit('STATION_ID_05')
+
+
+	STATION_ID_URL_MAP = {
+		STATION_ID_01: URL_STATION_01_BASE,
+		STATION_ID_02: URL_STATION_02_BASE,
+		STATION_ID_03: URL_STATION_03_BASE,
+		STATION_ID_04: URL_STATION_04_BASE,
+		STATION_ID_05: URL_STATION_05_BASE
+	}
 
 
 	logger = logging.getLogger(__name__)

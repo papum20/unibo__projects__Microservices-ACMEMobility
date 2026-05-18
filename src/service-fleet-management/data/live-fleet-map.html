@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ACMEMobility Live Fleet Map</title>
+    <!-- Load Leaflet CSS and JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 100vh; width: 100vw; margin: 0; padding: 0; }
+        body { margin: 0; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        // Initialize the map centered on Bologna
+        var map = L.map('map').setView([44.4949, 11.3426], 14);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Store markers by vehicle ID so we can move them, not recreate them
+        var markers = {};
+
+        async function fetchAndUpdateMap() {
+            try {
+                let response = await fetch('http://localhost:4000/tracking/all');
+                let vehicles = await response.json();
+
+                for (let vid in vehicles) {
+                    let lat = vehicles[vid].lat;
+                    let lon = vehicles[vid].lon;
+
+                    if (markers[vid]) {
+                        // Vehicle exists, move the marker smoothly
+                        markers[vid].setLatLng([lat, lon]);
+                    } else {
+                        // New vehicle, create a marker
+                        markers[vid] = L.marker([lat, lon]).addTo(map)
+                            .bindPopup("<b>" + vid + "</b>");
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching vehicle data:", error);
+            }
+        }
+
+        // Poll the Fleet Gateway every 2 seconds
+        setInterval(fetchAndUpdateMap, 2000);
+    </script>
+</body>
+</html>

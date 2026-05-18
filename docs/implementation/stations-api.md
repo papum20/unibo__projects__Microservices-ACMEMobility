@@ -52,7 +52,7 @@ Simulate the action of parking a vehicle, i.e. inserting it into a station dock.
 *   **Request Body (JSON):**
 ```json
 {
-  vehicleId: "V-123"
+  "vehicleId": "V-123"
 }
 ```
 *   **Response (200 OK):**

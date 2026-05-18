@@ -18,8 +18,18 @@ def get_env_or_exit(key: str) -> str:
 	return val
 
 URL_CAMUNDA_MESSAGE		= get_env_or_exit("URL_CAMUNDA_MESSAGE")
-URL_STATION_HW			= get_env_or_exit("URL_STATION_HW")
+URL_STATION_01_HW		= get_env_or_exit("URL_STATION_01_HW")
+URL_STATION_02_HW		= get_env_or_exit("URL_STATION_02_HW")
+URL_STATION_03_HW		= get_env_or_exit("URL_STATION_03_HW")
+URL_STATION_04_HW		= get_env_or_exit("URL_STATION_04_HW")
+URL_STATION_05_HW		= get_env_or_exit("URL_STATION_05_HW")
 EP_STATION_HW_INSERT	= get_env_or_exit("ENDPOINT_STATION_HW_INSERT")
+
+STATION_01_ID = get_env_or_exit("STATION_ID_01")
+STATION_02_ID = get_env_or_exit("STATION_ID_02")
+STATION_03_ID = get_env_or_exit("STATION_ID_03")
+STATION_04_ID = get_env_or_exit("STATION_ID_04")
+STATION_05_ID = get_env_or_exit("STATION_ID_05")
 
 MESSAGE_USER_START_IMMEDIATE	= get_env_or_exit("MESSAGE_USER_START_IMMEDIATE")
 MESSAGE_USER_START_RESERVE		= get_env_or_exit("MESSAGE_USER_START_RESERVE")
@@ -27,6 +37,14 @@ MESSAGE_USER_CANCEL				= get_env_or_exit("MESSAGE_USER_CANCEL")
 MESSAGE_USER_RESERVE_SCAN		= get_env_or_exit("MESSAGE_USER_RESERVE_SCAN")
 MESSAGE_USER_LOCKED				= get_env_or_exit("MESSAGE_USER_LOCKED")
 MESSAGE_USER_ASSISTANCE_LOCK	= get_env_or_exit("MESSAGE_USER_ASSISTANCE_LOCK")
+
+STATION_ID_URL_MAP = {
+	STATION_01_ID: URL_STATION_01_HW,
+	STATION_02_ID: URL_STATION_02_HW,
+	STATION_03_ID: URL_STATION_03_HW,
+	STATION_04_ID: URL_STATION_04_HW,
+	STATION_05_ID: URL_STATION_05_HW
+}
 
 REQUEST_TIMEOUT_SECONDS = 10
 
@@ -93,9 +111,8 @@ if __name__ == "__main__":
 		station_id = sys.argv[4]
 
 		# Simulate the physical insertion into the station hardware
-		hardware_resp = requests.post(f"{URL_STATION_HW}{EP_STATION_HW_INSERT}", timeout=REQUEST_TIMEOUT_SECONDS,
+		hardware_resp = requests.post(f"{STATION_ID_URL_MAP.get(station_id)}{EP_STATION_HW_INSERT}", timeout=REQUEST_TIMEOUT_SECONDS,
 			json={
-				"stationId": station_id,
 				"vehicleId": vehicle_id
 			})
 		if hardware_resp.status_code == 200:

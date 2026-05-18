@@ -3,7 +3,7 @@ services:
     build: ./camunda
     container_name: acme-camunda
     ports:
-      - "${PORT_CAMUNDA}:8080"
+      - "${PORT_LOCAL_CAMUNDA}:${PORT_CAMUNDA}"
     volumes:
       # Here you map the folder where you save your .bpmn files
       - ./camunda-resources/:/camunda/configuration/resources
@@ -32,6 +32,7 @@ services:
   #   networks:
   #     - acme-network
 
+
   # 5-10 stations
 
   # Use dot prefix (.station-template) for templates so they don't create containers
@@ -43,20 +44,31 @@ services:
   station-BOLOGNA-01:
     # Merge all properties from station-template
     <<: *station-template
-    container_name: station-${STATION_SUFFIX_01}
+    container_name: acme-station-${STATION_SUFFIX_01}
   station-BOLOGNA-02:
     <<: *station-template
-    container_name: station-${STATION_SUFFIX_02}
+    container_name: acme-station-${STATION_SUFFIX_02}
   station-BOLOGNA-03:
     <<: *station-template
-    container_name: station-${STATION_SUFFIX_03}
+    container_name: acme-station-${STATION_SUFFIX_03}
   station-BOLOGNA-04:
     <<: *station-template
-    container_name: station-${STATION_SUFFIX_04}
+    container_name: acme-station-${STATION_SUFFIX_04}
   station-BOLOGNA-05:
     <<: *station-template
-    container_name: station-${STATION_SUFFIX_05}
+    container_name: acme-station-${STATION_SUFFIX_05}
 
+
+  graphhopper:
+      image: graphhopper/graphhopper:latest
+      container_name: acme-graphhopper
+      ports:
+        - "${PORT_LOCAL_GRAPHHOPPER}:${PORT_GRAPHHOPPER}"
+      volumes:
+        - ./graphhopper/data:/data
+      command: --host 0.0.0.0 -i /${GRAPHHOPPER_MAP_DIR}/${GRAPHHOPPER_MAP_FILE}
+      networks:
+        - integration-net
 
 networks:
   acme-network:

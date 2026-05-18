@@ -64,6 +64,59 @@ Fetch the vehicle's current location.
 }
 ```
 
+### Get All vehicles positions (`/tracking/position`)
+Fetch the current locations of all vehicles.
+
+*   **Method:** `GET`
+*   **Response (200 OK):**
+```json
+{
+  "vehicles": [
+    {
+      "vehicleId": "V-123",
+      "coordinates": {
+        "latitude": 44.4949,
+        "longitude": 11.3426
+      },
+      "speedKmH": 22.5,
+      "status": "MOVING"
+    },
+    {
+      "vehicleId": "V-456",
+  "coordinates": {
+        "latitude": 44.4949,
+        "longitude": 11.3426
+      },
+      "speedKmH": 22.5,
+      "status": "MOVING"
+    }
+  ]
+}
+```
+
+### Upload Vehicle Position (`/tracking/position/{vehicleId}`)
+Upload the vehicle's current location.
+
+*   **Method:** `POST`
+*   **Request Body (JSON):**
+```json
+{
+  "coordinates": {
+    "latitude": 44.4949,
+    "longitude": 11.3426
+  },
+  "speedKmH": 22.5,
+  "status": "MOVING"
+}
+```
+*   **Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Position updated successfully."
+}
+```
+
 ---
 
 ## Domain B: Battery & State Service
