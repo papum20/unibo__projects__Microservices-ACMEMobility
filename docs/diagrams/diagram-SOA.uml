@@ -1,0 +1,50 @@
+@startuml
+skinparam componentStyle uml2
+skinparam packageStyle rectangle
+
+package "«Tasks»\nACME_Process_Services" {
+  interface "«ServiceInterface»\nRentalOrchestrator" as RO
+  
+  component "«Capability»\nRentalManagement" as RM {
+    portout " " as p1
+    portout " " as p2
+    portout " " as p3
+  }
+  
+  RO <|.. RM : «Expose»
+}
+
+package "«Entities»\nBank_Services" {
+  interface "«ServiceInterface»\nBankSOAP" as BS
+  component "«Capability»\nTransactionManagement" as TM
+  BS <|.. TM : «Expose»
+}
+
+package "«Entities»\nFleet_Services" {
+  interface "«ServiceInterface»\nFleetAPI" as FA
+  component "«Capability»\nTelemetryManagement" as FM
+  FA <|.. FM : «Expose»
+}
+
+package "«Entities»\nStation_Services" {
+  interface "«ServiceInterface»\nStationAPI" as SA
+  component "«Capability»\nDockManagement" as SM
+  SA <|.. SM : «Expose»
+}
+
+' Dependencies
+p1 ..> BS : «use»
+p2 ..> FA : «use»
+p3 ..> SA : «use»
+
+note right of RM
+  Implemented via Camunda BPMS.
+  Coordinates the rental lifecycle.
+end note
+
+note bottom of TM
+  Implemented via Jolie.
+  Handles preAuth, charge, unlock.
+end note
+
+@enduml

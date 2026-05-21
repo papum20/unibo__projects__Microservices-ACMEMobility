@@ -52,3 +52,7 @@ python3 user-scripts/user.py scan_reserved u001 v001
 python3 user-scripts/user.py cancel u001 v001
 python3 user-scripts/user.py park u001 v001 s001
 ```
+
+## Diagrams
+
+`docs/diagrams/diagram-SOA.uml`: SOA diagram in UML (TinySOA) (to paste in https://www.planttext.com/)  
