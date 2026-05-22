@@ -5,6 +5,9 @@ ACME keeps track of some information (see `acme-db.md`)
   * asking to user isnt good
   * checking coordinates may be imprecise
   * in general, for separation of concerns, other services shouldnt be responsible this
+* DB:
+  * each service may (inlcuding ACME) may have its own DB, accessible only by itself
+  * in the implementation, we just simulated it (e.g. with a python module inside the same Docker container)
 
 locking:
 * user side communicates `stationId` when parking:

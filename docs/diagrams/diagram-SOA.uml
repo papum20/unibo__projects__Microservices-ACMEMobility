@@ -23,7 +23,10 @@ package "«Tasks»\nACMEMobility_Core" {
     portout " " as pStation
   }
   
+  database "ACME_DB\n(Users & Inventory)" as ACME_DB
+  
   ROAPI <|.. ACME_Cap : «Expose»
+  ACME_Cap -down-> ACME_DB : "Reads/Writes State"
 }
 
 ' --- LAYER 2: ENTITY SERVICES (The Microservices) ---
