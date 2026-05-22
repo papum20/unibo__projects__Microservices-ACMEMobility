@@ -24,6 +24,11 @@ locking assistance request:
   * provides an infinite loop (keep the service running for following operations)
   * can serve multiple users at the same time
 
+## Fleet
+
+* BPMN:
+  * The fetch loop actually happens separately, at the same time, for both battery and position
+
 ## User
 By user we mean both the person and his device/app (so, including some information the user doesn't directly know, but the app provides, like codes or ids of vehicles).  
 
@@ -37,6 +42,34 @@ Errors to report:
 * notes on connectedness in formal
 * correctedness
 * show error in diagram-error.bpmn
+
+#### UML
+
+We combine Class Diagram syntax (defining methods inside an interface using { ... }) with Component Diagram syntax (component, portout, and package).  
+
+Following the SOMA (Service-Oriented Modeling and Architecture) methodology, we extracted our Service Architecture directly from the BPMN Collaboration diagram.  
+According to SOMA, each external Pool in the BPMN (`Bank`, `Fleet Management`, `Stations`) represents a **Capability** modeled as an **Entity Service** (`<<Entities>>`). The incoming Message Flows to those pools (e.g., 'request to lock vehicle', 'request to block caution') dictate the exact operations exposed by their **Service Interfaces** (`<<ServiceInterface>>`).  
+The central BPMN executable pool (`ACMEMobility`) is modeled as a **Task Service** (`<<Tasks>>`), which encapsulates the business process. Through the Camunda External Task pattern (represented by the `<<use>>` dependencies in UML), the Task Service acts as an orchestrator, invoking the Entity Services via SOAP and REST to fulfill the business capabilities.
+
+
+`<<Entities>>` represent IT Software Services that manage business domains (so, no User nor Vehicle).  
+*   **The User** is a human interacting with a client (Mobile App). The app is a *Consumer* of your SOA, not a service within it.
+*   **The Vehicle** is physical IoT hardware. The **Fleet Management Service** is already the "Digital Twin" (the software representation) of the vehicles. 
+
+Instead of making them SOA Entities, we add them to the UML diagram as **External Actors** to show how they interact with the system boundaries.
+
+
+Stations are multiple identical instances of the same microservice: draw **one** component box, but visually indicate that it is a "class" or "template" that is instantiated multiple times.  
+
+
+##### Specifications of UML/TinySOA
+
+TinySOA organizes services into specific packages (layers):
+*   **`<<Tasks>>` (Business Process Services):** These orchestrate the workflow. **ACMEMobility** belongs here.
+*   **`<<Entities>>` (Entity Services):** These manage specific domain data/hardware and are reusable. **Bank, Fleet, and Stations** belong here.
+*   *(Utilities are generic things like logging/email, which you don't need to model).*
+*   **`<<Capability>>`**: This is the "concept" of what the service does (e.g., "Payment Management", "Docking Management"). **In SOMA, every Pool in BPMN becomes a Capability.**
+*   **`<<ServiceInterface>>`**: This is the actual API (the endpoints) exposed by the microservice. **In SOMA, the incoming arrows (Message Flows) to a Pool become the Operations in the Interface.**
 
 #### What is Connectedness?
 This is a **theoretical property** of Service Choreographies. Since your project asks you to model a "Choreography" first, this is very important for your grade.
@@ -58,7 +91,7 @@ This is a **theoretical property** of Service Choreographies. Since your project
 
 **In your project:** You will draw a diagram showing how all these services talk. If you see a service performing an action without having received a message that "triggered" that action, your choreography is **not connected**. You will have to "refine" it by adding the missing messages.
 
-#### 1. Connectedness (The "Baton Race" Rule)
+##### 1. Connectedness (The "Baton Race" Rule)
 Connectedness is a property of a **Choreography**. A choreography is a model where there is no central controller; every service just knows its own part.
 
 **The Rule:** A choreography is "connected" if, for every sequence of actions, the person who is supposed to send a message **knows** that it is their turn because they were the **receiver** of the previous message.
@@ -80,7 +113,7 @@ You need to draw the interaction. If you see a service sending a message but it 
 
 ---
 
-#### 2. Correctness (or "Correctedness")
+##### 2. Correctness (or "Correctedness")
 "Correctness" is a much broader term. It usually refers to **Realizability** and **Semantic Correctness**.
 
 *   **Realizability:** Can this choreography actually be implemented as a set of microservices without them getting stuck (deadlock)? If your choreography is *Connected*, it is a huge step toward being *Realizable*.
@@ -89,7 +122,7 @@ You need to draw the interaction. If you see a service sending a message but it 
 
 ---
 
-#### Why the distinction matters for your project:
+##### Why the distinction matters for your project:
 The prompt says: *"...discuss its properties of connectedness and eventually refine the choreography to improve such properties. Project the choreography into a system of roles."*
 
 1.  **Step 1:** Draw the flow of messages between Customer, ACMEMobility, Bank, Stations, and Fleet.
@@ -97,7 +130,7 @@ The prompt says: *"...discuss its properties of connectedness and eventually ref
 3.  **Step 3 (Refinement):** Add a message (e.g., an acknowledgment or a trigger) to fix the jump.
 4.  **Step 4 (Projection):** Once it is connected, you "slice" the diagram. You take all the messages sent/received by the "Bank" and that becomes the **Jolie code**. You take all messages for "ACMEMobility" and that becomes the **Camunda process**.
 
-#### Summary Table
+##### Summary Table
 | Feature | Connectedness | Correctness |
 | :--- | :--- | :--- |
 | **What is it?** | Causal flow (A knows it's their turn). | The system is bug-free and follows logic. |
