@@ -1,21 +1,44 @@
 from flask import Flask, request, jsonify
 from datetime import datetime
+import requests
+
+
 
 app = Flask(__name__)
 
 # Memorizzazione in memoria
 vehicles = {}
 
-# 1. POST /positions/update
+# currently tracked vehicles
+tracked_vehicles = set()
 
-@app.route('/positions/update', methods=['POST'])
-def update_position():
+
+
+# POST /tracking/start
+
+@app.route('/tracking/start', methods=['POST'])
+def start_tracking():
+    vehicle_id = request.json.get("vehicleId")
+    tracked_vehicles.add(vehicle_id)
+    
+    # notify vehicle itself
+    vehicle_url = f"http://vehicle-{vehicle_id}:6000/start"
+    try:
+        requests.post(vehicle_url, timeout=5)
+        return jsonify({"success": True}), 200
+    except requests.exceptions.RequestException:
+        return jsonify({"success": False, "message": "Vehicle offline"}), 503
+
+
+# POST /position/update
+
+@app.route('/position/<vehicle_id>', methods=['POST'])
+def update_position(vehicle_id):
     data = request.get_json()
 
     if not data:
         return jsonify({"error": "JSON non valido"}), 400
 
-    vehicle_id = data.get("vehicleId")
     x = data.get("x")
     y = data.get("y")
 
@@ -26,7 +49,7 @@ def update_position():
     position = {
         "x": x,
         "y": y,
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now().isoformat()
     }
 
     # Nuovo veicolo
@@ -49,8 +72,9 @@ def update_position():
     }), 200
 
 
-# 2. GET /positions/<vehicle_id>
-@app.route('/positions/<vehicle_id>', methods=['GET'])
+# GET /position/<vehicle_id>
+
+@app.route('/position/<vehicle_id>', methods=['GET'])
 def get_position(vehicle_id):
     if vehicle_id not in vehicles:
         return jsonify({"error": "Veicolo non trovato"}), 404
@@ -61,9 +85,9 @@ def get_position(vehicle_id):
     })
 
 
-# 3. GET /positions/active
+# GET /position/active
 
-@app.route('/positions/active', methods=['GET'])
+@app.route('/position/active', methods=['GET'])
 def get_active_vehicles():
     active_ids = list(vehicles.keys())
 
@@ -72,8 +96,9 @@ def get_active_vehicles():
     })
 
 
-# 4. GET /positions/<vehicle_id>/history
-@app.route('/positions/<vehicle_id>/history', methods=['GET'])
+# GET /position/<vehicle_id>/history
+
+@app.route('/position/<vehicle_id>/history', methods=['GET'])
 def get_history(vehicle_id):
     if vehicle_id not in vehicles:
         return jsonify({"error": "Veicolo non trovato"}), 404
@@ -82,6 +107,7 @@ def get_history(vehicle_id):
         "vehicleId": vehicle_id,
         "history": vehicles[vehicle_id]["history"]
     })
+
 
 
 if __name__ == "__main__":

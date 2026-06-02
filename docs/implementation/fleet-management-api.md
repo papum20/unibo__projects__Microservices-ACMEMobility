@@ -135,3 +135,20 @@ Retrieves the current battery percentage of the vehicle.
   "batteryLevel": 12
 }
 ```
+
+### Update Battery Level (`/battery/{vehicleId}`)
+Updates the battery level of a vehicle, typically called by the vehicle itself.  
+*   **Method:** `POST`
+*   **URL Parameter:** `vehicleId` (e.g., `/battery/V-123`)
+*   **Request Body (JSON):**
+```json
+{
+  "battery": 12
+}
+```
+*   **Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Battery level updated successfully."
+}```

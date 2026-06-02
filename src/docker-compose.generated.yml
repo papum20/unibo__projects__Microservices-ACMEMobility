@@ -10,11 +10,6 @@ services:
     networks:
       - orchestration-network
 
-  bank-service:
-    build: ./service-bank
-    networks:
-      - bank-network
-
   acme-worker:
     build: ./service-acme-worker
     container_name: acme-worker
@@ -27,10 +22,35 @@ services:
       - bank-network
       - orchestration-network
 
-  # fleet:
-  #   build: ./service-fleet-management
-  #   networks:
-  #     - acme-network
+
+  bank-service:
+    build: ./service-bank
+    networks:
+      - bank-network
+
+
+  fleet-service:
+    image: nginx:latest
+    container_name: fleet-service
+    ports:
+      - "${PORT_LOCAL_FLEET}:${PORT_FLEET}"
+    volumes:
+      - ./service-fleet-management/nginx.generated.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - acme-network
+      - fleet-internal-network
+
+  fleet-tracking:
+    build: ./service-fleet-tracking
+    container_name: fleet-tracking
+    networks:
+      - fleet-internal-network
+
+  fleet-battery:
+    build: ./service-fleet-battery
+    container_name: fleet-battery
+    networks:
+      - fleet-internal-network
 
 
   # 5-10 stations
@@ -45,18 +65,89 @@ services:
     # Merge all properties from station-template
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_01}
+    environment:
+      - STATION_ID=${STATION_SUFFIX_01}
   station-BOLOGNA-02:
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_02}
+    environment:
+      - STATION_ID=${STATION_SUFFIX_02}
   station-BOLOGNA-03:
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_03}
+    environment:
+      - STATION_ID=${STATION_SUFFIX_03}
   station-BOLOGNA-04:
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_04}
+    environment:
+      - STATION_ID=${STATION_SUFFIX_04}
   station-BOLOGNA-05:
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_05}
+    environment:
+      - STATION_ID=${STATION_SUFFIX_05}
+
+
+  # 10 vehicles
+
+  .vehicle-template: &vehicle-template
+    build: ./service-vehicles
+    ports:
+      - "${PORT_LOCAL_VEHICLES}:${PORT_VEHICLES}"
+    networks:
+      - acme-network
+
+  vehicle-01:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${VEHICLE_SUFFIX_01}
+    environment:
+      - VEHICLE_ID=${VEHICLE_SUFFIX_01}
+  vehicle-02:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${VEHICLE_SUFFIX_02}
+    environment:
+      - VEHICLE_ID=${VEHICLE_SUFFIX_02}
+  vehicle-03:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${VEHICLE_SUFFIX_03}
+    environment:
+      - VEHICLE_ID=${VEHICLE_SUFFIX_03}
+  vehicle-04:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${VEHICLE_SUFFIX_04}
+    environment:
+      - VEHICLE_ID=${VEHICLE_SUFFIX_04}
+  vehicle-05:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${VEHICLE_SUFFIX_05}
+    environment:
+      - VEHICLE_ID=${VEHICLE_SUFFIX_05}
+  vehicle-06:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${VEHICLE_SUFFIX_06}
+    environment:
+      - VEHICLE_ID=${VEHICLE_SUFFIX_06}
+  vehicle-07:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${VEHICLE_SUFFIX_07}
+    environment:
+      - VEHICLE_ID=${VEHICLE_SUFFIX_07}
+  vehicle-08:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${VEHICLE_SUFFIX_08}
+    environment:
+      - VEHICLE_ID=${VEHICLE_SUFFIX_08}
+  vehicle-09:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${VEHICLE_SUFFIX_09}
+    environment:
+      - VEHICLE_ID=${VEHICLE_SUFFIX_09}
+  vehicle-10:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${VEHICLE_SUFFIX_10}
+    environment:
+      - VEHICLE_ID=${VEHICLE_SUFFIX_10}
 
 
   graphhopper:

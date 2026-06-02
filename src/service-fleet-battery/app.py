@@ -7,14 +7,13 @@ app = Flask(__name__)
 batteries = {}
 
 # 1. POST /battery/update
-@app.route('/battery/update', methods=['POST'])
-def update_battery():
+@app.route('/battery/<vehicle_id>', methods=['POST'])
+def update_battery(vehicle_id):
     data = request.get_json()
 
     if not data:
         return jsonify({"error": "Invalid JSON"}), 400
 
-    vehicle_id = data.get("vehicleId")
     battery = data.get("battery")
 
     if not vehicle_id or battery is None:
@@ -22,7 +21,7 @@ def update_battery():
 
     batteries[vehicle_id] = {
         "battery": battery,
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now().isoformat()
     }
 
     warning = None
