@@ -82,9 +82,10 @@ def start():
 
 	# fetch route
 	global route_coordinates
+	global last_time_s
 	global last_route_idx
 	route_coordinates	= get_route_from_graphhopper(last_latlon, route_end_latlon)
-	last_time			= time.time_ns() * 1e-9
+	last_time_s			= time.time_ns() * 1e-9
 	last_route_idx		= 0
 
 	global is_tracking
@@ -136,7 +137,7 @@ def simulate_route_end():
 	}), 200
 
 
-def update_position(latlon, speed_kmh, status):
+def update_position(latlon, speed_kmh, status, time_epoch_s: float):
 	payload = {
 		"vehicleId"		: VEHICLE_ID,
 		"coordinates"	: {
@@ -144,7 +145,8 @@ def update_position(latlon, speed_kmh, status):
 			"longitude"	: latlon[1]
 		},
 		"speedKmH"	: speed_kmh,
-		"status"	: status
+		"status"	: status,
+		"timeEpochS": time_epoch_s
 	}
 
 	try:
@@ -161,7 +163,7 @@ def update_position(latlon, speed_kmh, status):
 @app.route('/simulate/force_move', methods=['POST'])
 def simulate_theft():
 	next_latlon = (last_latlon[0] + THEFT_LATLON_DIFF[0], last_latlon[1] + THEFT_LATLON_DIFF[1])
-	return update_position(next_latlon, THEFT_SPEED_KMH, VehicleStatus.MOVING)
+	return update_position(next_latlon, THEFT_SPEED_KMH, VehicleStatus.MOVING, time.time_ns() * 1e-9)
 
 
 def tracking_loop():
@@ -199,7 +201,7 @@ def tracking_loop():
 			speed_kmh	= next_dist / diff_time * 3600 if diff_time > 0 else 0
 			status		= VehicleStatus.MOVING if speed_kmh > 0 else VehicleStatus.HALTED
 			
-			update_position(next_latlon, speed_kmh, status)
+			update_position(next_latlon, speed_kmh, status, curr_time)
 
 			last_latlon		= next_latlon
 			last_speed_kmh	= speed_kmh

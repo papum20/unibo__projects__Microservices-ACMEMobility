@@ -106,7 +106,8 @@ Upload the vehicle's current location.
     "longitude": 11.3426
   },
   "speedKmH": 22.5,
-  "status": "MOVING"
+  "status": "MOVING",
+  "timeEpochS": 1690000000.2
 }
 ```
 *   **Response (200 OK):**
@@ -143,7 +144,8 @@ Updates the battery level of a vehicle, typically called by the vehicle itself.
 *   **Request Body (JSON):**
 ```json
 {
-  "battery": 12
+  "battery": 12,
+  "timeEpochS": 1690000000.2
 }
 ```
 *   **Response (200 OK):**

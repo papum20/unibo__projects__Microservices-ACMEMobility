@@ -40,7 +40,7 @@ Stop the vehicle's sharing of position and other information.
 
 ## Simulation
 
-### Set route start (`/simulate/start`)
+### Set route start (`/simulate/end`)
 Set route end station (the start is where it is now).  
 
 *   **Method:** `POST`

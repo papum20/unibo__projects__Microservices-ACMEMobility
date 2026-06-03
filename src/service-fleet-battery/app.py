@@ -1,6 +1,10 @@
 from flask import Flask, request, jsonify
 from datetime import datetime
 
+from db import DATABASE
+
+
+
 app = Flask(__name__)
 
 # Stockage en mémoire uniquement des batteries
