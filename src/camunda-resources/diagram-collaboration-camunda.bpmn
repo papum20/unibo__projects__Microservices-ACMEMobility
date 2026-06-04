@@ -497,7 +497,9 @@
       <bpmn2:incoming>Flow_17km549</bpmn2:incoming>
       <bpmn2:outgoing>Flow_1w382ul</bpmn2:outgoing>
     </bpmn2:sendTask>
-    <bpmn2:sequenceFlow id="Flow_17km549" name="immediate" sourceRef="Gateway_0fvaccp" targetRef="Activity_1k3hedn" />
+    <bpmn2:sequenceFlow id="Flow_17km549" name="immediate" sourceRef="Gateway_0fvaccp" targetRef="Activity_1k3hedn">
+      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression">${isImmediate}</bpmn2:conditionExpression>
+    </bpmn2:sequenceFlow>
     <bpmn2:exclusiveGateway id="Gateway_1rf3qak">
       <bpmn2:incoming>Flow_0m4gwzl</bpmn2:incoming>
       <bpmn2:incoming>Flow_03x5c1w</bpmn2:incoming>

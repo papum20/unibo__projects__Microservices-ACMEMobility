@@ -23,9 +23,7 @@ class Vehicle:
 class DataBase:
 
 	# Simulated Database
-	acme_vehicle_db = {
-		
-	}
+	acme_vehicle_db = {}
 
 	def get_vehicle(self, vehicle_id) -> Vehicle | None:
 		"""Simulate fetching the vehicle's status from a database or external service."""

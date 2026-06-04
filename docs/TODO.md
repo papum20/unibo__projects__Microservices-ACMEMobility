@@ -8,7 +8,6 @@
 * save info in db (eg vehicles)
 * charging, maintenance status transitions
 * check consistency w BPMN (updated)
-* db: use all vehicles in env
 
 ## Camunda
 * reserve vehicle (keep reserved)

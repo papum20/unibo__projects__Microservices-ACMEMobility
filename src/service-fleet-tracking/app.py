@@ -27,7 +27,7 @@ tracked_vehicles = set()
 
 
 def get_vehicle_url(vehicle_id: str) -> str:
-	vehicle_suffix = vehicle_id.split(VEHICLE_PREFIX)[1]
+	vehicle_suffix = vehicle_id.split(f'{VEHICLE_PREFIX}-')[1]
 	return URL_VEHICLE_PARAM.replace("{vehicleSuffix}", vehicle_suffix)
 
 

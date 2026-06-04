@@ -1,3 +1,23 @@
+# templates
+
+# Use dot prefix (.station-template) for templates so they don't create containers
+x-station-template: &station-template
+  build: ./service-stations
+  image: acme-station:latest
+  env_file:
+  - .env
+  networks:
+    - acme-network
+      
+x-vehicle-template: &vehicle-template
+  build: ./service-vehicle
+  image: acme-vehicle:latest
+  env_file:
+  - .env
+  networks:
+    - acme-network
+    - vehicle-network
+
 services:
   camunda:
     build: ./camunda
@@ -32,6 +52,8 @@ services:
   fleet-service:
     image: nginx:latest
     container_name: fleet-service
+    env_file:
+      - .env
     ports:
       - "${PORT_LOCAL_FLEET}:${PORT_FLEET}"
     volumes:
@@ -43,123 +65,134 @@ services:
   fleet-tracking:
     build: ./service-fleet-tracking
     container_name: fleet-tracking
+    env_file:
+      - .env
     networks:
       - fleet-internal-network
 
   fleet-battery:
     build: ./service-fleet-battery
     container_name: fleet-battery
+    env_file:
+      - .env
     networks:
       - fleet-internal-network
 
 
   # 5-10 stations
 
-  # Use dot prefix (.station-template) for templates so they don't create containers
-  .station-template: &station-template
-    build: ./service-stations
-    networks:
-      - acme-network
-
   station-BOLOGNA-01:
     # Merge all properties from station-template
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_01}
     environment:
-      - STATION_ID=${STATION_SUFFIX_01}
+      - STATION_ID=${STATION_PREFIX}-${STATION_SUFFIX_01}
   station-BOLOGNA-02:
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_02}
     environment:
-      - STATION_ID=${STATION_SUFFIX_02}
+      - STATION_ID=${STATION_PREFIX}-${STATION_SUFFIX_02}
   station-BOLOGNA-03:
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_03}
     environment:
-      - STATION_ID=${STATION_SUFFIX_03}
+      - STATION_ID=${STATION_PREFIX}-${STATION_SUFFIX_03}
   station-BOLOGNA-04:
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_04}
     environment:
-      - STATION_ID=${STATION_SUFFIX_04}
+      - STATION_ID=${STATION_PREFIX}-${STATION_SUFFIX_04}
   station-BOLOGNA-05:
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_05}
     environment:
-      - STATION_ID=${STATION_SUFFIX_05}
+      - STATION_ID=${STATION_PREFIX}-${STATION_SUFFIX_05}
 
 
   # 10 vehicles
-
-  .vehicle-template: &vehicle-template
-    build: ./service-vehicles
-    ports:
-      - "${PORT_LOCAL_VEHICLES}:${PORT_VEHICLES}"
-    networks:
-      - acme-network
 
   vehicle-01:
     <<: *vehicle-template
     container_name: acme-vehicle-${VEHICLE_SUFFIX_01}
     environment:
-      - VEHICLE_ID=${VEHICLE_SUFFIX_01}
+      - VEHICLE_ID=${VEHICLE_PREFIX}-${VEHICLE_SUFFIX_01}
+    ports:
+      - "${PORT_LOCAL_VEHICLE_01}:${PORT_VEHICLES}"
   vehicle-02:
     <<: *vehicle-template
     container_name: acme-vehicle-${VEHICLE_SUFFIX_02}
     environment:
-      - VEHICLE_ID=${VEHICLE_SUFFIX_02}
+      - VEHICLE_ID=${VEHICLE_PREFIX}-${VEHICLE_SUFFIX_02}
+    ports:
+      - "${PORT_LOCAL_VEHICLE_02}:${PORT_VEHICLES}"
   vehicle-03:
     <<: *vehicle-template
     container_name: acme-vehicle-${VEHICLE_SUFFIX_03}
     environment:
-      - VEHICLE_ID=${VEHICLE_SUFFIX_03}
+      - VEHICLE_ID=${VEHICLE_PREFIX}-${VEHICLE_SUFFIX_03}
+    ports:
+      - "${PORT_LOCAL_VEHICLE_03}:${PORT_VEHICLES}"
   vehicle-04:
     <<: *vehicle-template
     container_name: acme-vehicle-${VEHICLE_SUFFIX_04}
     environment:
-      - VEHICLE_ID=${VEHICLE_SUFFIX_04}
+      - VEHICLE_ID=${VEHICLE_PREFIX}-${VEHICLE_SUFFIX_04}
+    ports:
+      - "${PORT_LOCAL_VEHICLE_04}:${PORT_VEHICLES}"
   vehicle-05:
     <<: *vehicle-template
     container_name: acme-vehicle-${VEHICLE_SUFFIX_05}
     environment:
-      - VEHICLE_ID=${VEHICLE_SUFFIX_05}
+      - VEHICLE_ID=${VEHICLE_PREFIX}-${VEHICLE_SUFFIX_05}
+    ports:
+      - "${PORT_LOCAL_VEHICLE_05}:${PORT_VEHICLES}"
   vehicle-06:
     <<: *vehicle-template
     container_name: acme-vehicle-${VEHICLE_SUFFIX_06}
     environment:
-      - VEHICLE_ID=${VEHICLE_SUFFIX_06}
+      - VEHICLE_ID=${VEHICLE_PREFIX}-${VEHICLE_SUFFIX_06}
+    ports:
+      - "${PORT_LOCAL_VEHICLE_06}:${PORT_VEHICLES}"
   vehicle-07:
     <<: *vehicle-template
     container_name: acme-vehicle-${VEHICLE_SUFFIX_07}
     environment:
-      - VEHICLE_ID=${VEHICLE_SUFFIX_07}
+      - VEHICLE_ID=${VEHICLE_PREFIX}-${VEHICLE_SUFFIX_07}
+    ports:
+      - "${PORT_LOCAL_VEHICLE_07}:${PORT_VEHICLES}"
   vehicle-08:
     <<: *vehicle-template
     container_name: acme-vehicle-${VEHICLE_SUFFIX_08}
     environment:
-      - VEHICLE_ID=${VEHICLE_SUFFIX_08}
+      - VEHICLE_ID=${VEHICLE_PREFIX}-${VEHICLE_SUFFIX_08}
+    ports:
+      - "${PORT_LOCAL_VEHICLE_08}:${PORT_VEHICLES}"
   vehicle-09:
     <<: *vehicle-template
     container_name: acme-vehicle-${VEHICLE_SUFFIX_09}
     environment:
-      - VEHICLE_ID=${VEHICLE_SUFFIX_09}
+      - VEHICLE_ID=${VEHICLE_PREFIX}-${VEHICLE_SUFFIX_09}
+    ports:
+      - "${PORT_LOCAL_VEHICLE_09}:${PORT_VEHICLES}"
   vehicle-10:
     <<: *vehicle-template
     container_name: acme-vehicle-${VEHICLE_SUFFIX_10}
     environment:
-      - VEHICLE_ID=${VEHICLE_SUFFIX_10}
+      - VEHICLE_ID=${VEHICLE_PREFIX}-${VEHICLE_SUFFIX_10}
+    ports:
+      - "${PORT_LOCAL_VEHICLE_10}:${PORT_VEHICLES}"
 
 
   graphhopper:
-      image: graphhopper/graphhopper:latest
+      image: israelhikingmap/graphhopper:latest
       container_name: acme-graphhopper
       ports:
         - "${PORT_LOCAL_GRAPHHOPPER}:${PORT_GRAPHHOPPER}"
       volumes:
-        - ./graphhopper/data:/data
-      command: --host 0.0.0.0 -i /${GRAPHHOPPER_MAP_DIR}/${GRAPHHOPPER_MAP_FILE}
+        - ./service-graphhopper/data:/data
+      command: --host 0.0.0.0 -i /data/${GRAPHHOPPER_MAP_FILE}
       networks:
-        - integration-net
+        - vehicle-network
 
 networks:
   acme-network:
@@ -169,4 +202,6 @@ networks:
   fleet-internal-network:
     driver: bridge
   orchestration-network:
+    driver: bridge
+  vehicle-network:
     driver: bridge

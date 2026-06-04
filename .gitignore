@@ -1,2 +1,5 @@
 .vscode
 *.pbf
+
+src/service-graphhopper/data/*
+!.gitkeep
