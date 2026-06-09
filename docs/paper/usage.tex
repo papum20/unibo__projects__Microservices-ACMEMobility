@@ -1,0 +1,30 @@
+\section{Avvio e utilizzo}\label{sec:usage}
+
+L'intera architettura, comprendente tutti i servizi, con il codice nella
+cartella \textit{src/} può essere avviata e gestita tramite i comandi di
+\textit{docker compose}; per comodità, sono presenti due script \textit{bash}
+(per sistemi Linux). \textit{start.sh} lancia l'infrastruttura:
+\begin{lstlisting}[language=Bash, caption=Python example]
+	# dalla cartella di base del repository
+	./src/start.sh
+\end{lstlisting}
+\textit{down.sh} interrompe i servizi:
+\begin{lstlisting}[language=Bash, caption=Python example]
+	./src/down.sh
+\end{lstlisting}
+
+Il flusso delle attività parte sempre dall'utente, che nella realtà sarebbe
+un'entità fisica, che potrebbe interagire con ACMEMobility tramite
+un'applicazione per smartphone. Dunque, abbiamo realizzato uno script in
+\textit{python} (\textit{src/user/user.py}) che simula tutte le possibili azioni che possa compiere, in base
+agli argomenti utilizzati. Seguono degli esempi per ogni utilizzo.
+Usage:
+\begin{lstlisting}[language=Bash, caption=Python example]
+	# dalla cartella di base del repository
+	python src/user/user.py
+	# Usage: python user.py <action> <user_id> <vehicle_id> [station_id]
+	# Actions: scan, reserve, cancel, scan_reserved, park, lock, lock-assistance, steal
+\end{lstlisting}
+\begin{lstlisting}[language=Bash, caption=Python example]
+
+\end{lstlisting}

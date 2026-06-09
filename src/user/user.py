@@ -18,11 +18,11 @@ def get_env_or_exit(key: str) -> str:
 	return val
 
 URL_CAMUNDA_MESSAGE		= get_env_or_exit("URL_CAMUNDA_MESSAGE")
-URL_STATION_01_HW		= get_env_or_exit("URL_STATION_01_HW")
-URL_STATION_02_HW		= get_env_or_exit("URL_STATION_02_HW")
-URL_STATION_03_HW		= get_env_or_exit("URL_STATION_03_HW")
-URL_STATION_04_HW		= get_env_or_exit("URL_STATION_04_HW")
-URL_STATION_05_HW		= get_env_or_exit("URL_STATION_05_HW")
+URL_STATION_01_HW		= get_env_or_exit("URL_STATION_HW_01")
+URL_STATION_02_HW		= get_env_or_exit("URL_STATION_HW_02")
+URL_STATION_03_HW		= get_env_or_exit("URL_STATION_HW_03")
+URL_STATION_04_HW		= get_env_or_exit("URL_STATION_HW_04")
+URL_STATION_05_HW		= get_env_or_exit("URL_STATION_HW_05")
 URL_VEHICLE_01			= get_env_or_exit("URL_VEHICLE_01")
 URL_VEHICLE_02			= get_env_or_exit("URL_VEHICLE_02")
 URL_VEHICLE_03			= get_env_or_exit("URL_VEHICLE_03")
