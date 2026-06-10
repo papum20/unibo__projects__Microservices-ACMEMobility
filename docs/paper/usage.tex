@@ -4,27 +4,88 @@ L'intera architettura, comprendente tutti i servizi, con il codice nella
 cartella \textit{src/} può essere avviata e gestita tramite i comandi di
 \textit{docker compose}; per comodità, sono presenti due script \textit{bash}
 (per sistemi Linux). \textit{start.sh} lancia l'infrastruttura:
-\begin{lstlisting}[language=Bash, caption=Python example]
+\begin{lstlisting}[language=Bash]
 	# dalla cartella di base del repository
 	./src/start.sh
 \end{lstlisting}
 \textit{down.sh} interrompe i servizi:
-\begin{lstlisting}[language=Bash, caption=Python example]
+\begin{lstlisting}[language=Bash]
 	./src/down.sh
 \end{lstlisting}
 
-Il flusso delle attività parte sempre dall'utente, che nella realtà sarebbe
-un'entità fisica, che potrebbe interagire con ACMEMobility tramite
+
+Prima, però, è necessario scaricare la mappa (con dati di OpenStreetMap)
+dell'Italia nord-orientale, disponibile al link su geofabrik:
+\url{https://download.geofabrik.de/europe/italy/nord-est-latest.osm.pbf}.\\
+Il file dovrà essere piazzato in \textit{service-graphhopper/data/}, con nome
+del file\\
+\mbox{\textit{geofabrik\_italy-nord-est-260517.osm.pbf}}.\\
+Da Linux, si può eseguire direttamente, per entrambi i passaggi, il comando:
+\begin{lstlisting}[language=Bash]
+	# dalla cartella di base del repository
+	wget -O service-graphhopper/data/geofabrik_italy-nord-est-260517.osm.pbf \
+	https://download.geofabrik.de/europe/italy/nord-est-latest.osm.pbf
+\end{lstlisting}
+
+
+Il flusso delle attività parte sempre dall'utente, che in uno scenario reale
+sarebbe un'entità fisica e potrebbe interagire con ACMEMobility tramite
 un'applicazione per smartphone. Dunque, abbiamo realizzato uno script in
-\textit{python} (\textit{src/user/user.py}) che simula tutte le possibili azioni che possa compiere, in base
-agli argomenti utilizzati. Seguono degli esempi per ogni utilizzo.
-Usage:
-\begin{lstlisting}[language=Bash, caption=Python example]
+\textit{python} (\textit{src/user/user.py}) che simula tutte le possibili azioni
+che possa compiere, in base agli argomenti utilizzati. Seguono degli esempi per
+ogni utilizzo. Usage:
+\begin{lstlisting}[language=Bash]
 	# dalla cartella di base del repository
 	python src/user/user.py
 	# Usage: python user.py <action> <user_id> <vehicle_id> [station_id]
-	# Actions: scan, reserve, cancel, scan_reserved, park, lock, lock-assistance, steal
+	# Actions: scan, reserve, cancel, scan_reserved, park, lock, lock_assistance, steal
 \end{lstlisting}
-\begin{lstlisting}[language=Bash, caption=Python example]
 
+Scansione veicolo (con id \textit{V-01}) per uso immediato, da parte dell'utente
+con id \textit{USER-001}:
+\begin{lstlisting}[language=Bash]
+	python src/user/user.py scan USER-001 V-01
 \end{lstlisting}
+
+Prenotazione veicolo per dopo:
+\begin{lstlisting}[language=Bash]
+	python src/user/user.py reserve USER-001 V-01
+\end{lstlisting}
+
+Cancellazione della prenotazione precedente:
+\begin{lstlisting}[language=Bash]
+	python src/user/user.py cancel USER-001 V-01
+\end{lstlisting}
+
+Scansione del veicolo precedentemente prenotato:
+\begin{lstlisting}[language=Bash]
+	python src/user/user.py scan_reserved USER-001 V-01
+\end{lstlisting}
+
+Parcheggio del veicolo (simulazione dell'inserimento del veicolo nel dock della
+stazione con id \mbox{\textit{STATION-BOLOGNA-01}}):
+\begin{lstlisting}[language=Bash]
+	python src/user/user.py park USER-001 V-01 STATION-BOLOGNA-01
+\end{lstlisting}
+
+Richiesta di fine corsa e, dunque, blocco del veicolo precedentemente
+parcheggiato:
+\begin{lstlisting}[language=Bash]
+	python src/user/user.py lock USER-001 V-01 STATION-BOLOGNA-01
+\end{lstlisting}
+
+Richiesta di assistenza a fine corsa, in caso di problemi con il blocco:
+\begin{lstlisting}[language=Bash]
+	python src/user/user.py lock_assistance USER-001 V-01
+\end{lstlisting}
+
+Simulazione furto di un veicolo:
+\begin{lstlisting}[language=Bash]
+	python src/user/user.py steal USER-001 V-01
+\end{lstlisting}
+
+
+Una volta avviata l'infrastruttura, è possibile accedere alla visualizzazione di
+Camunda al link \\
+\mbox{\url{http://localhost:8080/camunda/app/cockpit/}}, con username
+\textit{demo} e password \textit{demo}.

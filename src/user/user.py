@@ -111,7 +111,7 @@ def send_message(message_name, vehicle_id, user_id, variables=None):
 
 def print_usage():
 	print("\nUsage: python user.py <action> <user_id> <vehicle_id> [station_id]")
-	print("Actions: scan, reserve, cancel, scan_reserved, park, lock, lock-assistance, steal")
+	print("Actions: scan, reserve, cancel, scan_reserved, park, lock, lock_assistance, steal")
 	print("Example: python user.py scan u001 v001")
 	print("Example: python user.py park u001 v001 s001\n")
 
@@ -164,7 +164,7 @@ if __name__ == "__main__":
 
 		send_message(MESSAGE_USER_LOCKED, vehicle_id, user_id, variables={"stationId": station_id})
 
-	elif action == "lock-assistance":
+	elif action == "lock_assistance":
 		send_message(MESSAGE_USER_ASSISTANCE_LOCK, vehicle_id, user_id)
 	
 	elif action == "steal":
