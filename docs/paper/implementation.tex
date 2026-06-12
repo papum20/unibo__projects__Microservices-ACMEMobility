@@ -1,0 +1,52 @@
+\section{Implementazione}\label{sec:implementation}
+
+In questa sezione presentiamo il modo in cui vengono eseguiti i processi (e
+quindi la coreografia), insieme a commenti e motivazioni per le scelte di
+design.
+
+\subsection{La coreografia}\label{sec:choreography}
+
+Come già accennato, il primo processo a partire è quello dell'utente, che va poi
+ad avviare a catena gli altri, con dei \textit{message start event}. Nella
+\textbf{fase 1}, la \textbf{prenotazione}, l'utente parte con una scelta:
+scansionare il codice QR di un veicolo subito oppure prenotarne uno; nel secondo
+caso, può in seguito scansionare il veicolo per far partire la corsa, oppure
+cancellare la prenotazione e quindi terminare il suo processo. In entrambi i
+casi, dopo essere giunto con successo alla scansione, inizia la \textbf{fase 2},
+il \textbf{tragitto}, estremamente semplice dal punto di vista dell'utente, meno
+dal punto di vista di ACMEMobility.\\
+Infine, nella \textbf{fase 3}, la \textbf{conclusione}, l'utente deve
+interrompere la corsa e attendere la notifica di conferma da parte
+dell'applicazione. L'interruzione della corsa è in realtà ulteriormente
+articolata: bisogna prima inserire il veicolo in un terminale della stazione
+(chiamato anche ``dock'') e, successivamente, richiedere il blocco del veicolo
+ad ACMEMobility, tramite l'applicazione. In caso di problemi nel parcheggiare,
+si possono ripetere più volte le due operazioni di parcheggio e blocco finché
+non si abbia successo, oppure contattare l'assistenza (interrompendo il processo
+della coreografia): in questo modo, un addetto verrà inviato a controllare
+personalmente il veicolo, mentre per l'utente ACMEMobility procederà con
+l'addebito, in modo che possa andarsene e non debba rimanere ad aspettare. Qui,
+per gestire il fatto che il veicolo venga lasciato incustodito, assumiamo che,
+nel mondo reale, esso abbia qualche sistema di bloccaggio automatico della
+guida, o che magari funzioni solo quando un utente correttamente autorizzato
+(attraverso la \textbf{fase 1}) sia nelle vicinanze (il che potrebbe essere
+confermato dalla vicinanza del suo telefono, per esempio via
+\textit{Bluetooth}).\\
+Nel parcheggio, mentre il blocco del veicolo passa attraverso ACMEMobility
+(attraverso un \textit{message intermediate throw event}), il precedente
+inserimento è modellato direttamente come un messaggio verso la stazione: nel
+mondo reale, infatti, immaginiamo che veicolo e terminale possano essere
+configurati con sensori per comunicazione a breve raggio (per esempio, per
+riconoscere un tag \textit{RFID} o \textit{NFC} sul veicolo), grazie ai
+quali la stazione può identificare se ci sia un veicolo inserito, prima di
+bloccarlo. D'altra parte, ACME, all'arrivo della notifica di parcheggio,
+procede, in ordine, a chiedere alla stazione il bloccaggio, effettuare
+l'addebito di fine corsa e confermare l'operazione all'utente con una notifica.
+La separazione in inserimento e bloccaggio è stata fatta per rendere più solido
+il design di questa parte: in questo modo, l'applicazione dell'utente deve solo
+comunicare gli identificativo di stazione e veicolo, e la stazione saprà
+automaticamente quale terminale bloccare; la comunicazione a breve raggio,
+inoltre, permette a veicolo e stazione di scambiare eventuali informazioni di
+conferma.\\
+\\
+

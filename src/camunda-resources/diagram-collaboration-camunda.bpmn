@@ -9,7 +9,6 @@
     <bpmn2:participant id="Participant_1kdt5om" name="ACMEMobility Stations" processRef="Process_179mq9m" />
     <bpmn2:messageFlow id="Flow_03488ap" sourceRef="Event_0m68ce7" targetRef="Event_1a7pf26" />
     <bpmn2:messageFlow id="Flow_0cm9z6h" sourceRef="Event_0t9nx7w" targetRef="Event_1ctwvlx" />
-    <bpmn2:messageFlow id="Flow_15ztmsb" sourceRef="Event_15e1l1d" targetRef="Event_00746uo" />
     <bpmn2:messageFlow id="Flow_1txp322" sourceRef="Event_176izr3" targetRef="Event_1g2ix8y" />
     <bpmn2:messageFlow id="Flow_16shzki" sourceRef="Event_1whyvoj" targetRef="Event_0lh4esc" />
     <bpmn2:messageFlow id="Flow_17rlo3r" sourceRef="Event_0wm0aec" targetRef="Event_0kt26kv" />
@@ -42,6 +41,7 @@
     <bpmn2:messageFlow id="Flow_0v6xva5" sourceRef="Event_0s84j7u" targetRef="Event_107aug4" />
     <bpmn2:messageFlow id="Flow_1158v0q" sourceRef="Event_17bkmiv" targetRef="Event_0s2vvcx" />
     <bpmn2:messageFlow id="Flow_192bec9" sourceRef="Activity_1img7i3" targetRef="Event_0d6r7kq" />
+    <bpmn2:messageFlow id="Flow_15ztmsb" sourceRef="Event_15e1l1d" targetRef="Event_00746uo" />
     <bpmn2:group id="Group_1l9au2a" categoryValueRef="CategoryValue_1pi17m7" />
     <bpmn2:textAnnotation id="TextAnnotation_1bthklw">
       <bpmn2:text>ACMEMobility infrastracture</bpmn2:text>
@@ -109,7 +109,6 @@
         <bpmn2:flowNodeRef>Event_1hhw63q</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_17bkmiv</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_1xhyr2k</bpmn2:flowNodeRef>
-        <bpmn2:flowNodeRef>Event_00746uo</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_1a7pf26</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_1k3hedn</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_1rf3qak</bpmn2:flowNodeRef>
@@ -117,6 +116,7 @@
         <bpmn2:flowNodeRef>Gateway_0fvaccp</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_1img7i3</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_08v9rhx</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Event_00746uo</bpmn2:flowNodeRef>
       </bpmn2:lane>
     </bpmn2:laneSet>
     <bpmn2:exclusiveGateway id="Gateway_1lnorv8">
@@ -481,11 +481,6 @@
       <bpmn2:incoming>Flow_0nbgkqe</bpmn2:incoming>
       <bpmn2:outgoing>Flow_16vv9q3</bpmn2:outgoing>
     </bpmn2:exclusiveGateway>
-    <bpmn2:startEvent id="Event_00746uo" name="receive reservation">
-      <bpmn2:extensionElements />
-      <bpmn2:outgoing>Flow_03j8ooz</bpmn2:outgoing>
-      <bpmn2:messageEventDefinition id="MessageEventDefinition_1dxrgwp" messageRef="Message_0v8sgs8" />
-    </bpmn2:startEvent>
     <bpmn2:sequenceFlow id="Flow_0nbgkqe" sourceRef="Event_1a7pf26" targetRef="Gateway_1xhyr2k" />
     <bpmn2:sequenceFlow id="Flow_03j8ooz" sourceRef="Event_00746uo" targetRef="Gateway_1xhyr2k" />
     <bpmn2:startEvent id="Event_1a7pf26" name="receive immediate request">
@@ -527,6 +522,11 @@
       <bpmn2:incoming>Flow_1w382ul</bpmn2:incoming>
       <bpmn2:incoming>Flow_0vusjqi</bpmn2:incoming>
     </bpmn2:endEvent>
+    <bpmn2:startEvent id="Event_00746uo" name="receive reservation">
+      <bpmn2:extensionElements />
+      <bpmn2:outgoing>Flow_03j8ooz</bpmn2:outgoing>
+      <bpmn2:messageEventDefinition id="MessageEventDefinition_1dxrgwp" messageRef="Message_0v8sgs8" />
+    </bpmn2:startEvent>
     <bpmn2:textAnnotation id="TextAnnotation_19ri2kw">
       <bpmn2:text>Not a terminate end event: manual action could still be running</bpmn2:text>
     </bpmn2:textAnnotation>
@@ -552,10 +552,6 @@
     <bpmn2:sequenceFlow id="Flow_1yc955r" sourceRef="Event_1jgor9u" targetRef="Event_1alepwk" />
     <bpmn2:sequenceFlow id="Flow_1ykjtpd" sourceRef="Gateway_1ic9spt" targetRef="Gateway_1wo9io6" />
     <bpmn2:sequenceFlow id="Flow_06hchyv" sourceRef="Gateway_1wo9io6" targetRef="Activity_17fuqhp" />
-    <bpmn2:task id="Activity_0qg3aua" name="ride">
-      <bpmn2:incoming>Flow_18vyomj</bpmn2:incoming>
-      <bpmn2:outgoing>Flow_048bpo3</bpmn2:outgoing>
-    </bpmn2:task>
     <bpmn2:sequenceFlow id="Flow_0b36g4q" sourceRef="Event_0wm0aec" targetRef="Gateway_1w9v1bj" />
     <bpmn2:sequenceFlow id="Flow_0gtdfro" sourceRef="Gateway_1w9v1bj" targetRef="Event_0c495b0" />
     <bpmn2:sequenceFlow id="Flow_19ijr9x" sourceRef="Event_0c495b0" targetRef="Event_1alepwk" />
@@ -692,6 +688,10 @@
       <bpmn2:messageEventDefinition id="MessageEventDefinition_152ijln" messageRef="Message_17rubo3" />
     </bpmn2:intermediateCatchEvent>
     <bpmn2:sequenceFlow id="Flow_17ligkh" sourceRef="Gateway_1bn3nb4" targetRef="Event_0d6r7kq" />
+    <bpmn2:manualTask id="Activity_0qg3aua" name="ride">
+      <bpmn2:incoming>Flow_18vyomj</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_048bpo3</bpmn2:outgoing>
+    </bpmn2:manualTask>
   </bpmn2:process>
   <bpmn2:process id="Process_002xj6i" isExecutable="false" camunda:historyTimeToLive="P180D" />
   <bpmn2:process id="Process_0jvqw9b" isExecutable="false" camunda:historyTimeToLive="P180D">
@@ -877,7 +877,7 @@
       <bpmndi:BPMNShape id="Event_0ogxeyb_di" bpmnElement="Event_14o25ad">
         <dc:Bounds x="1692" y="1002" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1618" y="1006.5" width="64" height="27" />
+          <dc:Bounds x="1605" y="1007" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0k1k8v0_di" bpmnElement="Event_0t9nx7w">
@@ -1351,10 +1351,6 @@
           <dc:Bounds x="2608" y="122" width="64" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0qg3aua_di" bpmnElement="Activity_0qg3aua">
-        <dc:Bounds x="1350" y="200" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0s0jccs_di" bpmnElement="Event_0c495b0">
         <dc:Bounds x="2192" y="312" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -1456,6 +1452,9 @@
         <bpmndi:BPMNLabel>
           <dc:Bounds x="2722" y="274.5" width="55" height="27" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1akdlhl_di" bpmnElement="Activity_0qg3aua">
+        <dc:Bounds x="1350" y="200" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_0fy14tj_di" bpmnElement="Flow_0fy14tj">
         <di:waypoint x="770" y="265" />

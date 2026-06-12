@@ -59,4 +59,17 @@ variabili con quelle in \mbox{\textit{src/.env}}, generando quello finale
 le stazioni istanziati sono ben riconoscibili poiché generati con identificativi
 definiti tramite variabili di ambiente.\\
 Inoltre, tutti i servizi usano \textit{API REST} e comunicano tramite
-\textit{http}, ad eccezione della banca, che usa \textit{SOAP} come richiesto.
+\textit{http}, ad eccezione della banca, che usa \textit{SOAP} come richiesto.\\
+Per la coreografia in Camunda, come già accennato, tutti i service task sono
+implementati tramite un worker in python. Solo delle operazioni banali,
+principalmente le condizioni di scelta per i gateway esclusivi, sono
+implementate come espressioni \textit{inline}, con sintassi \textit{JUEL}
+(\textit{Java Unified Expression Language}), utilizzando delle variabili globali
+che vengono configurate dallo stesso worker. L'implementazione esterna, infatti,
+fornisce grandi vantaggi nello sviluppo, in termini di gestibilità,
+mantenibilità e leggibilità del codice, possibilità di debugging e gestione
+coerente e ordinata dei file.\\
+\\
+In \mbox{\textit{docs/implementation/}} sono presenti le documentazioni sia per
+le API dei servizi, sia per le variabili globali di Camunda
+(\mbox{\textit{bpms-variables.md}}).
