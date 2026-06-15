@@ -12,57 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 
-def handle_config(task: ExternalTask) -> TaskResult:
-	logger.info("Received config request for Process Instance: %s", task.get_process_instance_id())
-
-	# Define Endpoints (API Paths)
-	# These are the specific paths for your Jolie/Python services
-	# You can change them here if your API signature changes
-	
-	# Bank Endpoints
-	ep_bank_preauth = "/preAuth"
-	ep_bank_charge  = "/charge"
-	ep_bank_unlock  = "/unlock"
-
-	# Station Endpoints
-	ep_station_unlock = "/vehicle/unlock"
-	ep_station_lock   = "/vehicle/lock"
-	
-	# Fleet Endpoints (Assuming standard REST paths)
-	ep_fleet_track_start	= "/vehicle/track-start"
-	ep_fleet_track_status   = "/vehicle/track-status"
-	ep_fleet_battery        = "/vehicle/battery"
-
-	# 3. Pack everything into variables for Camunda
-	# We send both Base URLs and Endpoints separately
-	config_variables = {
-		# Base URLs
-		"urlBank": config.URL_BANK_BASE,
-		"urlStation": config.URL_STATION_BASE,
-
-		# Bank
-		"epBankPreAuth": ep_bank_preauth,
-		"epBankCharge": ep_bank_charge,
-		"epBankUnlock": ep_bank_unlock,
-		"valBankCaution": config.BANK_CAUTION,
-
-		# Station
-		"epStationUnlock": ep_station_unlock,
-		"epStationLock": ep_station_lock,
-		
-		# Fleet (Example)
-		"epFleetTrackStart": ep_fleet_track_start,
-		"epFleetTrackStatus": ep_fleet_track_status,
-		"epFleetBattery": ep_fleet_battery
-	}
-
-	logger.info("Injecting configuration: %s", config_variables)
-
-	# 4. Complete the task and inject variables into the Process Scope
-	return task.complete(global_variables=config_variables)
-
-
-
 # =====================================================================
 # INTERNAL BUSINESS LOGIC (Calculations)
 # =====================================================================
@@ -80,18 +29,18 @@ def handle_reserve_vehicle(task: ExternalTask) -> TaskResult:
 	
 	# Save the trusted time into the Camunda process
 	logger.info("Reservation time securely set to: %s", {trusted_now})
-	return task.complete({"reserveTime": trusted_now})
+	return task.complete({config.CAMUNDA_RESERVE_TIME: trusted_now})
 
 def handle_check_cancellation_delay(task: ExternalTask) -> TaskResult:
 	logger.info("Checking cancellation delay...")
 
 	# Get the 'reserveTime' variable from Camunda
 	# Camunda usually sends dates as ISO 8601 strings (e.g., "2023-10-27T10:00:00.000+0200")
-	reserve_time_raw = task.get_variable("reserveTime")
+	reserve_time_raw = task.get_variable(config.CAMUNDA_RESERVE_TIME)
 
 	if not reserve_time_raw:
-		logger.error("reserveTime not found in process variables!")
-		return task.failure("Variable Missing", "reserveTime is required for this calculation", 0, 0)
+		logger.error("%s not found in process variables!", config.CAMUNDA_RESERVE_TIME)
+		return task.failure("Variable Missing", f"{config.CAMUNDA_RESERVE_TIME} is required for this calculation", 0, 0)
 
 	try:
 		# Convert ISO string to Python datetime object

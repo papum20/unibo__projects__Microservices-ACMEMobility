@@ -6,9 +6,9 @@ design.
 
 \subsection{La coreografia}\label{sec:choreography}
 
-Come già accennato, il primo processo a partire è quello dell'utente, che va poi
-ad avviare a catena gli altri, con dei \textit{message start event}. Nella
-\textbf{fase 1}, la \textbf{prenotazione}, l'utente parte con una scelta:
+Come già accennato, il primo processo a partire è quello dell'\textbf{utente},
+che va poi ad avviare a catena gli altri, con dei \textit{message start event}.
+Nella \textbf{fase 1}, la \textbf{prenotazione}, l'utente parte con una scelta:
 scansionare il codice QR di un veicolo subito oppure prenotarne uno; nel secondo
 caso, può in seguito scansionare il veicolo per far partire la corsa, oppure
 cancellare la prenotazione e quindi terminare il suo processo. In entrambi i
@@ -37,16 +37,103 @@ Nel parcheggio, mentre il blocco del veicolo passa attraverso ACMEMobility
 inserimento è modellato direttamente come un messaggio verso la stazione: nel
 mondo reale, infatti, immaginiamo che veicolo e terminale possano essere
 configurati con sensori per comunicazione a breve raggio (per esempio, per
-riconoscere un tag \textit{RFID} o \textit{NFC} sul veicolo), grazie ai
-quali la stazione può identificare se ci sia un veicolo inserito, prima di
-bloccarlo. D'altra parte, ACME, all'arrivo della notifica di parcheggio,
-procede, in ordine, a chiedere alla stazione il bloccaggio, effettuare
-l'addebito di fine corsa e confermare l'operazione all'utente con una notifica.
-La separazione in inserimento e bloccaggio è stata fatta per rendere più solido
-il design di questa parte: in questo modo, l'applicazione dell'utente deve solo
-comunicare gli identificativo di stazione e veicolo, e la stazione saprà
-automaticamente quale terminale bloccare; la comunicazione a breve raggio,
-inoltre, permette a veicolo e stazione di scambiare eventuali informazioni di
-conferma.\\
+riconoscere un tag \textit{RFID} o \textit{NFC} sul veicolo), grazie ai quali la
+stazione può identificare se ci sia un veicolo inserito, prima di bloccarlo.
+D'altra parte, ACME, all'arrivo della notifica di parcheggio, procede, in
+ordine, a chiedere alla stazione il bloccaggio, effettuare l'addebito di fine
+corsa e confermare l'operazione all'utente con una notifica. La separazione in
+inserimento e bloccaggio è stata fatta per rendere più solido il design di
+questa parte: in questo modo, l'applicazione dell'utente deve solo comunicare
+gli identificativo di stazione e veicolo, e la stazione saprà automaticamente
+quale terminale bloccare; la comunicazione a breve raggio, inoltre, permette a
+veicolo e stazione di scambiare eventuali informazioni di conferma.\\
 \\
-
+Dal punto di vista di \textbf{ACMEMobility}, la coreografia appena descritta è
+più complessa e articolata.\\
+\textbf{Fase 1} (\textbf{prenotazione}) --- un processo di ACME può partire solo
+da un messaggio, ricevuto dall'utente, di noleggio immediato o prenotazione: i
+due possibili processi si uniscono subito (con un gateway), ma l'informazione
+sul tipo di noleggio rimane memorizzata, in Camunda, come variabile globale
+(\textit{isImmediate}, un booleano che deve essere fornito nel \textit{body}
+della chiamata http da parte dello user e che verrà automaticamente convertito
+in variabile globale da Camunda).\\
+Subito dopo, si effettua il blocco della cauzione, richiedendolo alla banca. Per
+di più, solamente in caso di prenotazione, ACME effettua alcune operazioni
+interne, come aggiornare i database e salvarne un timestamp, e si mette in
+attesa di uno di tre possibili eventi: inizio della corsa (con scansione del
+veicolo da parte dell'utente), cancellazione della prenotazione o scadenza del
+tempo (30 minuti). In caso di annullamento della corsa (per richiesta o per
+scadenza del tempo), dunque, sblocca la cauzione o la converte in addebito in
+base al tempo trascorso, sempre tramite la banca.\\
+Se e quando il processo arriva alla \textbf{fase 2} (\textbf{tragitto}), ACME si
+occupa di tenere monitorato il veicolo. Prima di tutto, chiede al servizio di
+\textit{FleetManagement} di avviarne il tracciamento e, solo in seguito, alla
+stazione di sbloccarlo (anche la stazione viene comunicata dal lato
+\textit{user} con la prima richiesta), notificando infine l'utente: così, si
+evita di far partire una corsa con un veicolo non raggiungibile. Durante lo
+spostamento, \textit{FleetManagement} viene periodicamente interrogato
+(\textit{polling}) riguardo allo stato del veicolo, finché non arrivi la
+richiesta di terminazione.\\
+Nella \textbf{conclusione} (\textbf{fase 3}), dopo aver bloccato il veicolo nel
+suo dock (tramite la stazione), ACME richiede (un'ultima volta) il suo livello
+della batteria, ne termina il tracking e usa l'informazione per determinare
+l'importo dovuto; infine, tramite la banca, effettua per primo l'addebito e per
+secondo lo sblocco della cauzione --- tenendosela in caso di problemi di
+pagamento. Se, al momento del parcheggio, l'utente ha richiesto l'assistenza, si
+passa ugualmente per i task di calcolo e addebito, prima di gestire l'intervento
+manuale.\\
+\\
+Andando a specificare alcune note aggiuntive, si assume che ACMEMobility conosca
+già credenziali, dati personali e dati bancari dell'utente --- necessari per
+richiedere gli addebiti ---, che verranno raccolti dal servizio in contesti
+fuori dalla modellazione richiesta dal progetto (fasi di registrazione e
+gestione dell'account), probabilmente appoggiandosi a un servizio esterno di
+gestione delle carte di credito per motivi di sicurezza.\\
+Oltre ad alcuni appena visti, la coreografia tiene conto anche di altri
+possibili casi di errore: se avvenuti prima di qualsiasi addebito (come al
+momento del blocco della cauzione), si invia solo un rifiuto di noleggio o
+prenotazione all'utente; se avvenuti dopo (come per avvio del tracking o sblocco
+del veicolo prima della corsa), si richiede lo sblocco della cauzione, prima di
+inviare una notifica. Per altri errori in fasi più critiche, si richiede
+l'intervento di un umano ma, allo stesso tempo, si manda sempre avanti, in
+qualche modo, il processo, con l'obiettivo di non lasciare mai l'utente fermo e
+costretto ad aspettare --- d'altra parte, la coreografia ammette attese
+``asincrone'', come un pagamento ritardato di qualche ora, cioè che non lo
+bloccano fisicamente. Ciò avviene in particolare per gli errori in fase di
+conclusione e pagamento (richiesta del livello della batteria oppure addebito o
+sblocco della cauzione), in cui si invia una notifica di errore alternativa a
+quella di ``pagamento avvenuto con successo'', così che il processo
+\textit{user} possa terminare. In caso di impossibilità di interrompere il
+tracking, così come per la richiesta di assistenza in fase di parcheggio,
+essendo un errore che non inficia in alcun modo il pagamento, si procede con
+calcoli e addebito e contemporaneamente si richiede l'intervento di un umano, ma
+senza inviare messaggi di errore.\\
+Infine, si noti che, nella modellazione, i task di errore di ACMEMobility sono
+seguito da \textit{end event} senza il cerchio pieno, per indicare che non tutti
+i processi del pool devono essere conclusi: per quanto appena visto, altri
+processi potrebbero essere stati lanciati in parallelo ed essere ancora in
+esecuzione.\\
+A livello logico, nel BPMN a scopo documentativo il pool di ACMEMobility è
+costituito da un'unica grande lane, con la sola separazione del task di
+intervento manuale, relegata alla lane ``human assistance'', stando ad indicare
+una divisione tra i task automatizzati e quelli eseguiti da operatori veri.\\
+\\
+Tutti gli altri partecipanti (banca, stazione, FleetManagement, veicolo), nel
+BPMN documentativo, sono modellati in maniera banale, poiché ogni loro
+capability viene vista fondamentalmente come un unico \textit{service task},
+avviato da una richiesta di ACME e che ritorna un risultato a sua volta. Le
+uniche eccezioni sono costituite da alcuni loop, per FleetManagement e veicolo,
+nella fase del \textbf{tragitto}. Infatti, quando ACMEMobility le richiede l'inizio
+del tracking, FleetManagement si mette in ascolto, in attesa di informazioni,
+fino all'interruzione del tracking; allo stesso tempo, il veicolo noleggiato
+avrà ricevuto, dallo stesso FleetManagement, una richiesta di iniziare a
+condividere il suo stato periodicamente (con una \textit{POST} via
+\textit{http}), anch'esso fino a una notifica di terminazione. Le query di ACME
+sono invece gestite tramite un task separato di FleetManagement: il motivo è che i
+dati trasmessi dai veicoli vengono salvati in un database (di FleetManagement)
+e, al momento dell'interrogazione, vengono ritornati quelli più recenti.\\
+La modellazione raffigura FleetManagement come un unico pool e un'unica lane,
+invece che dividere i task di condivisione batteria e condivisione posizione,
+sia per leggibilità (visto che i task sarebbero stati identici), sia perché, dal
+punto di vista di ACME, esso appare come un unico servizio (implementato con dei
+microservizi al suo interno).
