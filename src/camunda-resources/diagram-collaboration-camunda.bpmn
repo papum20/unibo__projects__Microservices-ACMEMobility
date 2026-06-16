@@ -630,10 +630,6 @@
       <bpmn2:incoming>Flow_07prm6g</bpmn2:incoming>
       <bpmn2:terminateEventDefinition id="TerminateEventDefinition_1srkq2x" />
     </bpmn2:endEvent>
-    <bpmn2:intermediateThrowEvent id="Event_1whyvoj" name="cancel reservation">
-      <bpmn2:incoming>Flow_198w54q</bpmn2:incoming>
-      <bpmn2:outgoing>Flow_07prm6g</bpmn2:outgoing>
-    </bpmn2:intermediateThrowEvent>
     <bpmn2:sequenceFlow id="Flow_07prm6g" sourceRef="Event_1whyvoj" targetRef="Event_0aulqrr" />
     <bpmn2:sequenceFlow id="Flow_198w54q" sourceRef="Gateway_1oaf29u" targetRef="Event_1whyvoj" />
     <bpmn2:sequenceFlow id="Flow_0z5e6th" sourceRef="Event_15e1l1d" targetRef="Gateway_1bn3nb4" />
@@ -699,6 +695,11 @@
     </bpmn2:exclusiveGateway>
     <bpmn2:sequenceFlow id="Flow_1oohbi4" sourceRef="Gateway_0y2ar8n" targetRef="Event_1alepwk" />
     <bpmn2:sequenceFlow id="Flow_0c6duub" sourceRef="Event_0q117f5" targetRef="Gateway_0y2ar8n" />
+    <bpmn2:intermediateThrowEvent id="Event_1whyvoj" name="cancel reservation">
+      <bpmn2:incoming>Flow_198w54q</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_07prm6g</bpmn2:outgoing>
+      <bpmn2:messageEventDefinition id="MessageEventDefinition_0o0emvu" messageRef="Message_347n1i4" />
+    </bpmn2:intermediateThrowEvent>
   </bpmn2:process>
   <bpmn2:process id="Process_002xj6i" isExecutable="false" camunda:historyTimeToLive="P180D" />
   <bpmn2:process id="Process_0jvqw9b" isExecutable="false" camunda:historyTimeToLive="P180D">
@@ -1418,12 +1419,6 @@
       <bpmndi:BPMNShape id="Event_179t8xe_di" bpmnElement="Event_0aulqrr">
         <dc:Bounds x="1002" y="382" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1whyvoj_di" bpmnElement="Event_1whyvoj">
-        <dc:Bounds x="932" y="382" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="905" y="428" width="90" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1uupy4z_di" bpmnElement="Gateway_1bn3nb4">
         <dc:Bounds x="835" y="335" width="50" height="50" />
       </bpmndi:BPMNShape>
@@ -1468,6 +1463,12 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0y2ar8n_di" bpmnElement="Gateway_0y2ar8n" isMarkerVisible="true">
         <dc:Bounds x="2405" y="305" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_00ip0pp_di" bpmnElement="Event_1whyvoj">
+        <dc:Bounds x="932" y="382" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="905" y="428" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_0fy14tj_di" bpmnElement="Flow_0fy14tj">
         <di:waypoint x="770" y="265" />

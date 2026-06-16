@@ -15,7 +15,7 @@ Content-Type:
 * rest: application/json
 Method: È sempre POST. SOAP viaggia via HTTP POST.
 URL: È l'indirizzo del tuo container Jolie (es. http://bank-service:8000/BankPort).
-Payload: Qui incollerai l'XML completo (<soapenv:Envelope>...).
+Payload: Incollare qui l'XML completo (<soapenv:Envelope>...).
 
 ## Forms
 Simulate human interaction.  

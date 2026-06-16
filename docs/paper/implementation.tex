@@ -6,6 +6,8 @@ design.
 
 \subsection{La coreografia}\label{sec:choreography}
 
+\subsubsection{Prospettiva \textit{user}}\label{sec:choreography-user}
+
 Come già accennato, il primo processo a partire è quello dell'\textbf{utente},
 che va poi ad avviare a catena gli altri, con dei \textit{message start event}.
 Nella \textbf{fase 1}, la \textbf{prenotazione}, l'utente parte con una scelta:
@@ -47,16 +49,16 @@ questa parte: in questo modo, l'applicazione dell'utente deve solo comunicare
 gli identificativo di stazione e veicolo, e la stazione saprà automaticamente
 quale terminale bloccare; la comunicazione a breve raggio, inoltre, permette a
 veicolo e stazione di scambiare eventuali informazioni di conferma.\\
-\\
+
+\subsubsection{Prospettiva \textit{ACMEMobility}}\label{sec:choreography-acme}
+
 Dal punto di vista di \textbf{ACMEMobility}, la coreografia appena descritta è
 più complessa e articolata.\\
 \textbf{Fase 1} (\textbf{prenotazione}) --- un processo di ACME può partire solo
 da un messaggio, ricevuto dall'utente, di noleggio immediato o prenotazione: i
 due possibili processi si uniscono subito (con un gateway), ma l'informazione
 sul tipo di noleggio rimane memorizzata, in Camunda, come variabile globale
-(\textit{isImmediate}, un booleano che deve essere fornito nel \textit{body}
-della chiamata http da parte dello user e che verrà automaticamente convertito
-in variabile globale da Camunda).\\
+(maggiori dettagli in seguito).\\
 Subito dopo, si effettua il blocco della cauzione, richiedendolo alla banca. Per
 di più, solamente in caso di prenotazione, ACME effettua alcune operazioni
 interne, come aggiornare i database e salvarne un timestamp, e si mette in
@@ -68,12 +70,11 @@ base al tempo trascorso, sempre tramite la banca.\\
 Se e quando il processo arriva alla \textbf{fase 2} (\textbf{tragitto}), ACME si
 occupa di tenere monitorato il veicolo. Prima di tutto, chiede al servizio di
 \textit{FleetManagement} di avviarne il tracciamento e, solo in seguito, alla
-stazione di sbloccarlo (anche la stazione viene comunicata dal lato
-\textit{user} con la prima richiesta), notificando infine l'utente: così, si
-evita di far partire una corsa con un veicolo non raggiungibile. Durante lo
-spostamento, \textit{FleetManagement} viene periodicamente interrogato
-(\textit{polling}) riguardo allo stato del veicolo, finché non arrivi la
-richiesta di terminazione.\\
+stazione opportuna di sbloccarlo, notificando infine l'utente: così, si evita di
+far partire una corsa con un veicolo non raggiungibile. Durante lo spostamento,
+\textit{FleetManagement} viene periodicamente interrogato (\textit{polling})
+riguardo allo stato del veicolo, finché non arrivi la richiesta di
+terminazione.\\
 Nella \textbf{conclusione} (\textbf{fase 3}), dopo aver bloccato il veicolo nel
 suo dock (tramite la stazione), ACME richiede (un'ultima volta) il suo livello
 della batteria, ne termina il tracking e usa l'informazione per determinare
@@ -88,7 +89,11 @@ già credenziali, dati personali e dati bancari dell'utente --- necessari per
 richiedere gli addebiti ---, che verranno raccolti dal servizio in contesti
 fuori dalla modellazione richiesta dal progetto (fasi di registrazione e
 gestione dell'account), probabilmente appoggiandosi a un servizio esterno di
-gestione delle carte di credito per motivi di sicurezza.\\
+gestione delle carte di credito per motivi di sicurezza. Per minimizzare lo
+scambio di informazioni riservate sulla rete, la banca ritorna un token alla
+prima chiamata, che può essere riusato in seguito per identificare una specifica
+sessione dell'utente, con la sua cauzione (eventualmente convertibile in
+addebito).\\
 Oltre ad alcuni appena visti, la coreografia tiene conto anche di altri
 possibili casi di errore: se avvenuti prima di qualsiasi addebito (come al
 momento del blocco della cauzione), si invia solo un rifiuto di noleggio o
@@ -108,6 +113,12 @@ tracking, così come per la richiesta di assistenza in fase di parcheggio,
 essendo un errore che non inficia in alcun modo il pagamento, si procede con
 calcoli e addebito e contemporaneamente si richiede l'intervento di un umano, ma
 senza inviare messaggi di errore.\\
+Non vengono mostrati invece eventuali problemi con il veicolo selezionato
+dall'utente (quando già prenotato, in uso, con batteria scarica o in
+manutenzione): assumiamo che, nel lato \textit{frontend}, l'applicazione mostri
+solo quelli disponibili e che, comunque, la coreografia si possa espandere con
+eccezioni ed altre semplici aggiunte, a costo però di complicarne ulteriormente
+la leggibilità.\\
 Infine, si noti che, nella modellazione, i task di errore di ACMEMobility sono
 seguito da \textit{end event} senza il cerchio pieno, per indicare che non tutti
 i processi del pool devono essere conclusi: per quanto appena visto, altri
@@ -118,22 +129,72 @@ costituito da un'unica grande lane, con la sola separazione del task di
 intervento manuale, relegata alla lane ``human assistance'', stando ad indicare
 una divisione tra i task automatizzati e quelli eseguiti da operatori veri.\\
 \\
+Come già accennato, il BPMS di ACME può essere controllato da chiamate
+\textit{http} --- che possiamo simulare con lo script python \textit{user.py}
+--- per avviare o gestire i processi. Al loro arrivo, Camunda ne converte
+automaticamente i parametri (nel \textit{body} di una \textit{POST}) in
+variabili globali --- dunque disponibili per le implementazioni, per esempio,
+dei \textit{service task}.\\
+Tra i parametri richiesti dalla ``API'' di ACME, risultano particolarmente utili
+\textit{isImmediate} (booleano per distinguere il tipo di noleggio) e, in fase
+di parcheggio, l'id della stazione (ipoteticamente rilevato dal veicolo stesso
+tramite comunicazione a corto raggio). Inoltre, la variabile
+\textit{businessKey}, già implementata e riconosciuta automaticamente in
+Camunda, permette di associare le richieste a uno stesso processo: usando l'id
+del veicolo in ogni chiamata, le comunicazioni relative a ogni corsa saranno
+così aggregate. Dal \textit{cockpit} (GUI) di Camunda, i processi saranno
+indicati proprio dalla loro \textit{businessKey}.\\
+
+\subsubsection{Prospettiva altri servizi}\label{sec:choreography-others}
+
 Tutti gli altri partecipanti (banca, stazione, FleetManagement, veicolo), nel
 BPMN documentativo, sono modellati in maniera banale, poiché ogni loro
 capability viene vista fondamentalmente come un unico \textit{service task},
 avviato da una richiesta di ACME e che ritorna un risultato a sua volta. Le
 uniche eccezioni sono costituite da alcuni loop, per FleetManagement e veicolo,
-nella fase del \textbf{tragitto}. Infatti, quando ACMEMobility le richiede l'inizio
-del tracking, FleetManagement si mette in ascolto, in attesa di informazioni,
-fino all'interruzione del tracking; allo stesso tempo, il veicolo noleggiato
-avrà ricevuto, dallo stesso FleetManagement, una richiesta di iniziare a
-condividere il suo stato periodicamente (con una \textit{POST} via
+nella fase del \textbf{tragitto}. Infatti, quando ACMEMobility le richiede
+l'inizio del tracking, FleetManagement si mette in ascolto, in attesa di
+informazioni, fino all'interruzione del tracking; allo stesso tempo, il veicolo
+noleggiato avrà ricevuto, dallo stesso FleetManagement, una richiesta di
+iniziare a condividere il suo stato periodicamente (con una \textit{POST} via
 \textit{http}), anch'esso fino a una notifica di terminazione. Le query di ACME
-sono invece gestite tramite un task separato di FleetManagement: il motivo è che i
-dati trasmessi dai veicoli vengono salvati in un database (di FleetManagement)
+sono invece gestite tramite un task separato di FleetManagement: il motivo è che
+i dati trasmessi dai veicoli vengono salvati in un database (di FleetManagement)
 e, al momento dell'interrogazione, vengono ritornati quelli più recenti.\\
 La modellazione raffigura FleetManagement come un unico pool e un'unica lane,
 invece che dividere i task di condivisione batteria e condivisione posizione,
 sia per leggibilità (visto che i task sarebbero stati identici), sia perché, dal
 punto di vista di ACME, esso appare come un unico servizio (implementato con dei
-microservizi al suo interno).
+microservizi al suo interno).\\
+
+\subsection{I servizi}\label{sec:services}
+
+I servizi sono stati realizzati tenendo in mente un'architettura in cui ognuno
+sia agnostico riguardo all'implementazione degli altri, comunicando tramite API
+documentate (con protocolli \textit{http} e \textit{SOAP}).\\
+Perciò, eventuali dati non-volatili di ogni servizio --- e solo quelli necessari
+--- sono memorizzati su un proprio database, accessibile solo da esso e non
+dall'esterno. Nell'implementazione, essendo più che altro a scopo dimostrativo,
+le basi di dati sono in realtà solo simulate (tramite file, classi o pacchetti)
+e accedute tramite opportune interfacce (chiamate di funzione), piuttosto che
+implementate come veri e propri microservizi a loro volta, interconnessi con gli
+altri.\\
+Principalmente, i dati memorizzati stabilmente (tutti documentati in
+\mbox{\textit{docs/implementation/db.md}}) riguardano le liste di ogni utente,
+stazione e veicolo, con informazioni aggiornate su ognuno dopo ciascuna
+operazione (come la stazione in cui si trova parcheggiato, oppure l'utente che
+l'ha noleggiato). La cronologia del livello di batteria e dei movimenti dei
+mezzi sono invece mantenute dai rispettivi sotto-servizi di FleetManagement: il
+core di ACMEMobility li richiede in tempo reale e non ha al bisogno di
+salvarli più a portata di mano, al momento.\\
+All'avvio dell'architettura con \textit{docker-compose}, i database vengono
+riempiti con alcuni dati di esempio, per identificativi e informazioni su
+utenti, stazioni e veicoli.\\
+\\
+Inoltre, abbiamo cercato di delegare il meno possibile al lato \textit{user},
+essendo i \textit{frontend} delle applicazioni da ritenersi sempre inaffidabili.
+La ``API'' di ACMEMobility richiede meno informazioni possibili all'utente; per
+esempio, la stazione in cui si trova un veicolo viene già memorizzata e
+aggiornata costantemente, mentre quella in cui verrà parcheggiato a fine corsa
+assumiamo che venga ``letta'' tramite comunicazione a breve raggio (in fase di
+inserimento nel terminale) e comunicata in modo sicuro.\\

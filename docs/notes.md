@@ -6,7 +6,7 @@ ACME keeps track of some information (see `acme-db.md`)
   * checking coordinates may be imprecise
   * in general, for separation of concerns, other services shouldnt be responsible this
 * DB:
-  * each service may (inlcuding ACME) may have its own DB, accessible only by itself
+  * each service (inlcuding ACME) may have its own DB, accessible only by itself
   * in the implementation, we just simulated it (e.g. with a python module inside the same Docker container)
 
 locking:
@@ -74,50 +74,31 @@ TinySOA organizes services into specific packages (layers):
 *   **`<<Capability>>`**: This is the "concept" of what the service does (e.g., "Payment Management", "Docking Management"). **In SOMA, every Pool in BPMN becomes a Capability.**
 *   **`<<ServiceInterface>>`**: This is the actual API (the endpoints) exposed by the microservice. **In SOMA, the incoming arrows (Message Flows) to a Pool become the Operations in the Interface.**
 
-#### What is Connectedness?
-This is a **theoretical property** of Service Choreographies. Since your project asks you to model a "Choreography" first, this is very important for your grade.
+#### Choreography
+A choreography is a model where there is no central controller; every service just knows its own part.
 
-**In simple terms:** A choreography is "connected" if every participant knows exactly when it is their turn to speak, based *only* on the messages they have already sent or received.
+#### Connectedness
+A **theoretical property** of Service Choreographies: a choreography is "connected" if every participant knows exactly when it is their turn to speak, based *only* on the messages they have already sent or received.  
+in other words: A choreography is "connected" if, for every sequence of actions, the person who is supposed to send a message **knows** that it is their turn because they were the **receiver** of the previous message.  
 
 **Example of a DISCONNECTED (Bad) Choreography:**
 1.  **Customer** sends "Start Rental" to **ACMEMobility**.
 2.  **Bank** sends "Payment Confirmed" to **ACMEMobility**.
 
-*Why is this bad?* Because the **Bank** doesn't know when step 1 happened! There is no message between the Customer and the Bank, or ACMEMobility and the Bank yet. The Bank is "speaking" out of nowhere. 
+bad: The **Bank** doesn't know when step 1 happened (wasn't involved at all)! There is no message between the Customer and the Bank, or ACMEMobility and the Bank yet. The Bank is "speaking" out of nowhere. 
 
 **Example of a CONNECTED (Good) Choreography:**
 1.  **Customer** sends "Start Rental" to **ACMEMobility**.
 2.  **ACMEMobility** sends "Request Pre-auth" to **Bank**.
 3.  **Bank** sends "Auth Token" to **ACMEMobility**.
 
-*Why is this good?* Every step follows a logical flow. The Bank only speaks *after* it receives a message from ACMEMobility. There is a "causal link."
+good: Every step follows a logical flow. The Bank only speaks *after* it receives a message from ACMEMobility. There is a causal link (ACME is receiver of 1 and sender of 2, bank is receiver of 2 and sender of 3). The "baton" is passed correctly.  
 
-**In your project:** You will draw a diagram showing how all these services talk. If you see a service performing an action without having received a message that "triggered" that action, your choreography is **not connected**. You will have to "refine" it by adding the missing messages.
+"need to draw the interaction".  
+If you see a service performing an action without having received a message that "triggered" that action, the choreography is **not connected**, you will have to "refine" it by adding the missing messages.
 
-##### 1. Connectedness (The "Baton Race" Rule)
-Connectedness is a property of a **Choreography**. A choreography is a model where there is no central controller; every service just knows its own part.
-
-**The Rule:** A choreography is "connected" if, for every sequence of actions, the person who is supposed to send a message **knows** that it is their turn because they were the **receiver** of the previous message.
-
-*   **Example of a DISCONNECTED (Bad) Choreography:**
-    1.  **Customer** sends `StartRental` to **ACMEMobility**.
-    2.  **Bank** sends `RequestConfirmation` to **Customer**.
-    *   *The Problem:* How does the **Bank** know it’s time to send that message? The Bank wasn't involved in Step 1. In a real microservices world, the Bank is just sitting there. It doesn't "see" the message between Customer and ACMEMobility. 
-    *   **This is "Disconnected."**
-
-*   **Example of a CONNECTED (Good) Choreography:**
-    1.  **Customer** sends `StartRental` to **ACMEMobility**.
-    2.  **ACMEMobility** sends `CheckCredit` to **Bank**.
-    3.  **Bank** sends `RequestConfirmation` to **Customer**.
-    *   *Why it works:* Step 2 is possible because ACMEMobility (the receiver of Step 1) is the sender of Step 2. Step 3 is possible because the Bank (the receiver of Step 2) is the sender of Step 3. The "baton" is passed correctly.
-
-**What the project asks you to do:**
-You need to draw the interaction. If you see a service sending a message but it didn't receive anything right before that to "trigger" it, you must **refine** the choreography by adding a coordination message to "connect" the flow.
-
----
-
-##### 2. Correctness (or "Correctedness")
-"Correctness" is a much broader term. It usually refers to **Realizability** and **Semantic Correctness**.
+##### Correctness (or Correctedness)
+much broader term. It usually refers to **Realizability** and **Semantic Correctness**.  
 
 *   **Realizability:** Can this choreography actually be implemented as a set of microservices without them getting stuck (deadlock)? If your choreography is *Connected*, it is a huge step toward being *Realizable*.
 *   **Liveness:** Does the process always reach the end? (e.g., the car is always eventually locked and paid for).

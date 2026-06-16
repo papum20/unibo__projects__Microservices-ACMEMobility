@@ -58,8 +58,6 @@ variabili con quelle in \mbox{\textit{src/.env}}, generando quello finale
 (\mbox{\textit{src/docker-compose.generated.yml}}). In questo modo, i veicoli e
 le stazioni istanziati sono ben riconoscibili poiché generati con identificativi
 definiti tramite variabili di ambiente.\\
-Inoltre, tutti i servizi usano \textit{API REST} e comunicano tramite
-\textit{http}, ad eccezione della banca, che usa \textit{SOAP} come richiesto.\\
 Per la coreografia in Camunda, come già accennato, tutti i service task sono
 implementati tramite un worker in python. Solo delle operazioni banali,
 principalmente le condizioni di scelta per i gateway esclusivi, sono
@@ -69,6 +67,8 @@ che vengono configurate dallo stesso worker. L'implementazione esterna, infatti,
 fornisce grandi vantaggi nello sviluppo, in termini di gestibilità,
 mantenibilità e leggibilità del codice, possibilità di debugging e gestione
 coerente e ordinata dei file.\\
+Inoltre, tutti i servizi usano \textit{API REST} e comunicano tramite
+\textit{http}, ad eccezione della banca, che usa \textit{SOAP} come richiesto.\\
 \\
 In \mbox{\textit{docs/implementation/}} sono presenti le documentazioni sia per
 le API dei servizi (incluso ACMEMobility, a cui lo script
