@@ -2,7 +2,21 @@
 
 In questa sezione presentiamo il modo in cui vengono eseguiti i processi (e
 quindi la coreografia), insieme a commenti e motivazioni per le scelte di
-design.
+design.\\
+Mostreremo anche il diagramma BPMN documentativo intero e poi a pezzi: quello
+integrale è visionabile anche nel repository del progetto (in
+\mbox{\textit{docs/diagrams/}}).\\
+
+\begin{figure}[H]
+	\centering
+    %\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{./img/bpmn-all.png}
+    \includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{../diagrams/diagram-collaboration-full.pdf}
+    \caption{BPMN documentativo completo, con tutti i partecipanti, in ordine
+    dall'alto al basso: User, Bank, ACMEMobility, FleetManagement, Station,
+    Vehicle; gli ultimi 4 sono nello stesso gruppo
+	``ACMEMobility infrastructure''.}\label{fig:bpmn-all}
+\end{figure}
+
 
 \subsection{La coreografia}\label{sec:choreography}
 
@@ -50,7 +64,37 @@ gli identificativo di stazione e veicolo, e la stazione saprà automaticamente
 quale terminale bloccare; la comunicazione a breve raggio, inoltre, permette a
 veicolo e stazione di scambiare eventuali informazioni di conferma.\\
 
-\subsubsection{Prospettiva \textit{ACMEMobility}}\label{sec:choreography-acme}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-user-p1.png}
+        \caption{BPMN documentativo per User, fase 1}\label{fig:bpmn-user-p2}
+    \end{minipage}
+    \hfill % This adds space between the two images
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-user-p1-err.png}
+        \caption{BPMN documentativo per User, fase 1, casi di errore}\label{fig:bpmn-user-p3}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-user-p2.png}
+    \caption{BPMN documentativo per User, fase 2}\label{fig:bpmn-user-p2}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-user-p3.png}
+    \caption{BPMN documentativo per User, fase 3}\label{fig:bpmn-user-p3}
+\end{figure}
+
+
+
+\subsubsection{Prospettiva di \textit{ACMEMobility}}\label{sec:choreography-acme}
 
 Dal punto di vista di \textbf{ACMEMobility}, la coreografia appena descritta è
 più complessa e articolata.\\
@@ -83,7 +127,30 @@ secondo lo sblocco della cauzione --- tenendosela in caso di problemi di
 pagamento. Se, al momento del parcheggio, l'utente ha richiesto l'assistenza, si
 passa ugualmente per i task di calcolo e addebito, prima di gestire l'intervento
 manuale.\\
-\\
+
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\linewidth}
+        \centering
+    	\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-acme-p1.png}
+    	\caption{BPMN documentativo per ACMEMobility, fase 1}\label{fig:bpmn-acme-p1}
+    \end{minipage}
+    \hfill % This adds space between the two images
+    \begin{minipage}{0.48\linewidth}
+        \centering
+   		\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-acme-p2.png}
+   		\caption{BPMN documentativo per ACMEMobility, fase 2}\label{fig:bpmn-acme-p2}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-acme-p3.png}
+    \caption{BPMN documentativo per ACMEMobility, fase 3}\label{fig:bpmn-acme-p3}
+\end{figure}
+
+
 Andando a specificare alcune note aggiuntive, si assume che ACMEMobility conosca
 già credenziali, dati personali e dati bancari dell'utente --- necessari per
 richiedere gli addebiti ---, che verranno raccolti dal servizio in contesti
@@ -145,7 +212,25 @@ del veicolo in ogni chiamata, le comunicazioni relative a ogni corsa saranno
 così aggregate. Dal \textit{cockpit} (GUI) di Camunda, i processi saranno
 indicati proprio dalla loro \textit{businessKey}.\\
 
-\subsubsection{Prospettiva altri servizi}\label{sec:choreography-others}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\linewidth}
+        \centering
+		\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-acme-p1-e1.png}
+	   	\caption{BPMN documentativo per ACMEMobility, errori prima della cauzione}\label{fig:bpmn-acme-p1-e1}
+    \end{minipage}
+    \hfill % This adds space between the two images
+    \begin{minipage}{0.48\linewidth}
+        \centering
+		\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-acme-p1-e2.png}
+		\caption{BPMN documentativo per ACMEMobility, errori dopo la cauzione}\label{fig:bpmn-acme-p1-e2}
+    \end{minipage}
+\end{figure}
+
+
+
+\subsubsection{Prospettiva degli altri servizi}\label{sec:choreography-others}
 
 Tutti gli altri partecipanti (banca, stazione, FleetManagement, veicolo), nel
 BPMN documentativo, sono modellati in maniera banale, poiché ogni loro
@@ -166,6 +251,39 @@ invece che dividere i task di condivisione batteria e condivisione posizione,
 sia per leggibilità (visto che i task sarebbero stati identici), sia perché, dal
 punto di vista di ACME, esso appare come un unico servizio (implementato con dei
 microservizi al suo interno).\\
+
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-bank-1.png}
+    \caption{BPMN documentativo per Bank (parte 1)}\label{fig:bpmn-bank-1}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-bank-2.png}
+    \caption{BPMN documentativo per Bank (parte 2)}\label{fig:bpmn-bank-2}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-fleet.png}
+    \caption{BPMN documentativo per FleetManagement}\label{fig:bpmn-fleet}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-station.png}
+    \caption{BPMN documentativo per una Stazione}\label{fig:bpmn-station}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-vehicle.png}
+    \caption{BPMN documentativo per un Veicolo}\label{fig:bpmn-vehicle}
+\end{figure}
+
+
 
 \subsection{I servizi}\label{sec:services}
 

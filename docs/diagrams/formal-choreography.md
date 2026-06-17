@@ -45,7 +45,7 @@ $\ \ \ \ \ \ \ \ track\_started: F \rightarrow A ; unlock: A \rightarrow S ; $
 $\ \ \ \ \ \ \ \ ( unlock\_err: S \rightarrow A ; C_{err\_release} + unlock\_ok: S \rightarrow A ; unlocked: A \rightarrow U ; C_{ride} )$  
 $\ \ \ \ )$
 
-// We omit here the loop where Fleet periodically asks the information (position and battery) to the vehicle, which is a separate loop, i.e. the information is then cached, so it can happen asynchronously with ACME and in parallel.  
+// We omit here the loop where Fleet periodically receives the information (position and battery) from the vehicle, which is a separate loop, i.e. the information is then cached, so it can happen asynchronously with ACME and in parallel.  
 // Explicitly adding these details (for vehicles) would just make the formula more complex, since the mechanisms of both errors and loop are analogous to the ones involving Fleet.  
 // A failed parking/locking attempt may happen 0 or more times, until either success or assistance request.  
 $C_{ride} =$   
@@ -58,17 +58,18 @@ $\ \ \ \ )$
 $C_{park\_attempt} = ( park: U \rightarrow A ; lock: A \rightarrow S ; lock\_err: S \rightarrow A ; park\_err: A \rightarrow U ) $
   
 // Each request to the bank may return an ok or an error (in which case we go to err_manual).  
-// If the ask_batt or track_stop requests fail, we go on but will later ask for manual intervention.  
+// If the track_stop request fails, we go on but will later ask for manual intervention.  
 $C_{ride\_end} =$  
-$\ \ \ \ ask\_batt: A \rightarrow F ; (share\_batt: F \rightarrow A + (err\_share\_batt: F \rightarrow A | C_{err\_manual})) ;$  
-$\ \ \ \ track\_stop: A \rightarrow F ; share\_stop: F \rightarrow V , share\_stopped: V \rightarrow F ; ( track\_stopped: F \rightarrow A + (err\_track\_stopped: F \rightarrow A | C_{err\_manual})) ; $  
-$\ \ \ \ charge: A \rightarrow B ; ( $  
-$\ \ \ \ \ \ \ \ C_{err\_manual} + $  
-$\ \ \ \ \ \ \ \ charged: B \rightarrow A ; receipt: A \rightarrow U ; caut\_release: A \rightarrow B ; ($  
+$\ \ \ \ ask\_batt: A \rightarrow F ; ((err\_share\_batt: F \rightarrow A; C_{err\_manual}) + $
+$\ \ \ \ \ \ \ \ share\_batt: F \rightarrow A ; $  
+$\ \ \ \ \ \ \ \ track\_stop: A \rightarrow F ; share\_stop: F \rightarrow V , share\_stopped: V \rightarrow F ; ( track\_stopped: F \rightarrow A + (err\_track\_stopped: F \rightarrow A; C_{err\_manual})) ; $  
+$\ \ \ \ \ \ \ \ charge: A \rightarrow B ; ( $  
 $\ \ \ \ \ \ \ \ \ \ \ \ C_{err\_manual} + $  
-$\ \ \ \ \ \ \ \ \ \ \ \ caut\_released: B \rightarrow A $  
-$\ \ \ \ \ \ \ \ )$  
-$\ \ \ \ )$
+$\ \ \ \ \ \ \ \ \ \ \ \ charged: B \rightarrow A ; receipt: A \rightarrow U ; caut\_release: A \rightarrow B ; ($  
+$\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ C_{err\_manual} + $  
+$\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ caut\_released: B \rightarrow A $  
+$\ \ \ \ \ \ \ \ \ \ \ \ )$  
+$\ \ \ \ \ \ \ \ ))$
 
 **Errors:**
 

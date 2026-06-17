@@ -1,0 +1,176 @@
+\section{Diagrammi}\label{sec:diagrams}
+
+In questa sezione discutiamo maggiormente la produzione dei diagrammi, oltre ai
+risultati di \textit{connectedness} e \textit{correctedness}.\\
+\\
+Per produrre il diagramma UML (con profilo TinySOA) della Service Architecture a
+partire dal BPMN, abbiamo seguito il metodo  SOMA (Service-Oriented Modeling and
+Architecture). Prima di tutto, ogni pool rappresenta una \textit{capability},
+modellata come un'\textit{Entity}. Ogni messaggio scambiato tra i partecipanti
+indica un'operazione esposta dalla \textit{Service Interface} del
+servizio/entità che riceve il messaggio --- per esempio, ACMEMobility permette
+di avviare un noleggio.\\
+Poiché il partecipante ACMEMobility costituisce il fulcro e l'orchestratore dei
+processi, esso è stato rappresentato come un \textit{Task Service}, che può
+usare o invocare gli altri (micro-) servizi, come dipendenze, con l'elemento
+\textit{use} di UML --- interagendoci con protocolli quali \textit{http} e
+\textit{SOAP}.\\
+L'utente e i veicoli, essendo entità fisiche (umane o IoT), sono stati
+rappresentati come semplici attori esterni che interagiscono con il sistema, in
+contrapposizione alle \textit{Entity}, dei veri servizi, con delle
+\textit{capability}, che agiscono ognuno su un dominio specifico. Inoltre, le
+stazioni, essendo tante ma implementate allo stesso modo, sono rappresentate
+come una \textit{box} invece che piatte.\\
+Il risultante diagramma UML/TinySOA, dunque, combina le sintassi di
+\textit{Class Diagram} (con servizi e interfacce) e \textit{Component Diagram}
+(con più dettagli sulle entità) per mostrare, in un unico grafico,
+l'architettura del sistema su più livelli contemporaneamente.\\
+
+
+
+\subsection{Choreografia formale}\label{sec:formal-choreography}
+
+\subsection{Formal Syntax Definition}
+
+Si considerino i seguenti partecipanti:
+\begin{itemize}
+    \item \textbf{U}: User
+    \item \textbf{A}: ACMEMobility
+    \item \textbf{B}: Bank
+    \item \textbf{F}: Fleet Management
+    \item \textbf{S}: Station
+    \item \textbf{V}: Vehicle
+\end{itemize}
+
+La coreografia $C$ si definisce come la scelta tra un noleggio immediato
+($C_{imm}$) e una prenotazione ($C_{res}$):
+\[ C = C_{imm} + C_{res} \]
+
+\textbf{Noleggio immediato:}
+\begin{align*}
+C_{imm} = & \ req\_imm: U \rightarrow A ; \\
+& \ caut\_lock: A \rightarrow B ; ( \\
+& \quad C_{err\_reject} + \\
+& \quad caut\_locked: B \rightarrow A ; C_{ride\_start} \\
+& \ )
+\end{align*}
+
+\textbf{Prenotazione:}
+\begin{align*}
+C_{res} = & \ req\_res: U \rightarrow A ; \\
+& \ caut\_lock: A \rightarrow B ; ( \\
+& \quad C_{err\_reject} + \\
+& \quad caut\_locked: B \rightarrow A ; reserved: A \rightarrow U ; ( C_{cancel} + C_{scan\_res} ) \\
+& \ )
+\end{align*}
+
+\textbf{Nota ---} Ogni richiesta alla banca può ritornare un \textit{ok} o un
+\textit{errore}, nel qual caso si va a \textit{err_manual}.
+
+\begin{align*}
+C_{cancel} = & \ cancel: U \rightarrow A ; ( caut\_release: A \rightarrow B ; (C_{err\_manual} + caut\_released: B \rightarrow A) + \\
+& \ charge\_pen: A \rightarrow B; (C_{err\_manual} + charged\_pen: B \rightarrow A) ) \\
+C_{scan\_res} = & \ scan\_res: U \rightarrow A ; C_{ride\_start}
+\end{align*}
+
+\textbf{Viaggio e inizio e fine del noleggio:}
+\textbf{Nota ---} Anche il veicolo potrebbe ritornare successo o errore: per
+semplicità, qui viene mostrato come se solo FleetManagement possa ritornare un
+errore.
+
+\begin{align*}
+C_{ride\_start} = & \ track\_start: A \rightarrow F ; share\_start: F \rightarrow V ; share\_started: V \rightarrow F ; ( track\_err: F \rightarrow A; C_{err\_release} + \\
+& \quad track\_started: F \rightarrow A ; unlock: A \rightarrow S ; \\
+& \quad ( unlock\_err: S \rightarrow A ; C_{err\_release} + unlock\_ok: S \rightarrow A ; unlocked: A \rightarrow U ; C_{ride} ) \\
+& \ )
+\end{align*}
+
+\textbf{Nota ---} Qui omettiamo il loop in cui FleetManagement riceve
+periodicamente dati (posizione e batteria) dal veicolo. Questo sarebbe un
+ciclo separato, dato che le informazioni vengono memorizzate (in un database) per
+poter essere ritornate ad ACMEMobility su richiesta. D'altra parte, tale
+aggiunta complicherebbe non poco le formule senza però aggiungere nulla di
+nuovo, essendo loop e casi di errore simili a quelli che già avvengono per
+FleetManagement.\\
+\textbf{Nota ---} Si tenga presente che un tentativo senza successo di
+parcheggio e blocco del veicolo può avvenire 0 o più volte, fino a un successo o
+a una richiesta di assistenza.
+
+\begin{align*}
+C_{ride} = & \ (pos\_fetch: A \rightarrow F ; pos\_fetched: F \rightarrow A )^* ; \\
+& \ C_{park\_attempt}^* ; ( \\
+& \quad C_{park\_attempt} ; assist: U \rightarrow A + \\
+& \quad park: U \rightarrow A ; lock: A \rightarrow S ; lock\_ok: S \rightarrow A ; C_{ride\_end} \\
+& \ ) \\
+C_{park\_attempt} = & \ ( park: U \rightarrow A ; lock: A \rightarrow S ; lock\_err: S \rightarrow A ; park\_err: A \rightarrow U )
+\end{align*}
+
+\textbf{Nota ---} Ogni richiesta alla banca può ritornare \textit{ok} o
+\textit{error}, nel qual caso si va a \textit{err_manual}.
+\textbf{Nota ---} Se fallisce la richiesta \textit{track_stop}, si va avanti, ma
+verrà richiesto un intervento manuale in seguito.
+
+\begin{align*}
+C_{ride\_end} = & \ ask\_batt: A \rightarrow F ; ((err\_share\_batt: F \rightarrow A ; C_{err\_manual}) + \\
+& \quad \ share\_batt: F \rightarrow A ; \\
+& \quad \ track\_stop: A \rightarrow F ; share\_stop: F \rightarrow V , share\_stopped: V \rightarrow F ; \\
+& \quad \ ( track\_stopped: F \rightarrow A + (err\_track\_stopped: F \rightarrow A \mid C_{err\_manual})) ; \\
+& \quad \ charge: A \rightarrow B ; ( \\
+& \quad \quad C_{err\_manual} + \\
+& \quad \quad charged: B \rightarrow A ; receipt: A \rightarrow U ; caut\_release: A \rightarrow B ; ( \\
+& \quad \quad \quad C_{err\_manual} + \\
+& \quad \quad \quad caut\_released: B \rightarrow A \\
+& \quad \quad ) \\
+& \quad \ ))
+\end{align*}
+
+\textbf{Errori:}
+
+Intervento manuale:\\
+
+\begin{align*}
+C_{err\_manual} = & \ 1 \\
+\end{align*}
+
+Non potendo iniziare la corsa, sblocca la cauzione e notifica
+l'utente, o richiedi un intervento manuale anche qui, in caso di un errore della
+banca:\\
+
+\begin{align*}
+C_{err\_release} = & \ caut\_release: A \rightarrow B ; ( C_{err\_manual} + caut\_released: B \rightarrow A ; C_{err\_reject} ) \\
+\end{align*}
+
+Rifiuta il noleggio subito, senza neanche coinvolgere la banca:
+
+\begin{align*}
+C_{err\_reject} = & \ notify\_reject: A \rightarrow U
+\end{align*}
+
+\subsection{Connectedness Analysis}
+A choreography is ``connected'' if the sequences of interactions guarantee causality safety. In our choreography, every single interaction involves participant \textbf{A} (ACMEMobility), which acts as the central orchestrator. This creates a ``Star Topology'' centered on $A$. Since $A$ is present in every step, causality is safe, and the synchronous case connectedness condition ($a=c \lor a=d \lor b=c \lor b=d$) is satisfied for any sequence $o: a \rightarrow b ; o': c \rightarrow d$.
+
+\subsection{Projection}
+Projections show how the global formula translates into local behavior for each role. The symbol $\overline{o}$ denotes sending a message, while $o$ denotes receiving.
+
+\subsubsection{Projection for Bank (B)}
+\begin{align*}
+proj(C_{imm}, B) = & \ caut\_lock@A ; (1 + \overline{caut\_locked}@A ; proj(C_{ride\_start}, B) ) \\
+proj(C_{res}, B) = & \ caut\_lock@A ; (1 + \overline{caut\_locked}@A ; (proj(C_{cancel}, B) + proj(C_{ride\_start}, B)) ) \\
+proj(C_{cancel}, B) = & \ caut\_release@A ; ((1 + \overline{caut\_released}@A) + charge\_pen@A ; (1 + \overline{charged\_pen}@A) ) \\
+proj(C_{ride\_end}, B) = & \ charge@A ; (1 + ( \overline{charged}@A ; caut\_release@A ; ( 1 + \overline{caut\_released}@A ) ) )
+\end{align*}
+
+\subsubsection{Projection for ACMEMobility (A)}
+\begin{align*}
+proj(C_{imm}, A) = & \ req\_imm@U ; \overline{caut\_lock}@B ; ( \overline{notify\_reject}@U + caut\_locked@B ; proj(C_{ride\_start}, A) ) \\
+proj(C_{scan\_res}, A) = & \ scan\_res@U ; proj(C_{ride\_start}, A) \\
+proj(C_{ride\_start}, A) = & \ \overline{track\_start}@F ; ( track\_err@F ; proj(C_{err\_release}, A) + \dots ) % Truncated for brevity
+\end{align*}
+
+%\cref{fig:host_performance_img} mostra spesso un picco in casa, ma suggerisce
+%anche crescite iniziate prima.
+%
+%\begin{figure}[H] \centering
+%    \includegraphics[width=\linewidth]{../../docs/img/Host_Performance_1996_2024.png}
+%    \caption{Performance 1988--2024 per alcuni Pesi host}
+%    \label{fig:host_performance_img} \end{figure}
