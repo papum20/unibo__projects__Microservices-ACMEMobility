@@ -1,7 +1,7 @@
 \section{Diagrammi}\label{sec:diagrams}
 
 In questa sezione discutiamo maggiormente la produzione dei diagrammi, oltre ai
-risultati di \textit{connectedness} e \textit{correctedness}.\\
+risultati sulla \textit{connectedness}.\\
 \\
 Per produrre il diagramma UML (con profilo TinySOA) della Service Architecture a
 partire dal BPMN, abbiamo seguito il metodo  SOMA (Service-Oriented Modeling and
@@ -28,9 +28,10 @@ l'architettura del sistema su più livelli contemporaneamente.\\
 
 
 
-\subsection{Choreografia formale}\label{sec:formal-choreography}
+\subsection{Coreografia con sintassi formale}\label{sec:formal-choreography}
 
-\subsection{Formal Syntax Definition}
+\textbf{Nota ---} Gli operatori di scelta ($+$) e di composizione parallela
+($\mid$) hanno minore precedenza rispetto alla composizione sequenziale ($;$).\\
 
 Si considerino i seguenti partecipanti:
 \begin{itemize}
@@ -46,82 +47,103 @@ La coreografia $C$ si definisce come la scelta tra un noleggio immediato
 ($C_{imm}$) e una prenotazione ($C_{res}$):
 \[ C = C_{imm} + C_{res} \]
 
-\textbf{Noleggio immediato:}
+\textbf{Noleggio immediato:}\\
 \begin{align*}
-C_{imm} = & \ req\_imm: U \rightarrow A ; \\
+C_{imm} = \\
+& \ req\_imm: U \rightarrow A ; \\
 & \ caut\_lock: A \rightarrow B ; ( \\
-& \quad C_{err\_reject} + \\
-& \quad caut\_locked: B \rightarrow A ; C_{ride\_start} \\
+& \quad \quad caut\_lock\_err: B \rightarrow A ; C_{err\_reject} + \\
+& \quad \quad caut\_locked: B \rightarrow A ; notify\_imm: A \rightarrow U ; C_{ride\_start} \\
 & \ )
 \end{align*}
 
-\textbf{Prenotazione:}
+\textbf{Prenotazione:}\\
 \begin{align*}
-C_{res} = & \ req\_res: U \rightarrow A ; \\
+C_{res} = \\
+& \ req\_res: U \rightarrow A ; \\
 & \ caut\_lock: A \rightarrow B ; ( \\
-& \quad C_{err\_reject} + \\
-& \quad caut\_locked: B \rightarrow A ; reserved: A \rightarrow U ; ( C_{cancel} + C_{scan\_res} ) \\
+& \quad \quad caut\_lock\_err: B \rightarrow A ; C_{err\_reject} + \\
+& \quad \quad caut\_locked: B \rightarrow A ; reserved: A \rightarrow U ; ( C_{cancel} + C_{scan\_res} ) \\
 & \ )
 \end{align*}
 
 \textbf{Nota ---} Ogni richiesta alla banca può ritornare un \textit{ok} o un
-\textit{errore}, nel qual caso si va a \textit{err_manual}.
+\textit{errore}, nel qual caso si va a \textit{err\_manual}.
 
 \begin{align*}
-C_{cancel} = & \ cancel: U \rightarrow A ; ( caut\_release: A \rightarrow B ; (C_{err\_manual} + caut\_released: B \rightarrow A) + \\
-& \ charge\_pen: A \rightarrow B; (C_{err\_manual} + charged\_pen: B \rightarrow A) ) \\
+C_{cancel} = \\
+& \ cancel: U \rightarrow A ; ( \\
+& \quad \quad caut\_release: A \rightarrow B ; (caut\_release\_err: B \rightarrow A ; C_{err\_manual} + caut\_released: B \rightarrow A) + \\
+& \quad \quad charge\_pen: A \rightarrow B; (charge\_pen\_err: B \rightarrow A ; C_{err\_manual} + charged\_pen: B \rightarrow A) \\
+& \ ) \\
 C_{scan\_res} = & \ scan\_res: U \rightarrow A ; C_{ride\_start}
 \end{align*}
 
-\textbf{Viaggio e inizio e fine del noleggio:}
+\textbf{Viaggio e inizio e fine del noleggio:}\\
 \textbf{Nota ---} Anche il veicolo potrebbe ritornare successo o errore: per
 semplicità, qui viene mostrato come se solo FleetManagement possa ritornare un
-errore.
+errore. Molti possibili errori come questo si potrebbero aggiungere in maniera
+analoga ad altri presenti, ma complicherebbero le definizioni, aggiungendo tante
+scelte e tanti livelli di annidamento.
 
 \begin{align*}
-C_{ride\_start} = & \ track\_start: A \rightarrow F ; share\_start: F \rightarrow V ; share\_started: V \rightarrow F ; ( track\_err: F \rightarrow A; C_{err\_release} + \\
-& \quad track\_started: F \rightarrow A ; unlock: A \rightarrow S ; \\
-& \quad ( unlock\_err: S \rightarrow A ; C_{err\_release} + unlock\_ok: S \rightarrow A ; unlocked: A \rightarrow U ; C_{ride} ) \\
+C_{ride\_start} = \\
+& \ track\_start: A \rightarrow F ; share\_start: F \rightarrow V ; share\_started: V \rightarrow F ; \\
+& \ ( track\_err: F \rightarrow A; C_{err\_release} + \\
+& \quad \quad track\_started: F \rightarrow A ; unlock: A \rightarrow S ; \\
+& \quad \quad ( unlock\_err: S \rightarrow A ; C_{err\_release} + unlock\_ok: S \rightarrow A ; unlocked: A \rightarrow U ; C_{ride} ) \\
 & \ )
 \end{align*}
 
-\textbf{Nota ---} Qui omettiamo il loop in cui FleetManagement riceve
-periodicamente dati (posizione e batteria) dal veicolo. Questo sarebbe un
-ciclo separato, dato che le informazioni vengono memorizzate (in un database) per
-poter essere ritornate ad ACMEMobility su richiesta. D'altra parte, tale
-aggiunta complicherebbe non poco le formule senza però aggiungere nulla di
-nuovo, essendo loop e casi di errore simili a quelli che già avvengono per
-FleetManagement.\\
+\textbf{Nota ---} Qui omettiamo per semplicità il loop in cui FleetManagement
+riceve periodicamente dati (posizione e batteria) dal veicolo. Questo sarebbe un
+ciclo separato che avviene in parallelo, dato che le informazioni vengono
+memorizzate (in un database) per poter essere ritornate ad ACMEMobility su
+richiesta, ma le sue formule sarebbero banalmente analoghe all'altro loop di
+FleetManagement (ripetizione 0 o più volte di condivisione dati e risposta di
+conferma).\\
 \textbf{Nota ---} Si tenga presente che un tentativo senza successo di
-parcheggio e blocco del veicolo può avvenire 0 o più volte, fino a un successo o
-a una richiesta di assistenza.
+parcheggio e blocco del veicolo può avvenire 1 o più volte, fino a un successo o
+a una richiesta di assistenza: da coreografia, deve avvenire almeno una volta,
+perché l'utente possa richiedere l'assistenza.\\
 
 \begin{align*}
-C_{ride} = & \ (pos\_fetch: A \rightarrow F ; pos\_fetched: F \rightarrow A )^* ; \\
-& \ C_{park\_attempt}^* ; ( \\
-& \quad C_{park\_attempt} ; assist: U \rightarrow A + \\
-& \quad park: U \rightarrow A ; lock: A \rightarrow S ; lock\_ok: S \rightarrow A ; C_{ride\_end} \\
+C_{ride} = \\
+& \ (pos\_fetch: A \rightarrow F ; pos\_fetched: F \rightarrow A )^* ; \\
+& \ (C_{park\_attempt})^* ; ( \\
+& \quad \quad C_{park\_attempt} ; assist: U \rightarrow A + \\
+& \quad \quad park: U \rightarrow A ; lock: A \rightarrow S ; lock\_ok: S \rightarrow A ; C_{ride\_end} \\
 & \ ) \\
 C_{park\_attempt} = & \ ( park: U \rightarrow A ; lock: A \rightarrow S ; lock\_err: S \rightarrow A ; park\_err: A \rightarrow U )
 \end{align*}
 
 \textbf{Nota ---} Ogni richiesta alla banca può ritornare \textit{ok} o
-\textit{error}, nel qual caso si va a \textit{err_manual}.
-\textbf{Nota ---} Se fallisce la richiesta \textit{track_stop}, si va avanti, ma
-verrà richiesto un intervento manuale in seguito.
+\textit{error}, nel qual caso si va a \textit{err\_manual}.\\
+\textbf{Nota ---} Se fallisce la richiesta \textit{track\_stop}
+(\textit{err\_track\_stop}), si va avanti, ma verrà richiesto un intervento
+manuale in seguito.\\
+\textbf{Nota ---} In questa parte conclusiva, nella maggior parte dei casi di
+errore si usa \textit{notify\_err\_manual}, cioè si notifica l'utente, poiché,
+nella coreografia, egli è in attesa o di un messaggio di fine corsa (con
+successo, per esempio con una ricevuta) o di un messaggio di errore. Se l'errore
+avviene al rilascio della cauzione, anche la coreografia non mostra notifiche
+all'utente: si assume che il problema verrà risolto da un operatore al più
+presto, senza però bloccare il processo.\\
 
 \begin{align*}
-C_{ride\_end} = & \ ask\_batt: A \rightarrow F ; ((err\_share\_batt: F \rightarrow A ; C_{err\_manual}) + \\
-& \quad \ share\_batt: F \rightarrow A ; \\
-& \quad \ track\_stop: A \rightarrow F ; share\_stop: F \rightarrow V , share\_stopped: V \rightarrow F ; \\
-& \quad \ ( track\_stopped: F \rightarrow A + (err\_track\_stopped: F \rightarrow A \mid C_{err\_manual})) ; \\
-& \quad \ charge: A \rightarrow B ; ( \\
-& \quad \quad C_{err\_manual} + \\
-& \quad \quad charged: B \rightarrow A ; receipt: A \rightarrow U ; caut\_release: A \rightarrow B ; ( \\
-& \quad \quad \quad C_{err\_manual} + \\
-& \quad \quad \quad caut\_released: B \rightarrow A \\
-& \quad \quad ) \\
-& \quad \ ))
+C_{ride\_end} = \\
+& \ ask\_batt: A \rightarrow F ; ( \\
+& \quad \quad (err\_share\_batt: F \rightarrow A ; C_{err\_manual\_notify}) + \\
+& \quad \quad share\_batt: F \rightarrow A ; \\
+& \quad \quad track\_stop: A \rightarrow F ; share\_stop: F \rightarrow V , share\_stopped: V \rightarrow F ; \\
+& \quad \quad ( track\_stopped: F \rightarrow A + (err\_track\_stopped: F \rightarrow A \mid C_{err\_manual})) ; \\
+& \quad \quad charge: A \rightarrow B ; ( \\
+& \quad \quad \quad \quad charge\_err: B \rightarrow A ; C_{err\_manual\_notify} + \\
+& \quad \quad \quad \quad charged: B \rightarrow A ; receipt: A \rightarrow U ; caut\_release: A \rightarrow B ; ( \\
+& \quad \quad \quad \quad \quad \quad caut\_release\_err: B \rightarrow A ; C_{err\_manual} + \\
+& \quad \quad \quad \quad \quad \quad caut\_released: B \rightarrow A \\
+& \quad \quad \quad \quad ) \\
+& \quad \quad ))
 \end{align*}
 
 \textbf{Errori:}
@@ -132,12 +154,20 @@ Intervento manuale:\\
 C_{err\_manual} = & \ 1 \\
 \end{align*}
 
-Non potendo iniziare la corsa, sblocca la cauzione e notifica
-l'utente, o richiedi un intervento manuale anche qui, in caso di un errore della
-banca:\\
+Intervento manuale, notificando l'utente:\\
 
 \begin{align*}
-C_{err\_release} = & \ caut\_release: A \rightarrow B ; ( C_{err\_manual} + caut\_released: B \rightarrow A ; C_{err\_reject} ) \\
+C_{err\_manual\_notify} = & \ notify\_err\_manual: A \rightarrow U \\
+\end{align*}
+
+Non potendo iniziare la corsa, sblocca la cauzione e notifica l'utente, o
+richiedi un intervento manuale anche qui, in caso di un errore della banca:\\
+
+\begin{align*}
+C_{err\_release} = \\
+& \ caut\_release: A \rightarrow B ; ( \\
+& \quad \quad C_{err\_manual} + caut\_released: B \rightarrow A ; C_{err\_reject} \\
+& \ ) \\
 \end{align*}
 
 Rifiuta il noleggio subito, senza neanche coinvolgere la banca:
@@ -146,26 +176,220 @@ Rifiuta il noleggio subito, senza neanche coinvolgere la banca:
 C_{err\_reject} = & \ notify\_reject: A \rightarrow U
 \end{align*}
 
-\subsection{Connectedness Analysis}
-A choreography is ``connected'' if the sequences of interactions guarantee causality safety. In our choreography, every single interaction involves participant \textbf{A} (ACMEMobility), which acts as the central orchestrator. This creates a ``Star Topology'' centered on $A$. Since $A$ is present in every step, causality is safe, and the synchronous case connectedness condition ($a=c \lor a=d \lor b=c \lor b=d$) is satisfied for any sequence $o: a \rightarrow b ; o': c \rightarrow d$.
 
-\subsection{Projection}
-Projections show how the global formula translates into local behavior for each role. The symbol $\overline{o}$ denotes sending a message, while $o$ denotes receiving.
+\subsection{Proiezioni}
+Le proiezioni mostrano come la formula dell'intera coreografia si applica dal
+punto di vista di un singolo partecipante.\\
+Tutte le interazioni sono sincrone: la coreografia non ha ramificazioni
+parallele. Nel BPMN, gli unici rami paralleli portano, come secondo percorso,
+all'intervento manuale, che è molto semplice e non prosegue con ulteriori
+comunicazioni con altri servizi.\\
+\\
+\textbf{Nota ---} Usiamo degli $1$ come placeholder, per indicare delle azioni
+che non verrebbero codificate nella proiezione in questione, non comprendendo
+una comunicazione tra i partecipanti --- per esempio, per gli errori manuali,
+indicando che qualcosa succederà in quella sezione.\\
+\textbf{Nota ---} Per alcuni partecipanti, l'intera coreografia o un suo
+suffisso potrebbe non venire eseguito, in caso di errori occorsi nel
+frattempo.\\
+\textbf{Nota ---} Si ricorda che la sintassi \mbox{$proj(C, B) =
+\overline{operation}@A$} indica la proiezione della coreografia $C$ sul
+partecipante $B$, contenente l'operazione $operation$ con output verso il
+partecipante $A$, poiché c'è una linea sopra; al contrario, $operation@A$ indica
+un'operazione con input ricevuto da $A$.\\
 
-\subsubsection{Projection for Bank (B)}
+
+
+\subsubsection{Proiezione per Bank (B)}
 \begin{align*}
-proj(C_{imm}, B) = & \ caut\_lock@A ; (1 + \overline{caut\_locked}@A ; proj(C_{ride\_start}, B) ) \\
-proj(C_{res}, B) = & \ caut\_lock@A ; (1 + \overline{caut\_locked}@A ; (proj(C_{cancel}, B) + proj(C_{ride\_start}, B)) ) \\
-proj(C_{cancel}, B) = & \ caut\_release@A ; ((1 + \overline{caut\_released}@A) + charge\_pen@A ; (1 + \overline{charged\_pen}@A) ) \\
-proj(C_{ride\_end}, B) = & \ charge@A ; (1 + ( \overline{charged}@A ; caut\_release@A ; ( 1 + \overline{caut\_released}@A ) ) )
+proj(C_{imm}, B) = & \ caut\_lock@A ; (\overline{caut\_lock\_err}@A + \overline{caut\_locked}@A ; proj(C_{ride\_start}, B) ) \\
+proj(C_{res}, B) = \\
+& \ caut\_lock@A ; ( \\
+& \quad \quad \overline{caut\_lock\_err}@A + \\
+& \quad \quad \overline{caut\_locked}@A ; (proj(C_{cancel}, B) + proj(C_{ride\_start}, B)) \\
+& \ ) \\
+proj(C_{cancel}, B) = \\
+& \ caut\_release@A ; ( \\
+& \quad \quad (\overline{caut\_release\_err}@A + \overline{caut\_released}@A) + \\
+& \quad \quad charge\_pen@A ; (\overline{charge\_pen\_err}@A + \overline{charged\_pen}@A) \\
+& \ ) \\
+proj(C_{ride\_start}, B) = & \ caut\_release@A ; ( \overline{caut\_release\_err}@A + \overline{caut\_released}@A ; proj(C_{ride\_end}, B) ) \\
+proj(C_{ride\_end}, B) = \\
+& \ charge@A ; ( \\
+& \quad \quad \overline{charge\_err}@A + \\
+& \quad \quad ( \overline{charged}@A ; caut\_release@A ; ( \overline{caut\_release\_err}@A + \overline{caut\_released}@A ) ) \\
+& \ )
 \end{align*}
 
-\subsubsection{Projection for ACMEMobility (A)}
+\subsubsection{Proiezione per Fleet Management (F)}
 \begin{align*}
-proj(C_{imm}, A) = & \ req\_imm@U ; \overline{caut\_lock}@B ; ( \overline{notify\_reject}@U + caut\_locked@B ; proj(C_{ride\_start}, A) ) \\
+proj(C, F) = & \ ( \\
+& \quad \quad 1 + \\
+& \quad \quad track\_start@A ; share\_start@V ; \overline{share\_started}@V ; \\
+& \quad \quad (\overline{track\_err}@A + \overline{track\_started}@A ; proj(C_{ride}, F) ) \\
+& \ ) \\
+proj(C_{ride}, F) = & \ (pos\_fetch@A ; \overline{pos\_fetched}@A )^* ; proj(C_{ride\_end}, F) \\
+proj(C_{ride\_end}, F) = & \ ask\_batt@A ; ( \\
+& \quad \quad \overline{err\_share\_batt}@A + \\
+& \quad \quad \overline{share\_batt}@A ; track\_stop@A ; \\
+& \quad \quad \overline{share\_stop}@V ; share\_stopped@V ; (\overline{err\_track\_stopped}@A + \overline{track\_stopped}@A ) \\
+& \ )
+\end{align*}
+
+\subsubsection{Proiezione per ACMEMobility (A)}
+\begin{align*}
+proj(C_{imm}, A) = & \ req\_imm@U ; \overline{caut\_lock}@B ; \\
+& \ ( caut\_lock\_err@B ; \overline{notify\_reject}@U + caut\_locked@B ; proj(C_{ride\_start}, A) ) \\
+proj(C_{res}, A) = & \ req\_res@U ; \overline{caut\_lock}@B ; ( \\
+& \quad \quad caut\_lock\_err@B ; \overline{notify\_reject}@U + \\
+& \quad \quad caut\_locked@B ; \overline{notify\_reserved}@U ; (proj(C_{cancel}, A) + proj(C_{scan\_res}, A)) \\
+& \ ) \\
+proj(C_{cancel}, A) = & \ cancel@U ; ( \\
+& \quad \quad \overline{caut\_release}@B ; (caut\_release\_err@B + caut\_released@B) + \\
+& \quad \quad \overline{charge\_pen}@B ; (charge\_pen\_err@B + charged\_pen@B) \\
+& \ ) \\
 proj(C_{scan\_res}, A) = & \ scan\_res@U ; proj(C_{ride\_start}, A) \\
-proj(C_{ride\_start}, A) = & \ \overline{track\_start}@F ; ( track\_err@F ; proj(C_{err\_release}, A) + \dots ) % Truncated for brevity
+proj(C_{ride\_start}, A) = \\
+& \ \overline{track\_start}@F ; ( \\
+& \quad \quad track\_err@F ; proj(C_{err\_release}, A) + \\
+& \quad \quad track\_started@F ; \overline{unlock}@S ; ( \\
+& \quad \quad \quad \quad unlock\_err@S ; proj(C_{err\_release}, A) + \\
+& \quad \quad \quad \quad unlock\_ok@S ; \overline{unlocked}@U ; proj(C_{ride}, A) \\
+& \quad \quad ) \\
+& \ ) \\
+proj(C_{ride}, A) = \\
+& \ {(\overline{pos\_fetch}@F ; pos\_fetched@F )}^* ; proj(C_{park\_attempt}^*, A) ; ( \\
+& \quad \quad proj(C_{park\_attempt}, A) ; assist@U + \\
+& \quad \quad park@U ; \overline{lock}@S ; lock\_ok@S ; proj(C_{ride\_end}, A) \\
+& \ ) \\
+proj(C_{park\_attempt}, A) = & \ park@U ; \overline{lock}@S ; lock\_err@S ; \overline{park\_err}@U \\
+proj(C_{ride\_end}, A) = & \ \overline{ask\_batt}@F ; ( \\
+& \quad \quad err\_share\_batt@F ; \overline{notify\_err\_manual}@U + \\
+& \quad \quad \overline{share\_batt}@F ; \overline{track\_stop}@F ; ((err\_track\_stopped@F \mid 1) + track\_stopped@F) ; \\
+& \quad \quad \overline{charge}@B ; ( \\
+& \quad \quad \quad \quad charge\_err@B ; \overline{notify\_err\_manual}@U + \\
+& \quad \quad \quad \quad charged@B ; \overline{receipt}@U ; \\
+& \quad \quad \quad \quad \overline{caut\_release}@B ; ((caut\_release\_err@B ; 1) + caut\_released@B) \\
+& \quad \quad ) \\
+& \ ) \\
+proj(C_{err\_release}, A) = & \ \overline{caut\_release}@B ; \\
+& \ (caut\_release\_err@B ; 1 + caut\_released@B) ; \overline{notify\_reject}@U
 \end{align*}
+
+\subsubsection{Proiezione per Station (S)}
+
+Si noti che la proiezione per la stazione include solo lo sblocco e il loop di
+bloccaggio.\\
+
+\begin{align*}
+proj(C, S) = & \ ( \\
+& \quad \quad 1 + \\
+& \quad \quad unlock@A ; ( \\
+& \quad \quad \quad \quad \overline{unlock\_err}@A + \\
+& \quad \quad \quad \quad \overline{unlock\_ok}@A ; \\
+& \quad \quad \quad \quad ( lock@A ; \overline{lock\_err}@A )^* ; ( lock@A ; \overline{lock\_ok}@A \mid 1 ) \\
+& \quad \quad ) \\
+& \ )
+\end{align*}
+
+\subsubsection{Proiezione per User (U)}
+\begin{align*}
+proj(C_{imm}, U) = & \ \overline{req\_imm}@A ; proj(C_{scan}, U) \\
+proj(C_{res}, U) = & \ \overline{req\_res}@A ; ( \\
+& \quad \quad notify\_reject@A + \\
+& \quad \quad notify\_reserved@A ; (\overline{cancel}@A + \overline{scan}@A ; proj(C_{scan}, U)) \\
+& \ )
+\end{align*}
+
+La proiezione \textit{scan} è valida sia per la scansione immediata che per
+quella dopo una prenotazione:\\
+\begin{align*}
+proj(C_{scan}, U) = & \ notify\_reject@A + unlocked@A ; proj(C_{ride}, U) \\
+proj(C_{ride}, U) = & \ (\overline{park}@A ; park\_err@A )^* ; \overline{park}@A ; ( \\
+& \quad \quad park\_err@A ; \overline{assist}@A + \\
+& \quad \quad park\_ok@A ; (notify\_err\_manual@A + receipt@A) \\
+& \ )
+\end{align*}
+
+\subsubsection{Proiezione per Vehicle (V)}
+\begin{align*}
+    proj(C, V) = & \ ( \\
+    & \quad \quad 1 + \\
+    & \quad \quad share\_start@F ; \overline{share\_started}@F ; \\
+    & \quad \quad ( 1 + share\_stop@F ; \overline{share\_stopped}@F ) \\
+    & \ )
+\end{align*}
+
+Come per la definizione formale, sono stati omessi alcuni errori e il loop di
+condivisione della posizione del veicolo.\\
+Un esempio di loop di interazione tra FleetManagement e Vehicle sarebbe:\\
+\begin{align*}
+proj(C_{ride\_loop}, V) = & \ {( pos\_fetch@F ; \overline{pos\_fetched}@F )}^*
+\end{align*}
+
+
+
+\subsection{Analisi di di \textit{connectedness}}
+
+Definiamo connessa una coreografia se le sequenze di interazioni garantiscono
+una ``sicurezza causale'' (o ``causality safety''), ovvero se, in ogni momento,
+un partecipante sa se sia il suo turno di agire, senza un controllo centrale che
+glielo comunichi di volta in volta.\\
+\\
+Per l'analisi, possiamo considerare la nostra coreografia sincrona, dal momento
+che ogni partecipante effettua una comunicazione in seguito ad un'altra, oppure
+rimane ad aspettare il suo turno.\\
+In realtà, la nostra architettura includerebbe due situazioni asincrone. La
+prima è costituita dalle composizioni parallele; tuttavia, queste avvengono solo
+all'estrema fine del processo e il secondo \textit{branch} è sempre molto
+semplice, costituito dalla gestione manuale dell'errore ed eventualmente da una
+comunicazione conclusiva di errore all'utente: dunque, la creazione di un
+sotto-processo parallelo non rischia mai di interferire con il flusso delle
+altre comunicazioni sincrone. La seconda eccezione è costituita dal loop che
+avviene in background per la comunicazione delle informazioni di un veicolo
+verso FleetManagement, che, come specificato più volte, abbiamo omesso dalle
+modellazioni per semplicità, essendo banale. Difatti, esso comporta operazioni
+completamente separate da quelle della coreografia, che non la intaccheranno in
+alcun modo: FleetManagement continua solo ad accumulare dati nel suo database; a
+una richiesta di ACMEMobility, ritornera gli ultimi disponibili.\\
+\\
+Considerando quindi la nostra coreografia sincrona, si può verificare la
+\textit{connectedness} in quanto, per ogni sequenza \mbox{$o: a \rightarrow b ;
+o': c \rightarrow d$}, è soddisfatta la condizione \mbox{$a=c \lor a=d \lor b=c
+\lor b=d$}. Intuitivamente, ciò comporta che, in ogni coppia di comunicazioni
+consecutive tra due servizi, almeno uno è coinvolto in entrambi: si può avere
+una domanda e risposta tra gli stessi due servizi (\mbox{$a=d \land b=c$}), o
+una serie di comunicazioni nella stessa direzione (\mbox{$a=c$}), oppure un
+servizio che fa da ponte, ricevendo da uno e ritrasmettendo a un altro
+(\mbox{$b=c$}).\\
+In generale, quasi ogni passo del processo può essere ricondotto a una topologia
+a stella in cui ACMEMobility agisce da orchestratore centrale: è presente in
+quasi ogni comunicazione (come mittente o destinatario), facendo da ponte tra
+l'utente e i vari microservizi che usa come dipendenze per ambiti specifici.
+Esempi in cui non compare per qualche passaggio sono invece catene come quella
+in $C_{ride\_start}$, in cui la ``parola'' passa, in ordine, per ACME,
+FleetManagement, Vehicle, FleetManagement e nuovamente ad ACME:\@ ognuno
+trasmette dopo aver ricevuto una comunicazione da qualcun altro.\\
+\\
+Per garantire la \textit{connectedness}, ci siamo accertati quindi
+(eventualmente correggendo anche errori precedenti) che ogni servizio producesse
+una risposta, come se dovesse passare il ``testimone'' del processo. È per
+questo motivo che sia la coreografia che la definizione formale (e le
+proiezioni) contengono molti messaggi di \textit{ok} o di \textit{errore},
+altrimenti non si comprenderebbe come possa un servizio sapere l'esito della sua
+richiesta e, dunque, come procedere. Alcuni messaggi di conferma mancano solo
+alla fine del processo per un partecipante, per semplicità ma senza intaccare la
+\textit{connectedness}: ad esempio, l'utente non aspetta una conferma dopo la
+richiesta di cancellazione della prenotazione; se ACMEMobility avrà problemi con
+l'addebito, provvederà in maniera asincrona con un'assistenza manuale.\\
+\\
+La \textit{connectedness}, in conclusione, fa sì che il processo possa sempre
+andare avanti (\textit{liveness}) attraverso la semplice interazione tra i
+partecipanti e senza un controllore centrale, fino a uno dei suoi stati di
+terminazione.
+
+
+
 
 %\cref{fig:host_performance_img} mostra spesso un picco in casa, ma suggerisce
 %anche crescite iniziate prima.
