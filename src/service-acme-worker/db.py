@@ -1,4 +1,5 @@
 from enum import Enum
+from get_env import get_env_or_exit
 
 
 
@@ -29,36 +30,76 @@ class DataBase:
 
 
 	# Simulated ACME Core Database (Users)
-	acme_user_db = {
-		"u001": User(
-			"u001",
-			"Alice",
-			"1111-1111"
-		),
-		"u002": User(
-			"u002",
-			"Bob",
-			"1111-1112"
-		)
-	}
+	acme_user_db = {}
 
 	# Simulated ACME Core Database (Inventory & State)
-	acme_vehicle_db = {
-		"v001": Vehicle(
-			"v001",
-			Vehicle.Status.AVAILABLE,
-			None,
-			None,
-			"s001"
-		),
-		"v002": Vehicle(
-			"v002",
-			Vehicle.Status.AVAILABLE,
-			None,
-			None,
-			"s002"
-		)
-	}
+	acme_vehicle_db = {}
+
+	def __init__(self):
+
+		users = [
+			get_env_or_exit('USER_ID_01'),
+			get_env_or_exit('USER_ID_02'),
+			get_env_or_exit('USER_ID_03'),
+			get_env_or_exit('USER_ID_04'),
+			get_env_or_exit('USER_ID_05')
+		]
+		user_names = [
+			get_env_or_exit('USER_01_NAME'),
+			get_env_or_exit('USER_02_NAME'),
+			get_env_or_exit('USER_03_NAME'),
+			get_env_or_exit('USER_04_NAME'),
+			get_env_or_exit('USER_05_NAME')
+		]
+		user_cards = [
+			get_env_or_exit('USER_01_CARD'),
+			get_env_or_exit('USER_02_CARD'),
+			get_env_or_exit('USER_03_CARD'),
+			get_env_or_exit('USER_04_CARD'),
+			get_env_or_exit('USER_05_CARD')
+		]
+
+		vehicles = [
+			get_env_or_exit('VEHICLE_ID_01'),
+			get_env_or_exit('VEHICLE_ID_02'),
+			get_env_or_exit('VEHICLE_ID_03'),
+			get_env_or_exit('VEHICLE_ID_04'),
+			get_env_or_exit('VEHICLE_ID_05'),
+			get_env_or_exit('VEHICLE_ID_06'),
+			get_env_or_exit('VEHICLE_ID_07'),
+			get_env_or_exit('VEHICLE_ID_08'),
+			get_env_or_exit('VEHICLE_ID_09'),
+			get_env_or_exit('VEHICLE_ID_10')
+		]
+		vehicle_stations = [
+			get_env_or_exit('VEHICLE_01_START_STATION'),
+			get_env_or_exit('VEHICLE_02_START_STATION'),
+			get_env_or_exit('VEHICLE_03_START_STATION'),
+			get_env_or_exit('VEHICLE_04_START_STATION'),
+			get_env_or_exit('VEHICLE_05_START_STATION'),
+			get_env_or_exit('VEHICLE_06_START_STATION'),
+			get_env_or_exit('VEHICLE_07_START_STATION'),
+			get_env_or_exit('VEHICLE_08_START_STATION'),
+			get_env_or_exit('VEHICLE_09_START_STATION'),
+			get_env_or_exit('VEHICLE_10_START_STATION')
+		]
+
+		for idx, user_id in enumerate(users):
+			self.acme_user_db[user_id] = User(
+				user_id,
+				user_names[idx],
+				user_cards[idx]
+			)
+
+		for idx, vehicle_id in enumerate(vehicles):
+			self.acme_vehicle_db[vehicle_id] = Vehicle(
+				vehicle_id,
+				Vehicle.Status.AVAILABLE,
+				None,
+				None,
+				vehicle_stations[idx]
+			)
+	
 
 	def get_user(self, user_id) -> User | None:
 		"""Simulate fetching the user's saved card from a database or external service."""

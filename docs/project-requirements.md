@@ -1,8 +1,15 @@
+# Progetto Architetture Software A Microservizi
 
 Progetto Architetture Software A Microservizi
 A.A. 2025/2026
+
+## Descrizione del dominio e del problema
+
 Descrizione del dominio e del problema
+
 La società ACMEMobility propone ai propri clienti un servizio di noleggio a breve termine di veicoli elettrici (auto, scooter, monopattini) dislocati in varie stazioni cittadine. I clienti interagiscono con il servizio esclusivamente attraverso la sua App mobile.
+
+### ACMEMobility offre due modalità di utilizzo
 
 ACMEMobility offre due modalità di utilizzo:
 
@@ -10,19 +17,26 @@ Noleggio Immediato: Il cliente, tramite l'app, visualizza sulla mappa i veicoli 
 Prenotazione Breve: Il cliente può prenotare un veicolo specifico presso una stazione, con un anticipo massimo di 30 minuti. In questo caso, il veicolo viene "bloccato" digitalmente e reso non prenotabile da altri fino al momento del ritiro.
 Flusso di Noleggio e Pagamento:
 
+### Il pagamento è strutturato in due fasi, gestite attraverso un istituto bancario terzo
+
 Il pagamento è strutturato in due fasi, gestite attraverso un istituto bancario terzo:
 
 Pre-autorizzazione (Blocco Cauzionale): All'avvio del noleggio (sia per Noleggio Immediato che al momento del ritiro per una Prenotazione Breve), ACMEMobility richiede all'istituto bancario un "blocco" sulla carta di credito del cliente di un importo fisso (€10) a titolo di cauzione. La banca risponde con un token che conferma l'avvenuto blocco.
 Pagamento Finale: Al termine del noleggio, il veicolo deve essere riconsegnato in una stazione ACMEMobility. Una volta parcheggiato in uno stallo e confermata la riconsegna via app, il sistema calcola il costo finale in base al tempo di utilizzo effettivo e ai chilometri percorsi. Se il livello della batteria al momento della riconsegna è inferiore al 15%, al costo finale viene applicata una penale del 10%. L'importo definitivo (costo del noleggio + eventuale penale) viene quindi addebitato sulla carta, e contestualmente viene sbloccata la cauzione.
+
+### Gestione Veicoli e Stazioni
+
 Gestione Veicoli e Stazioni:
 
 ACMEMobility gestisce lo stato di ogni veicolo (disponibile, prenotato, in noleggio, in manutenzione, in ricarica) e il suo livello di batteria. È responsabilità del servizio di Logistica di ACMEMobility garantire che i veicoli siano caricati e mantenuti efficienti.
 
 Per l'interazione fisica con i veicoli, ACMEMobility si appoggia al sistema di gestione delle singole Stazioni. I comandi di sblocco (all'inizio del noleggio) e blocco (alla riconsegna) vengono inviati da ACMEMobility alla stazione specifica, che risponde con l'esito dell'operazione. Il servizio di Fleet Management di ACMEMobility traccia in tempo reale la posizione e lo stato dei veicoli durante il noleggio; riceve da ACMEMobility una notifica ogni volta che un mezzo viene sbloccato in una stazione per attivare il monitoraggio che si interrompe quando arriva la successiva notifica di blocco. Durante il percorso ACMEMobility interroga periodicamente il Fleet Management per conoscere posizione e stato dei veicoli durante il noleggio.
 
-Annullamenti:
+### Annullamenti
 
 Una prenotazione può essere annullata gratuitamente fino a 5 minuti prima dell'inizio della fascia oraria prenotata. Oltre questo termine, o in caso di mancato ritiro, il blocco cauzionale di 10€ viene convertito in addebito.
+
+## Workflow e artefatti
 
 Workflow e artefatti
 Si modellino le comunicazioni dello scenario sopra esposto usando una coreografia, si discutano le sue proprietà di connectedness ed eventualmente si raffini la coreografia per migliorare tali proprietà. Si proietti la coreografia in un sistema di ruoli.
@@ -30,6 +44,8 @@ Si modellino le comunicazioni dello scenario sopra esposto usando una coreografi
 Utilizzando uno o più diagrammi di collaborazione BPMN si modelli l’intera realtà descritta compresi i dettagli di ogni partecipante (usando il processo del ruolo corrispondente come guida). Tale modellazione ha scopo documentativo quindi il livello di dettaglio deve essere consistente con tale scopo.
 
 Si progetti una SOA per la realizzazione del sistema e la si documenti utilizzando UML (eventualmente con opportuni profili, ad esempio TinySOA).
+
+### Si realizzi il sistema usando come tecnologie un BPMS (Camunda), Jolie e API Rest, coi seguenti vincoli
 
 Si realizzi il sistema usando come tecnologie un BPMS (Camunda), Jolie e API Rest, coi seguenti vincoli:
 
@@ -43,12 +59,17 @@ I modelli di processo BPMN da utilizzare per il BPMS devono essere consistenti c
 
 Il dialogo fra Jolie e BPMS deve avvenire via SOAP, si veda il sito del corso alla pagina delle risorse per informazioni ulteriori.
 
+## Note realizzative
+
 Note realizzative
 Implementare il sistema assumendo un numero ragionevole di stazioni (5-10).
 
 Il sistema prevede un monitoraggio continuo dello stato dei veicoli. Non è richiesto “simulare” ogni veicolo con un'applicazione distinta. Si può realizzare un’unica applicazione che gestisce la simulazione di tutti i mezzi. La notifica sullo stato del mezzo può avvenire facendo inviare chiamate sincrone dal “simulatore” verso il Fleet Management. Alternativamente si può decidere di utilizzare eventi asincroni attraverso un broker a scelta. Per la modellazione formale assumere comunque lo scenario con invocazioni sincrone descritto precedentemente.
 
 Per simulare gli spostamenti e generare i relativi aggiornamenti sulla posizione si può assumere che il mezzo proceda in linea retta a velocità uniforme fra due stazioni. Chi volesse può usare coordinate corrispondenti a luoghi reali integrando OpenStreetMap e software di route planning come graphhopper (https://github.com/graphhopper/graphhopper).
+
+
+## Consegna e discussione
 
 Consegna e discussione
 Gruppi: il progetto va realizzato in gruppi di 2/3 persone.

@@ -1,0 +1,90 @@
+@startuml
+allow_mixing
+skinparam componentStyle uml2
+skinparam packageStyle rectangle
+
+' --- EXTERNAL CONSUMERS / HARDWARE ---
+actor "User (Mobile App)" as UserApp
+actor "Vehicle (IoT & RFID)" as VehicleHardware
+
+' --- LAYER 1: TASK SERVICES (The Orchestrator) ---
+package "«Tasks»\nACMEMobility_Core" {
+  
+  interface "«ServiceInterface»\nRentalOrchestratorAPI" as ROAPI {
+    + startImmediateRental(vehicleId, isImmediate)
+    + createReservation(vehicleId, isImmediate)
+    + cancelReservation(vehicleId)
+    + parkVehicle(vehicleId)
+  }
+
+  component "«Capability»\nRental_And_Billing_Process" as ACME_Cap {
+    portout " " as pBank
+    portout " " as pFleet
+    portout " " as pStation
+  }
+  
+  database "ACME_DB\n(Users & Inventory)" as ACME_DB
+  
+  ROAPI <|.. ACME_Cap : «Expose»
+  ACME_Cap -down-> ACME_DB : "Reads/Writes State"
+}
+
+' --- LAYER 2: ENTITY SERVICES (The Microservices) ---
+package "«Entities»\nBank_Microservice" {
+  interface "«ServiceInterface»\nBankSOAP_API" as BankAPI {
+    + preAuth(cardId, amount)
+    + charge(token, finalAmount)
+    + unlock(token)
+    + convertCaution(token)
+  }
+  component "«Capability»\nTransaction_Management" as Bank_Cap
+  BankAPI <|.. Bank_Cap : «Expose»
+}
+
+package "«Entities»\nFleet_Management_Microservice" {
+  interface "«ServiceInterface»\nTracking_API" as TrackAPI {
+    + startTracking(vehicleId)
+    + stopTracking(vehicleId)
+    + getPosition(vehicleId)
+  }
+  interface "«ServiceInterface»\nBattery_API" as BattAPI {
+    + getBattery(vehicleId)
+  }
+  component "«Capability»\nTelemetry_Management" as Fleet_Cap
+  
+  TrackAPI <|.. Fleet_Cap : «Expose»
+  BattAPI <|.. Fleet_Cap : «Expose»
+}
+
+package "«Entities»\nStation_Microservices [5-10 Instances]" <<Node>> {
+  interface "«ServiceInterface»\nStation_API" as StationAPI {
+    + unlockVehicle(vehicleId)
+    + lockVehicle(vehicleId)
+  }
+  component "«Capability»\nDock_Hardware_Management" as Station_Cap
+  StationAPI <|.. Station_Cap : «Expose»
+}
+
+' --- DEPENDENCIES (Software) ---
+UserApp --> ROAPI : "Initiates (REST)"
+pBank ..> BankAPI : «use» (SOAP)
+pFleet ..> TrackAPI : «use» (REST)
+pFleet ..> BattAPI : «use» (REST)
+pStation ..> StationAPI : «use» (REST)
+
+' --- DEPENDENCIES (Hardware/IoT) ---
+VehicleHardware <-up-> Fleet_Cap : "Telemetry"
+VehicleHardware .right.> Station_Cap : "Physical Docking\n(RFID Sensor)"
+
+note right of Station_Cap
+  ACME dynamically routes
+  the REST call to the specific 
+  Station IP/URL.
+end note
+
+note bottom of Station_Cap
+  The Station can detect if a vehicle was
+  parked, and in which terminal.
+end note
+
+@enduml

@@ -1,0 +1,207 @@
+# templates
+
+# Use dot prefix (.station-template) for templates so they don't create containers
+x-station-template: &station-template
+  build: ./service-stations
+  image: acme-station:latest
+  env_file:
+  - .env
+  networks:
+    - acme-network
+      
+x-vehicle-template: &vehicle-template
+  build: ./service-vehicle
+  image: acme-vehicle:latest
+  env_file:
+  - .env
+  networks:
+    - acme-network
+    - vehicle-network
+
+services:
+  camunda:
+    build: ./camunda
+    container_name: acme-camunda
+    ports:
+      - "${DOLLAR}{PORT_LOCAL_CAMUNDA}:${DOLLAR}{PORT_CAMUNDA}"
+    volumes:
+      # Here you map the folder where you save your .bpmn files
+      - ./camunda-resources/:/camunda/configuration/resources
+    networks:
+      - orchestration-network
+
+  acme-worker:
+    build: ./service-acme-worker
+    container_name: acme-worker
+    env_file:
+      - .env
+    depends_on:
+      - camunda
+    networks:
+      - acme-network
+      - bank-network
+      - orchestration-network
+
+
+  bank-service:
+    build: ./service-bank
+    networks:
+      - bank-network
+
+
+  fleet-service:
+    image: nginx:latest
+    container_name: fleet-service
+    env_file:
+      - .env
+    ports:
+      - "${DOLLAR}{PORT_LOCAL_FLEET}:${DOLLAR}{PORT_FLEET}"
+    volumes:
+      - ./service-fleet-management/nginx.generated.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - acme-network
+      - fleet-internal-network
+
+  fleet-tracking:
+    build: ./service-fleet-tracking
+    container_name: fleet-tracking
+    env_file:
+      - .env
+    networks:
+      - fleet-internal-network
+
+  fleet-battery:
+    build: ./service-fleet-battery
+    container_name: fleet-battery
+    env_file:
+      - .env
+    networks:
+      - fleet-internal-network
+
+
+  # 5-10 stations
+
+  station-${STATION_SUFFIX_01}:
+    # Merge all properties from station-template
+    <<: *station-template
+    container_name: acme-station-${DOLLAR}{STATION_SUFFIX_01}
+    environment:
+      - STATION_ID=${DOLLAR}{STATION_PREFIX}-${DOLLAR}{STATION_SUFFIX_01}
+  station-${STATION_SUFFIX_02}:
+    <<: *station-template
+    container_name: acme-station-${DOLLAR}{STATION_SUFFIX_02}
+    environment:
+      - STATION_ID=${DOLLAR}{STATION_PREFIX}-${DOLLAR}{STATION_SUFFIX_02}
+  station-${STATION_SUFFIX_03}:
+    <<: *station-template
+    container_name: acme-station-${DOLLAR}{STATION_SUFFIX_03}
+    environment:
+      - STATION_ID=${DOLLAR}{STATION_PREFIX}-${DOLLAR}{STATION_SUFFIX_03}
+  station-${STATION_SUFFIX_04}:
+    <<: *station-template
+    container_name: acme-station-${DOLLAR}{STATION_SUFFIX_04}
+    environment:
+      - STATION_ID=${DOLLAR}{STATION_PREFIX}-${DOLLAR}{STATION_SUFFIX_04}
+  station-${STATION_SUFFIX_05}:
+    <<: *station-template
+    container_name: acme-station-${DOLLAR}{STATION_SUFFIX_05}
+    environment:
+      - STATION_ID=${DOLLAR}{STATION_PREFIX}-${DOLLAR}{STATION_SUFFIX_05}
+
+
+  # 10 vehicles
+
+  vehicle-${VEHICLE_SUFFIX_01}:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${DOLLAR}{VEHICLE_SUFFIX_01}
+    environment:
+      - VEHICLE_ID=${DOLLAR}{VEHICLE_PREFIX}-${DOLLAR}{VEHICLE_SUFFIX_01}
+    ports:
+      - "${DOLLAR}{PORT_LOCAL_VEHICLE_01}:${DOLLAR}{PORT_VEHICLES}"
+  vehicle-${VEHICLE_SUFFIX_02}:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${DOLLAR}{VEHICLE_SUFFIX_02}
+    environment:
+      - VEHICLE_ID=${DOLLAR}{VEHICLE_PREFIX}-${DOLLAR}{VEHICLE_SUFFIX_02}
+    ports:
+      - "${DOLLAR}{PORT_LOCAL_VEHICLE_02}:${DOLLAR}{PORT_VEHICLES}"
+  vehicle-${VEHICLE_SUFFIX_03}:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${DOLLAR}{VEHICLE_SUFFIX_03}
+    environment:
+      - VEHICLE_ID=${DOLLAR}{VEHICLE_PREFIX}-${DOLLAR}{VEHICLE_SUFFIX_03}
+    ports:
+      - "${DOLLAR}{PORT_LOCAL_VEHICLE_03}:${DOLLAR}{PORT_VEHICLES}"
+  vehicle-${VEHICLE_SUFFIX_04}:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${DOLLAR}{VEHICLE_SUFFIX_04}
+    environment:
+      - VEHICLE_ID=${DOLLAR}{VEHICLE_PREFIX}-${DOLLAR}{VEHICLE_SUFFIX_04}
+    ports:
+      - "${DOLLAR}{PORT_LOCAL_VEHICLE_04}:${DOLLAR}{PORT_VEHICLES}"
+  vehicle-${VEHICLE_SUFFIX_05}:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${DOLLAR}{VEHICLE_SUFFIX_05}
+    environment:
+      - VEHICLE_ID=${DOLLAR}{VEHICLE_PREFIX}-${DOLLAR}{VEHICLE_SUFFIX_05}
+    ports:
+      - "${DOLLAR}{PORT_LOCAL_VEHICLE_05}:${DOLLAR}{PORT_VEHICLES}"
+  vehicle-${VEHICLE_SUFFIX_06}:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${DOLLAR}{VEHICLE_SUFFIX_06}
+    environment:
+      - VEHICLE_ID=${DOLLAR}{VEHICLE_PREFIX}-${DOLLAR}{VEHICLE_SUFFIX_06}
+    ports:
+      - "${DOLLAR}{PORT_LOCAL_VEHICLE_06}:${DOLLAR}{PORT_VEHICLES}"
+  vehicle-${VEHICLE_SUFFIX_07}:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${DOLLAR}{VEHICLE_SUFFIX_07}
+    environment:
+      - VEHICLE_ID=${DOLLAR}{VEHICLE_PREFIX}-${DOLLAR}{VEHICLE_SUFFIX_07}
+    ports:
+      - "${DOLLAR}{PORT_LOCAL_VEHICLE_07}:${DOLLAR}{PORT_VEHICLES}"
+  vehicle-${VEHICLE_SUFFIX_08}:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${DOLLAR}{VEHICLE_SUFFIX_08}
+    environment:
+      - VEHICLE_ID=${DOLLAR}{VEHICLE_PREFIX}-${DOLLAR}{VEHICLE_SUFFIX_08}
+    ports:
+      - "${DOLLAR}{PORT_LOCAL_VEHICLE_08}:${DOLLAR}{PORT_VEHICLES}"
+  vehicle-${VEHICLE_SUFFIX_09}:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${DOLLAR}{VEHICLE_SUFFIX_09}
+    environment:
+      - VEHICLE_ID=${DOLLAR}{VEHICLE_PREFIX}-${DOLLAR}{VEHICLE_SUFFIX_09}
+    ports:
+      - "${DOLLAR}{PORT_LOCAL_VEHICLE_09}:${DOLLAR}{PORT_VEHICLES}"
+  vehicle-${VEHICLE_SUFFIX_10}:
+    <<: *vehicle-template
+    container_name: acme-vehicle-${DOLLAR}{VEHICLE_SUFFIX_10}
+    environment:
+      - VEHICLE_ID=${DOLLAR}{VEHICLE_PREFIX}-${DOLLAR}{VEHICLE_SUFFIX_10}
+    ports:
+      - "${DOLLAR}{PORT_LOCAL_VEHICLE_10}:${DOLLAR}{PORT_VEHICLES}"
+
+
+  graphhopper:
+      image: israelhikingmap/graphhopper:latest
+      container_name: acme-graphhopper
+      ports:
+        - "${DOLLAR}{PORT_LOCAL_GRAPHHOPPER}:${DOLLAR}{PORT_GRAPHHOPPER}"
+      volumes:
+        - ./service-graphhopper/data:/data
+      command: --host 0.0.0.0 -i /data/${DOLLAR}{GRAPHHOPPER_MAP_FILE}
+      networks:
+        - vehicle-network
+
+networks:
+  acme-network:
+    driver: bridge
+  bank-network:
+    driver: bridge
+  fleet-internal-network:
+    driver: bridge
+  orchestration-network:
+    driver: bridge
+  vehicle-network:
+    driver: bridge

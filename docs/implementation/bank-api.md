@@ -84,11 +84,11 @@ Releases the remaining uncharged funds from the pre-authorization block. Used at
 
 ---
 
-## 4. Cancel Authorization (`cancelAuthorization`)
+## 4. Cancel Authorization (`convertCaution`)
 Converts the entire pre-authorized caution into a charge. Used when a user incurs a penalty (e.g., late cancellation or no-show).
 
-*   **REST Endpoint:** `POST /cancelAuthorization`
-*   **SOAP Operation:** `<cancelAuthorization>`
+*   **REST Endpoint:** `POST /convertCaution`
+*   **SOAP Operation:** `<convertCaution>`
 
 **REST Request (JSON):**
 ```json

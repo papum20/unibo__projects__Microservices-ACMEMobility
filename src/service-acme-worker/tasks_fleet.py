@@ -30,7 +30,7 @@ def handle_fleet_track_info(task: ExternalTask) -> TaskResult:
 
 	return perform_request(
 		task,
-		func_request	= lambda: requests.get(config.URL_FLEET_BASE + config.EP_FLEET_TRACK_INFO.format(vehicleId=vehicle_id),
+		func_request	= lambda: requests.get(config.URL_FLEET_BASE + config.EP_FLEET_POSITION.format(vehicleId=vehicle_id),
 			params		= {
 				"vehicleId": vehicle_id
 			}, timeout	= REQUEST_TIMEOUT_SECONDS),
@@ -86,7 +86,7 @@ def handle_fleet_fetch_battery(task: ExternalTask) -> TaskResult:
 	
 	return perform_request(
 		task,
-		func_request	= lambda: requests.get(config.URL_FLEET_BASE + config.EP_FLEET_FETCH_BATTERY.format(vehicleId=vehicle_id),
+		func_request	= lambda: requests.get(config.URL_FLEET_BASE + config.EP_FLEET_BATTERY.format(vehicleId=vehicle_id),
 			params		= {
 				"vehicleId": vehicle_id
 			}, timeout	= REQUEST_TIMEOUT_SECONDS),

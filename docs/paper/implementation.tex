@@ -1,0 +1,325 @@
+\section{Implementazione}\label{sec:implementation}
+
+In questa sezione presentiamo il modo in cui vengono eseguiti i processi (e
+quindi la coreografia), insieme a commenti e motivazioni per le scelte di
+design.\\
+Mostreremo anche il diagramma BPMN documentativo intero e poi a pezzi: quello
+integrale è visionabile anche nel repository del progetto (in
+\mbox{\textit{docs/diagrams/}}). Non mostriamo qui il diagramma eseguibile
+(\mbox{\textit{src/camunda-resources/diagram-collaboration-camunda.bpmn}}),
+essendo uguale, se non per il fatto che ha meno commenti e aiuti grafici alla
+lettura e non contiene le implementazioni interne degli altri partecipanti,
+oltre ad ACMEMobility e User; in realtà, ovviamente contiene informazioni
+aggiuntive necessarie all'implementazione, ma queste non verrebbero fuori
+visualizzando il grafico, ma solo interagendoci con strumenti opportuni (o
+leggendolo come file \textit{XML}).\\
+
+\begin{figure}[H]
+	\centering
+    %\includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{./img/bpmn-all.png}
+    \includegraphics[width=\linewidth,height=1\textheight,keepaspectratio]{../diagrams/diagram-collaboration-full.pdf}
+    \caption{BPMN documentativo completo, con tutti i partecipanti, in ordine
+    dall'alto al basso: User, Bank, ACMEMobility, FleetManagement, Station,
+    Vehicle; gli ultimi 4 sono nello stesso gruppo
+	``ACMEMobility infrastructure''.}\label{fig:bpmn-all}
+\end{figure}
+
+
+\subsection{La coreografia}\label{sec:choreography}
+
+\subsubsection{Prospettiva \textit{user}}\label{sec:choreography-user}
+
+Come già accennato, il primo processo a partire è quello dell'\textbf{utente},
+che va poi ad avviare a catena gli altri, con dei \textit{message start event}.
+Nella \textbf{fase 1}, la \textbf{prenotazione}, l'utente parte con una scelta:
+scansionare il codice QR di un veicolo subito oppure prenotarne uno; nel secondo
+caso, può in seguito scansionare il veicolo per far partire la corsa, oppure
+cancellare la prenotazione e quindi terminare il suo processo. In entrambi i
+casi, dopo essere giunto con successo alla scansione, inizia la \textbf{fase 2},
+il \textbf{tragitto}, estremamente semplice dal punto di vista dell'utente, meno
+dal punto di vista di ACMEMobility.\\
+Infine, nella \textbf{fase 3}, la \textbf{conclusione}, l'utente deve
+interrompere la corsa e attendere la notifica di conferma da parte
+dell'applicazione. L'interruzione della corsa è in realtà ulteriormente
+articolata: bisogna prima inserire il veicolo in un terminale della stazione
+(chiamato anche ``dock'') e, successivamente, richiedere il blocco del veicolo
+ad ACMEMobility, tramite l'applicazione. In caso di problemi nel parcheggiare,
+si possono ripetere più volte le due operazioni di parcheggio e blocco finché
+non si abbia successo, oppure contattare l'assistenza (interrompendo il processo
+della coreografia): in questo modo, un addetto verrà inviato a controllare
+personalmente il veicolo, mentre per l'utente ACMEMobility procederà con
+l'addebito, in modo che possa andarsene e non debba rimanere ad aspettare. Qui,
+per gestire il fatto che il veicolo venga lasciato incustodito, assumiamo che,
+nel mondo reale, esso abbia qualche sistema di bloccaggio automatico della
+guida, o che magari funzioni solo quando un utente correttamente autorizzato
+(attraverso la \textbf{fase 1}) sia nelle vicinanze (il che potrebbe essere
+confermato dalla vicinanza del suo telefono, per esempio via
+\textit{Bluetooth}).\\
+Nel parcheggio, mentre il blocco del veicolo passa attraverso ACMEMobility
+(attraverso un \textit{message intermediate throw event}), il precedente
+inserimento è modellato direttamente come un messaggio verso la stazione: nel
+mondo reale, infatti, immaginiamo che veicolo e terminale possano essere
+configurati con sensori per comunicazione a breve raggio (per esempio, per
+riconoscere un tag \textit{RFID} o \textit{NFC} sul veicolo), grazie ai quali la
+stazione può identificare se ci sia un veicolo inserito, prima di bloccarlo.
+D'altra parte, ACME, all'arrivo della notifica di parcheggio, procede, in
+ordine, a chiedere alla stazione il bloccaggio, effettuare l'addebito di fine
+corsa e confermare l'operazione all'utente con una notifica. La separazione in
+inserimento e bloccaggio è stata fatta per rendere più solido il design di
+questa parte: in questo modo, l'applicazione dell'utente deve solo comunicare
+gli identificativo di stazione e veicolo, e la stazione saprà automaticamente
+quale terminale bloccare; la comunicazione a breve raggio, inoltre, permette a
+veicolo e stazione di scambiare eventuali informazioni di conferma.\\
+
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-user-p1.png}
+        \caption{BPMN documentativo per User, fase 1}\label{fig:bpmn-user-p2}
+    \end{minipage}
+    \hfill % This adds space between the two images
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-user-p1-err.png}
+        \caption{BPMN documentativo per User, fase 1, casi di errore}\label{fig:bpmn-user-p3}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-user-p2.png}
+    \caption{BPMN documentativo per User, fase 2}\label{fig:bpmn-user-p2}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-user-p3.png}
+    \caption{BPMN documentativo per User, fase 3}\label{fig:bpmn-user-p3}
+\end{figure}
+
+
+
+\subsubsection{Prospettiva di \textit{ACMEMobility}}\label{sec:choreography-acme}
+
+Dal punto di vista di \textbf{ACMEMobility}, la coreografia appena descritta è
+più complessa e articolata.\\
+\textbf{Fase 1} (\textbf{prenotazione}) --- un processo di ACME può partire solo
+da un messaggio, ricevuto dall'utente, di noleggio immediato o prenotazione: i
+due possibili processi si uniscono subito (con un gateway), ma l'informazione
+sul tipo di noleggio rimane memorizzata, in Camunda, come variabile globale
+(maggiori dettagli in seguito).\\
+Subito dopo, si effettua il blocco della cauzione, richiedendolo alla banca. Per
+di più, solamente in caso di prenotazione, ACME effettua alcune operazioni
+interne, come aggiornare i database e salvarne un timestamp, e si mette in
+attesa di uno di tre possibili eventi: inizio della corsa (con scansione del
+veicolo da parte dell'utente), cancellazione della prenotazione o scadenza del
+tempo (30 minuti). In caso di annullamento della corsa (per richiesta o per
+scadenza del tempo), dunque, sblocca la cauzione o la converte in addebito in
+base al tempo trascorso, sempre tramite la banca.\\
+Se e quando il processo arriva alla \textbf{fase 2} (\textbf{tragitto}), ACME si
+occupa di tenere monitorato il veicolo. Prima di tutto, chiede al servizio di
+\textit{FleetManagement} di avviarne il tracciamento e, solo in seguito, alla
+stazione opportuna di sbloccarlo, notificando infine l'utente: così, si evita di
+far partire una corsa con un veicolo non raggiungibile. Durante lo spostamento,
+\textit{FleetManagement} viene periodicamente interrogato (\textit{polling})
+riguardo allo stato del veicolo, finché non arrivi la richiesta di
+terminazione.\\
+Nella \textbf{conclusione} (\textbf{fase 3}), dopo aver bloccato il veicolo nel
+suo dock (tramite la stazione), ACME richiede (un'ultima volta) il suo livello
+della batteria, ne termina il tracking e usa l'informazione per determinare
+l'importo dovuto; infine, tramite la banca, effettua per primo l'addebito e per
+secondo lo sblocco della cauzione --- tenendosela in caso di problemi di
+pagamento. Se, al momento del parcheggio, l'utente ha richiesto l'assistenza, si
+passa ugualmente per i task di calcolo e addebito, prima di gestire l'intervento
+manuale.\\
+
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\linewidth}
+        \centering
+    	\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-acme-p1.png}
+    	\caption{BPMN documentativo per ACMEMobility, fase 1}\label{fig:bpmn-acme-p1}
+    \end{minipage}
+    \hfill % This adds space between the two images
+    \begin{minipage}{0.48\linewidth}
+        \centering
+   		\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-acme-p2.png}
+   		\caption{BPMN documentativo per ACMEMobility, fase 2}\label{fig:bpmn-acme-p2}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-acme-p3.png}
+    \caption{BPMN documentativo per ACMEMobility, fase 3}\label{fig:bpmn-acme-p3}
+\end{figure}
+
+
+Andando a specificare alcune note aggiuntive, si assume che ACMEMobility conosca
+già credenziali, dati personali e dati bancari dell'utente --- necessari per
+richiedere gli addebiti ---, che verranno raccolti dal servizio in contesti
+fuori dalla modellazione richiesta dal progetto (fasi di registrazione e
+gestione dell'account), probabilmente appoggiandosi a un servizio esterno di
+gestione delle carte di credito per motivi di sicurezza. Per minimizzare lo
+scambio di informazioni riservate sulla rete, la banca ritorna un token alla
+prima chiamata, che può essere riusato in seguito per identificare una specifica
+sessione dell'utente, con la sua cauzione (eventualmente convertibile in
+addebito).\\
+Oltre ad alcuni appena visti, la coreografia tiene conto anche di altri
+possibili casi di errore: se avvenuti prima di qualsiasi addebito (come al
+momento del blocco della cauzione), si invia solo un rifiuto di noleggio o
+prenotazione all'utente; se avvenuti dopo (come per avvio del tracking o sblocco
+del veicolo prima della corsa), si richiede lo sblocco della cauzione, prima di
+inviare una notifica. Per altri errori in fasi più critiche, si richiede
+l'intervento di un umano ma, allo stesso tempo, si manda sempre avanti, in
+qualche modo, il processo, con l'obiettivo di non lasciare mai l'utente fermo e
+costretto ad aspettare --- d'altra parte, la coreografia ammette attese
+``asincrone'', come un pagamento ritardato di qualche ora, cioè che non lo
+bloccano fisicamente. Ciò avviene in particolare per gli errori in fase di
+conclusione e pagamento (richiesta del livello della batteria oppure addebito o
+sblocco della cauzione), in cui si invia una notifica di errore alternativa a
+quella di ``pagamento avvenuto con successo'', così che il processo
+\textit{user} possa terminare. In caso di impossibilità di interrompere il
+tracking, così come per la richiesta di assistenza in fase di parcheggio,
+essendo un errore che non inficia in alcun modo il pagamento, si procede con
+calcoli e addebito e contemporaneamente si richiede l'intervento di un umano, ma
+senza inviare messaggi di errore.\\
+Non vengono mostrati invece eventuali problemi con il veicolo selezionato
+dall'utente (quando già prenotato, in uso, con batteria scarica o in
+manutenzione): assumiamo che, nel lato \textit{frontend}, l'applicazione mostri
+solo quelli disponibili e che, comunque, la coreografia si possa espandere con
+eccezioni ed altre semplici aggiunte, a costo però di complicarne ulteriormente
+la leggibilità.\\
+Infine, si noti che, nella modellazione, i task di errore di ACMEMobility sono
+seguito da \textit{end event} senza il cerchio pieno, per indicare che non tutti
+i processi del pool devono essere conclusi: per quanto appena visto, altri
+processi potrebbero essere stati lanciati in parallelo ed essere ancora in
+esecuzione.\\
+A livello logico, nel BPMN a scopo documentativo il pool di ACMEMobility è
+costituito da un'unica grande lane, con la sola separazione del task di
+intervento manuale, relegata alla lane ``human assistance'', stando ad indicare
+una divisione tra i task automatizzati e quelli eseguiti da operatori veri.\\
+\\
+Come già accennato, il BPMS di ACME può essere controllato da chiamate
+\textit{http} --- che possiamo simulare con lo script python \textit{user.py}
+--- per avviare o gestire i processi. Al loro arrivo, Camunda ne converte
+automaticamente i parametri (nel \textit{body} di una \textit{POST}) in
+variabili globali --- dunque disponibili per le implementazioni, per esempio,
+dei \textit{service task}.\\
+Tra i parametri richiesti dalla ``API'' di ACME, risultano particolarmente utili
+\textit{isImmediate} (booleano per distinguere il tipo di noleggio) e, in fase
+di parcheggio, l'id della stazione (ipoteticamente rilevato dal veicolo stesso
+tramite comunicazione a corto raggio). Inoltre, la variabile
+\textit{businessKey}, già implementata e riconosciuta automaticamente in
+Camunda, permette di associare le richieste a uno stesso processo: usando l'id
+del veicolo in ogni chiamata, le comunicazioni relative a ogni corsa saranno
+così aggregate. Dal \textit{cockpit} (GUI) di Camunda, i processi saranno
+indicati proprio dalla loro \textit{businessKey}.\\
+
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\linewidth}
+        \centering
+		\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-acme-p1-e1.png}
+	   	\caption{BPMN documentativo per ACMEMobility, errori prima della cauzione}\label{fig:bpmn-acme-p1-e1}
+    \end{minipage}
+    \hfill % This adds space between the two images
+    \begin{minipage}{0.48\linewidth}
+        \centering
+		\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-acme-p1-e2.png}
+		\caption{BPMN documentativo per ACMEMobility, errori dopo la cauzione}\label{fig:bpmn-acme-p1-e2}
+    \end{minipage}
+\end{figure}
+
+
+
+\subsubsection{Prospettiva degli altri servizi}\label{sec:choreography-others}
+
+Tutti gli altri partecipanti (banca, stazione, FleetManagement, veicolo), nel
+BPMN documentativo, sono modellati in maniera banale, poiché ogni loro
+capability viene vista fondamentalmente come un unico \textit{service task},
+avviato da una richiesta di ACME e che ritorna un risultato a sua volta. Le
+uniche eccezioni sono costituite da alcuni loop, per FleetManagement e veicolo,
+nella fase del \textbf{tragitto}. Infatti, quando ACMEMobility le richiede
+l'inizio del tracking, FleetManagement si mette in ascolto, in attesa di
+informazioni, fino all'interruzione del tracking; allo stesso tempo, il veicolo
+noleggiato avrà ricevuto, dallo stesso FleetManagement, una richiesta di
+iniziare a condividere il suo stato periodicamente (con una \textit{POST} via
+\textit{http}), anch'esso fino a una notifica di terminazione. Le query di ACME
+sono invece gestite tramite un task separato di FleetManagement: il motivo è che
+i dati trasmessi dai veicoli vengono salvati in un database (di FleetManagement)
+e, al momento dell'interrogazione, vengono ritornati quelli più recenti.\\
+La modellazione raffigura FleetManagement come un unico pool e un'unica lane,
+invece che dividere i task di condivisione batteria e condivisione posizione,
+sia per leggibilità (visto che i task sarebbero stati identici), sia perché, dal
+punto di vista di ACME, esso appare come un unico servizio (implementato con dei
+microservizi al suo interno).\\
+
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-bank-1.png}
+    \caption{BPMN documentativo per Bank (parte 1)}\label{fig:bpmn-bank-1}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-bank-2.png}
+    \caption{BPMN documentativo per Bank (parte 2)}\label{fig:bpmn-bank-2}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-fleet.png}
+    \caption{BPMN documentativo per FleetManagement}\label{fig:bpmn-fleet}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-station.png}
+    \caption{BPMN documentativo per una Stazione}\label{fig:bpmn-station}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+    \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{./img/bpmn-vehicle.png}
+    \caption{BPMN documentativo per un Veicolo}\label{fig:bpmn-vehicle}
+\end{figure}
+
+
+
+\subsection{I servizi}\label{sec:services}
+
+I servizi sono stati realizzati tenendo in mente un'architettura in cui ognuno
+sia agnostico riguardo all'implementazione degli altri, comunicando tramite API
+documentate (con protocolli \textit{http} e \textit{SOAP}).\\
+Perciò, eventuali dati non-volatili di ogni servizio --- e solo quelli necessari
+--- sono memorizzati su un proprio database, accessibile solo da esso e non
+dall'esterno. Nell'implementazione, essendo più che altro a scopo dimostrativo,
+le basi di dati sono in realtà solo simulate (tramite file, classi o pacchetti)
+e accedute tramite opportune interfacce (chiamate di funzione), piuttosto che
+implementate come veri e propri microservizi a loro volta, interconnessi con gli
+altri.\\
+Principalmente, i dati memorizzati stabilmente (tutti documentati in
+\mbox{\textit{docs/implementation/db.md}}) riguardano le liste di ogni utente,
+stazione e veicolo, con informazioni aggiornate su ognuno dopo ciascuna
+operazione (come la stazione in cui si trova parcheggiato, oppure l'utente che
+l'ha noleggiato). La cronologia del livello di batteria e dei movimenti dei
+mezzi sono invece mantenute dai rispettivi sotto-servizi di FleetManagement: il
+core di ACMEMobility li richiede in tempo reale e non ha al bisogno di
+salvarli più a portata di mano, al momento.\\
+All'avvio dell'architettura con \textit{docker-compose}, i database vengono
+riempiti con alcuni dati di esempio, per identificativi e informazioni su
+utenti, stazioni e veicoli.\\
+\\
+Inoltre, abbiamo cercato di delegare il meno possibile al lato \textit{user},
+essendo i \textit{frontend} delle applicazioni da ritenersi sempre inaffidabili.
+La ``API'' di ACMEMobility richiede meno informazioni possibili all'utente; per
+esempio, la stazione in cui si trova un veicolo viene già memorizzata e
+aggiornata costantemente, mentre quella in cui verrà parcheggiato a fine corsa
+assumiamo che venga ``letta'' tramite comunicazione a breve raggio (in fase di
+inserimento nel terminale) e comunicata in modo sicuro.\\

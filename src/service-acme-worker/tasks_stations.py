@@ -26,6 +26,16 @@ def handle_station_lock(task: ExternalTask) -> TaskResult:
 		config.logger.error("Vehicle %s not found!", vehicle_id)
 		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
 
+	if station_id is None:
+		config.logger.error("Station ID not provided for vehicle %s!", vehicle_id)
+		return task.failure("Station ID Not Provided", f"Station ID not provided for vehicle {vehicle_id}.", 0, 0)
+
+	station_url = config.STATION_ID_URL_MAP.get(station_id)
+	if station_url is None:
+		config.logger.error("No URL configured for station %s!", station_id)
+		return task.failure("Station URL Not Configured", f"No URL configured for station {station_id}.", 0, 0)
+
+
 	def func_success(
 		task		: ExternalTask,
 		# pylint: disable=W0613
@@ -43,14 +53,14 @@ def handle_station_lock(task: ExternalTask) -> TaskResult:
 
 	return perform_request(
 		task,
-		func_request	= lambda: requests.post(config.URL_STATION_BASE + config.EP_STATION_LOCK, json={
-				"vehicleId": vehicle_id,
-				"stationId": station_id
+		func_request	= lambda: requests.post(station_url + config.EP_STATION_LOCK, json={
+				"vehicleId": vehicle_id
 			}, timeout	= REQUEST_TIMEOUT_SECONDS),
 		func_success	= func_success,
 		action_name		= "Lock Vehicle at Station",
 		status_var		= config.CAMUNDA_STATUS_VEHICLE_LOCKED
 	)
+
 
 
 def handle_station_unlock(task: ExternalTask) -> TaskResult:
@@ -63,10 +73,16 @@ def handle_station_unlock(task: ExternalTask) -> TaskResult:
 		config.logger.error("Vehicle %s not found!", vehicle_id)
 		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
 
-	stationId = vehicle.current_station
-	if stationId is None:
+	station_id = vehicle.current_station
+	if station_id is None:
 		config.logger.error("Vehicle %s is not at any station!", vehicle_id)
 		return task.failure("Vehicle Not at Station", f"Vehicle {vehicle_id} is not at any station.", 0, 0)
+
+	station_url = config.STATION_ID_URL_MAP.get(station_id)
+	if station_url is None:
+		config.logger.error("No URL configured for station %s!", station_id)
+		return task.failure("Station URL Not Configured", f"No URL configured for station {station_id}.", 0, 0)
+
 
 	def func_success(
 		task		: ExternalTask,
@@ -78,16 +94,15 @@ def handle_station_unlock(task: ExternalTask) -> TaskResult:
 			status			= Vehicle.Status.AVAILABLE,
 			reserved_by		= vehicle.reserved_by,
 			rented_by		= vehicle.rented_by,
-			current_station	= stationId
+			current_station	= station_id
 		))
-		config.logger.info("Vehicle %s unlocked successfully at station %s!", vehicle_id, stationId)
+		config.logger.info("Vehicle %s unlocked successfully at station %s!", vehicle_id, station_id)
 		return task.complete({config.CAMUNDA_STATUS_VEHICLE_LOCKED: True})
 
 	return perform_request(
 		task,
-		func_request	= lambda: requests.post(config.URL_STATION_BASE + config.EP_STATION_UNLOCK, json={
-				"vehicleId": vehicle_id,
-				"stationId": stationId
+		func_request	= lambda: requests.post(station_url + config.EP_STATION_UNLOCK, json={
+				"vehicleId": vehicle_id
 			}, timeout	= REQUEST_TIMEOUT_SECONDS),
 		func_success	= func_success,
 		action_name		= "Unlock Vehicle at Station",

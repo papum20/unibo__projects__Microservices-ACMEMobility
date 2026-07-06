@@ -23,20 +23,24 @@ class Config:
 	# Read Configuration from Docker Environment
 	URL_CAMUNDA         = get_env_or_exit('URL_CAMUNDA')
 	URL_BANK_WSDL       = get_env_or_exit('URL_BANK_WSDL')
-	URL_STATION_BASE    = get_env_or_exit('URL_STATION')
 	URL_FLEET_BASE      = get_env_or_exit('URL_FLEET')
 	URL_BANK_BASE		= get_env_or_exit('URL_BANK')
-	URL_STATION_BASE	= get_env_or_exit('URL_STATION')
+
+	URL_STATION_01_BASE	= get_env_or_exit('URL_STATION_01')
+	URL_STATION_02_BASE	= get_env_or_exit('URL_STATION_02')
+	URL_STATION_03_BASE	= get_env_or_exit('URL_STATION_03')
+	URL_STATION_04_BASE	= get_env_or_exit('URL_STATION_04')
+	URL_STATION_05_BASE	= get_env_or_exit('URL_STATION_05')
 
 	EP_BANK_PREAUTH			= get_env_or_exit('ENDPOINT_BANK_PREAUTH')
 	EP_BANK_CHARGE			= get_env_or_exit('ENDPOINT_BANK_CHARGE')
 	EP_BANK_CONVERT_CAUTION	= get_env_or_exit('ENDPOINT_BANK_CONVERT_CAUTION')
 	EP_BANK_UNLOCK_CAUTION	= get_env_or_exit('ENDPOINT_BANK_UNLOCK_CAUTION')
 
-	EP_FLEET_TRACK_INFO		= get_env_or_exit('ENDPOINT_FLEET_TRACK_INFO')
+	EP_FLEET_POSITION		= get_env_or_exit('ENDPOINT_FLEET_POSITION_PARAM')
 	EP_FLEET_TRACK_START	= get_env_or_exit('ENDPOINT_FLEET_TRACK_START')
 	EP_FLEET_TRACK_STOP		= get_env_or_exit('ENDPOINT_FLEET_TRACK_STOP')
-	EP_FLEET_FETCH_BATTERY	= get_env_or_exit('ENDPOINT_FLEET_FETCH_BATTERY')
+	EP_FLEET_BATTERY		= get_env_or_exit('ENDPOINT_FLEET_BATTERY_PARAM')
 
 	EP_STATION_LOCK		= get_env_or_exit('ENDPOINT_STATION_LOCK')
 	EP_STATION_UNLOCK	= get_env_or_exit('ENDPOINT_STATION_UNLOCK')
@@ -88,6 +92,21 @@ class Config:
 	TOPIC_ACME_CANCELLATION_DELAY	= get_env_or_exit('TOPIC_ACME_CANCELLATION_DELAY')
 	TOPIC_ACME_NOTIFY_REJECTION		= get_env_or_exit('TOPIC_ACME_NOTIFY_REJECTION')
 	TOPIC_ACME_RESERVE				= get_env_or_exit('TOPIC_ACME_RESERVE')
+
+	STATION_ID_01 = get_env_or_exit('STATION_ID_01')
+	STATION_ID_02 = get_env_or_exit('STATION_ID_02')
+	STATION_ID_03 = get_env_or_exit('STATION_ID_03')
+	STATION_ID_04 = get_env_or_exit('STATION_ID_04')
+	STATION_ID_05 = get_env_or_exit('STATION_ID_05')
+
+
+	STATION_ID_URL_MAP = {
+		STATION_ID_01: URL_STATION_01_BASE,
+		STATION_ID_02: URL_STATION_02_BASE,
+		STATION_ID_03: URL_STATION_03_BASE,
+		STATION_ID_04: URL_STATION_04_BASE,
+		STATION_ID_05: URL_STATION_05_BASE
+	}
 
 
 	logger = logging.getLogger(__name__)

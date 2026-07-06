@@ -1,0 +1,138 @@
+\documentclass[12pt,journal,onecolumn]{IEEEtran}
+%\documentclass[conference]{IEEEtran} \documentclass[12pt,a4paper]{article}
+%
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\addtolength{\topmargin}{0.02in}
+\addtolength{\textheight}{-0.02in}
+\setlength{\marginparwidth}{2cm}
+\usepackage[ disable,     % hide all todos
+    % obeyDraft,   % show todos only in draft mode obeyFinal,   % hide todos if
+    % in final mode textsize=footnotesize,
+    textwidth=.9\marginparwidth, colorinlistoftodos, prependcaption,
+    linecolor=green,backgroundcolor=green!25,bordercolor=green ]{todonotes}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+%\usepackage[bookmarks=false, hidelinks, linktocpage=false,
+%    breaklinks=false,draft]{hyperref}
+\usepackage[bookmarks=false, hidelinks, linktocpage=false,
+    breaklinks=true]{hyperref}
+\usepackage{xurl}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocodex}
+\usepackage{float}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{adjustbox}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage[capitalise]{cleveref}
+\usepackage[super]{natbib}
+
+
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{xurl}
+
+% Define colors for syntax highlighting
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Configure listings style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+
+
+\makeatletter
+\if@todonotes@disabled \else
+% todonotes is enabled, increase paper size to get bigger margins
+\paperwidth=\dimexpr \paperwidth + 6cm\relax
+\oddsidemargin=\dimexpr\oddsidemargin + 3cm\relax
+\evensidemargin=\dimexpr\evensidemargin + 3cm\relax \marginparwidth=\dimexpr
+\marginparwidth + 3cm\relax \let\oldtitle\title
+\renewcommand{\title}[1]{\oldtitle{#1\(_{\colorbox{red!20}{\tiny disable
+todos}}\)}}
+\fi
+\makeatother
+
+% For ORCID support in IEEE format
+\usepackage{orcidlink}
+
+\begin{document}
+%
+\title{ACMEMobility\\
+[0.5ex] \large Progetto di Architetture Software a Microservizi, Università di Bologna,
+2025--2026}
+
+% IEEE format doesn't use running titles
+
+\author{
+  \small
+  \begin{tabular}{c c c}
+    \begin{minipage}[t]{0.3\textwidth}\centering \IEEEauthorblockN{Daniele
+      D'Ugo}\\
+      \IEEEauthorblockA{daniele.dugo@studio.unibo.it \\ Mat.: 0001186581}
+    \end{minipage} & 
+    \begin{minipage}[t]{0.3\textwidth}\centering \IEEEauthorblockN{Daniele
+      D'Ugo}\\
+      \IEEEauthorblockA{daniele.dugo@studio.unibo.it \\ Mat.: 0001186581}
+    \end{minipage} & 
+    \begin{minipage}[t]{0.3\textwidth}\centering \IEEEauthorblockN{Daniele
+      D'Ugo}\\
+      \IEEEauthorblockA{daniele.dugo@studio.unibo.it \\ Mat.: 0001186581}
+    \end{minipage}
+  \end{tabular}
+}
+
+% IEEE doesn't use \authorrunning
+
+\maketitle              % typeset the header of the contribution
+%
+%TC:ignore
+%\begin{abstract}
+%\end{abstract}
+%TC:endignore
+
+% IEEE uses different keywords format
+%\begin{IEEEkeywords}
+%\end{IEEEkeywords}
+
+\input{intro}
+
+\input{usage}
+
+\input{workflow}
+
+\input{implementation}
+
+\input{diagrams}
+
+%\input{conclusion}
+
+% IEEE bibliography style
+\bibliographystyle{IEEEtran}
+\bibliography{biblio}
+
+\end{document}
