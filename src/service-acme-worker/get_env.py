@@ -45,7 +45,8 @@ class Config:
 	EP_STATION_LOCK		= get_env_or_exit('ENDPOINT_STATION_LOCK')
 	EP_STATION_UNLOCK	= get_env_or_exit('ENDPOINT_STATION_UNLOCK')
 
-	BANK_CAUTION	= int(get_env_or_exit('BANK_CAUTION'))
+	BANK_CAUTION					= int(get_env_or_exit('BANK_CAUTION'))
+	CAMUNDA_BATTERY_LOW_THRESHOLD	= int(get_env_or_exit('CAMUNDA_BATTERY_LOW_THRESHOLD'))
 
 
 	CAMUNDA_AMOUNT_BASE				= get_env_or_exit('CAMUNDA_VAR_AMOUNT_BASE')

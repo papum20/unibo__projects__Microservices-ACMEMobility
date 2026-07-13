@@ -12,6 +12,7 @@
   * `reservedBy` (String or null): userId of the user who reserved the vehicle, or null if not reserved
   * `rentedBy` (String or null): userId of the user who rented the vehicle, or null if not rented
   * `currentStation` (String or null): stationId where the vehicle is currently parked, or null if not parked at a station
+  * `batteryPerc` (Integer or null): last value fetched for battery level percentage (0-100)
 
 ## FleetManagement Tracking DB
 
