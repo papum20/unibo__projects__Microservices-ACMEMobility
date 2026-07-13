@@ -11,20 +11,36 @@ from pydantic import BaseModel
 from typing import Optional
 import uvicorn
 
+from get_env import get_env_or_exit
+from vehicle_status import VehicleStatus
+
+
 app = FastAPI(title="ACMEMobility - Station Service")
 
 # Configurazione della stazione tramite variabili d'ambiente
-STATION_ID      = os.environ.get("STATION_ID", "ST-01")
-STATION_NAME    = os.environ.get("STATION_NAME", "Stazione Centrale")
-STATION_ADDRESS = os.environ.get("STATION_ADDRESS", "Piazza delle Medaglie d'Oro, Bologna")
-STATION_LAT     = float(os.environ.get("STATION_LAT", "44.5058"))
-STATION_LON     = float(os.environ.get("STATION_LON", "11.3429"))
+STATION_ID      = get_env_or_exit("STATION_ID")
+STATION_PREFIX	= get_env_or_exit('STATION_PREFIX')
+
+# Ottieni informazioni sulla stazione
+STATION_SUFFIX	= STATION_ID.split(f'{STATION_PREFIX}-')[1] 
+STATION_NAME	= get_env_or_exit(f"STATION_{STATION_SUFFIX}_NAME")
+STATION_ADDRESS = get_env_or_exit(f"STATION_{STATION_SUFFIX}_ADDRESS")
+STATION_LAT     = float(get_env_or_exit(f"STATION_{STATION_SUFFIX}_LAT"))
+STATION_LON     = float(get_env_or_exit(f"STATION_{STATION_SUFFIX}_LON"))
+
+VEHICLE_N       = int(get_env_or_exit('VEHICLE_N'))
+VEHICLE_PREFIX  = get_env_or_exit('VEHICLE_PREFIX')
+ENV_VEHICLE_START_STATIONS = {}
+for i in range(1, VEHICLE_N + 1):
+    vehicle_suffix = str(i).zfill(2)
+    ENV_VEHICLE_START_STATIONS[vehicle_suffix] = get_env_or_exit(f"VEHICLE_{vehicle_suffix}_START_STATION")
+
 
 # Veicoli in memoria per questa stazione
 # Possono essere configurati tramite VEHICLES_JSON oppure si usano 2 veicoli di default
 default_vehicles = {
-    "V-001": {"id": "V-001", "type": "scooter", "status": "available", "battery": 85},
-    "V-002": {"id": "V-002", "type": "auto",    "status": "available", "battery": 92},
+    "V-001": {"id": "V-001", "status": "available", "battery": 85},
+    "V-002": {"id": "V-002", "status": "available", "battery": 92},
 }
 
 vehicles_json = os.environ.get("VEHICLES_JSON", None)
@@ -32,6 +48,16 @@ if vehicles_json:
     vehicles = json.loads(vehicles_json)
 else:
     vehicles = default_vehicles
+
+
+vehicles = {}
+for vehicle_suffix, start_station in ENV_VEHICLE_START_STATIONS.items():
+    if start_station == STATION_ID:
+        vehicle_id = get_env_or_exit(f"VEHICLE_{vehicle_suffix}_ID")
+        vehicles[vehicle_id] = {
+            "id": vehicle_id,
+            "status": VehicleStatus.LOCKED.name
+        }
 
 # Informazioni sulla stazione corrente
 station = {
@@ -45,6 +71,7 @@ station = {
 
 print(f"[STATION] Avvio stazione {STATION_ID} - {STATION_NAME}")
 
+
 # Modelli delle richieste
 class UnlockRequest(BaseModel):
     vehicleId: str  # ID del veicolo da sbloccare
@@ -52,6 +79,7 @@ class UnlockRequest(BaseModel):
 class LockRequest(BaseModel):
     vehicleId: str                        # ID del veicolo da bloccare
     batteryLevel: Optional[float] = None  # Livello batteria alla riconsegna (opzionale)
+
 
 # Controllo stato del servizio
 @app.get("/health")
@@ -128,6 +156,7 @@ def lock_vehicle(req: LockRequest):
         "lowBattery": vehicle["battery"] < 15,  # True se batteria sotto 15% -> penale 10%
         "message": f"Vehicle {req.vehicleId} locked successfully at {STATION_NAME}"
     }
+
 
 # Avvio del server
 if __name__ == "__main__":

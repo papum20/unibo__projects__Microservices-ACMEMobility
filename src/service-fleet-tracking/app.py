@@ -34,7 +34,7 @@ def get_vehicle_url(vehicle_id: str) -> str:
 
 # POST /tracking/start
 
-@app.route('/tracking/start', methods=['POST'])
+@app.route('/start', methods=['POST'])
 def start_tracking():
 	vehicle_id = request.json.get("vehicleId")
 	
@@ -54,7 +54,7 @@ def start_tracking():
 
 # POST /tracking/stop
 
-@app.route('/tracking/stop', methods=['POST'])
+@app.route('/stop', methods=['POST'])
 def stop_tracking():
 	vehicle_id = request.json.get("vehicleId")
 	
