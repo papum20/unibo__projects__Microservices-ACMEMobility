@@ -58,6 +58,7 @@ def handle_bank_preauth(task: ExternalTask) -> TaskResult:
 				config.CAMUNDA_STATUS_CAUTION_BLOCKED	: success
 			})
 		else:
+			config.logger.error("Bank PreAuth failed! Could not find <token> in SOAP response.")
 			return task.failure("Parse Error", "Could not find <token> in SOAP response", 0, 0)
 
 
@@ -96,6 +97,7 @@ def handle_bank_charge(task: ExternalTask) -> TaskResult:
 			
 			return task.complete({config.CAMUNDA_STATUS_PAYMENT: status})
 		else:
+			config.logger.error("Bank Charge failed! Could not find <status> in SOAP response.")
 			return task.failure("Parse Error", "Could not find <status> in SOAP response", 0, 0)
 
 	return perform_request(
@@ -129,6 +131,7 @@ def handle_bank_unlock_caution(task: ExternalTask) -> TaskResult:
 			config.logger.info("Bank Unlock Caution Success: %s", success)
 			return task.complete({"cautionUnlocked": success})
 		else:
+			config.logger.error("Bank Unlock Caution failed! Could not find <success> in SOAP response.")
 			return task.failure("Parse Error", "Could not find <success> in SOAP response", 0, 0)
 
 	return perform_request(
@@ -163,6 +166,7 @@ def handle_bank_convert_caution(task: ExternalTask) -> TaskResult:
 			
 			return task.complete({config.CAMUNDA_STATUS_CONVERT_CAUTION: status})
 		else:
+			config.logger.error("Bank Convert Caution failed! Could not find <status> in SOAP response.")
 			return task.failure("Parse Error", "Could not find <status> in SOAP response", 0, 0)
 
 	return perform_request(

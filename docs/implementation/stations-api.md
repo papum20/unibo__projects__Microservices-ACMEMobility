@@ -5,7 +5,7 @@ This service handles the physical interaction with the stations scattered around
 *   **Base URL:** `http://<stations-service-host>:<PORT_STATIONS>`
 *   **Protocol:** REST / JSON
 
-## 1. Unlock Vehicle (`/vehicle/unlock`)
+## Unlock Vehicle (`/vehicle/unlock`)
 Sends a physical command to the station's hardware to release the vehicle from the dock.
 
 *   **Method:** `POST`
@@ -20,12 +20,11 @@ Sends a physical command to the station's hardware to release the vehicle from t
 {
   "success": true,
   "vehicleId": "V-123",
-  "status": "UNLOCKED",
   "message": "Vehicle successfully released from the dock."
 }
 ```
 
-## 2. Lock Vehicle (`/vehicle/lock`)
+## Lock Vehicle (`/vehicle/lock`)
 Sends a physical command to the station's hardware to lock the vehicle back into the dock at the end of a ride.
 
 *   **Method:** `POST`
@@ -40,12 +39,11 @@ Sends a physical command to the station's hardware to lock the vehicle back into
 {
   "success": true,
   "vehicleId": "V-123",
-  "status": "LOCKED",
   "message": "Vehicle successfully secured in the dock."
 }
 ```
 
-## 3. Park Vehicle (`/hardware/insert`)
+## Park Vehicle (`/hardware/insert`)
 Simulate the action of parking a vehicle, i.e. inserting it into a station dock. The station will automatically detect the vehicle in the correct dock, so it can then lock it upon request.  
 
 *   **Method:** `POST`
@@ -60,7 +58,44 @@ Simulate the action of parking a vehicle, i.e. inserting it into a station dock.
 {
   "success": true,
   "vehicleId": "V-123",
-  "status": "PARKED",
   "message": "Vehicle successfully parked in the station dock."
+}
+```
+
+## Additional info
+
+### Health (`/health`)
+
+*   **Method:** `GET`
+*   **Response (200 OK):**
+```json
+{
+  "status": "running",
+  "stationId": "ST-01",
+  "stationName": "Stazione Centrale"
+}
+```
+
+### Station info (`/station`)
+
+*   **Method:** `GET`
+*   **Response (200 OK):**
+```json
+{
+  "stationId": "ST-01",
+  "stationName": "Stazione Centrale",
+  "stationAddress": "Piazza delle Medaglie d'Oro, Bologna",
+  "latitude": 44.5058,
+  "longitude": 11.3429,
+  "vehicles": [
+    {
+      "vehicleId": "V-123",
+      "status": "available"
+    },
+    {
+      "vehicleId": "V-124",
+      "status": "available"
+    }
+  ]
 }
 ```

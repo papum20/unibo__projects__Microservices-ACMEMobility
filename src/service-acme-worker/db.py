@@ -11,19 +11,27 @@ class User:
 
 class Vehicle:
 
-	class Status(Enum):
-		AVAILABLE	= 1
-		CHARGING	= 2
-		MAINTENANCE	= 3
-		RENTED		= 4
-		RESERVED	= 5
+	vehicle_id		: str
+	status			: Enum
+	reserved_by		: str | None
+	rented_by		: str | None
+	current_station	: str | None
+	battery_perc	: int
 
-	def __init__(self, vehicle_id, status, reserved_by, rented_by, current_station):
+	class Status(Enum):
+		AVAILABLE	= "available"
+		RESERVED	= "reserved"
+		RENTED		= "rented"
+		MAINTENANCE	= "maintenance"
+		CHARGING	= "charging"
+
+	def __init__(self, vehicle_id, status, reserved_by, rented_by, current_station, battery_perc):
 		self.vehicle_id			= vehicle_id
 		self.status				= status
 		self.reserved_by		= reserved_by
 		self.rented_by			= rented_by
 		self.current_station 	= current_station
+		self.battery_perc		= battery_perc
 
 
 class DataBase:
@@ -97,7 +105,8 @@ class DataBase:
 				Vehicle.Status.AVAILABLE,
 				None,
 				None,
-				vehicle_stations[idx]
+				vehicle_stations[idx],
+				100
 			)
 	
 
@@ -117,6 +126,7 @@ class DataBase:
 			self.acme_vehicle_db[vehicle.vehicle_id].reserved_by		= vehicle.reserved_by
 			self.acme_vehicle_db[vehicle.vehicle_id].rented_by			= vehicle.rented_by
 			self.acme_vehicle_db[vehicle.vehicle_id].current_station	= vehicle.current_station
+			self.acme_vehicle_db[vehicle.vehicle_id].battery_perc		= vehicle.battery_perc
 			return True
 		return False
 

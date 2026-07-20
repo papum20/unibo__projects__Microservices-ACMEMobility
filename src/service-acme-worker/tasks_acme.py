@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 import logging
 from camunda.external_task.external_task import ExternalTask, TaskResult
 
+from db import DATABASE, Vehicle
 from get_env import config
 
 
@@ -18,14 +19,16 @@ logger = logging.getLogger(__name__)
 
 def handle_reserve_vehicle(task: ExternalTask) -> TaskResult:
 	"""Topic: fleet-reserve"""
-	vehicle_id = task.get_variable("vehicleId")
+	vehicle_id	= task.get_variable("vehicleId")
+	vehicle		= DATABASE.get_vehicle(vehicle_id)
 	logger.info("Reserving vehicle %s in ACME Fleet Management...", vehicle_id)
-	
+
+	if vehicle is None:
+		config.logger.error("Vehicle %s not found!", vehicle_id)
+		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
+
 	# ACME Backend generates the secure, trusted timestamp
 	trusted_now = datetime.now(timezone.utc).isoformat()
-	
-	# Simulate API call to Fleet Management to mark it as reserved...
-	# requests.post(f"{FLEET_BASE_URL}/vehicle/reserve", json={"id": vehicle_id})
 	
 	# Save the trusted time into the Camunda process
 	logger.info("Reservation time securely set to: %s", {trusted_now})

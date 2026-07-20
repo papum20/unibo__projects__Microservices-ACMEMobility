@@ -168,7 +168,30 @@ scambio di informazioni riservate sulla rete, la banca ritorna un token alla
 prima chiamata, che può essere riusato in seguito per identificare una specifica
 sessione dell'utente, con la sua cauzione (eventualmente convertibile in
 addebito).\\
-Oltre ad alcuni appena visti, la coreografia tiene conto anche di altri
+In ogni fase, il servizio centrale di ACMEMobility tiene traccia, nel suo
+database, di alcune informazioni sui veicoli (oltre a quelle sugli utenti),
+aggiornate al momento opportuno. I possibili 5 stati di un veicolo, infatti,
+includono ``reserved'' quando prenotato, ``rented'' quando in uso,
+``maintenance'' e ``charging'' quando fermo per manutenzione o batteria bassa,
+``available'' altrimenti. Per un veicolo fermo, si salva pure la stazione in cui
+si trova, necessario per sapere a chi inviare la richiesta di sblocco; per uno
+prenotato o in uso, invece, si salva l'utente. In ultimo, ACME memorizza
+l'ultimo valore ricevuto da FleetManagement per la batteria, appunto per poter
+decidere se assegnare uno stato di ``charging'' o ``available'' al momento del
+parcheggio. Per testare, il servizio espone un endpoint che permette di
+aggiornare manualmente lo stato di un veicolo (simulando, ad esempio,
+manutenzione o carica completata).\\
+Se un veicolo parcheggiato non è ``available'', l'applicazione dell'utente
+dovrebbe mostrargli un errore in fase di prenotazione o noleggio immediato. Per
+non complicare eccessivamente la coreografia, la nostra architettura effettua il
+controllo solo al momento dell'avvio della corsa (nello specifico, appena prima
+di avviare il tracciamento del veicolo, nello stesso \textit{service task}). In
+un'implementazione reale, basterebbe espandere maggiormente i task, con
+opportuni casi di errore (analoghi ad altri che abbiamo definito), per
+effettuare il controllo sia prima della scansione immediata, sia prima di un
+noleggio, preferibilmente prima di aver bloccato la cauzione.\\
+\\
+Oltre ad alcuni appena visti, la coreografia tiene conto di altri
 possibili casi di errore: se avvenuti prima di qualsiasi addebito (come al
 momento del blocco della cauzione), si invia solo un rifiuto di noleggio o
 prenotazione all'utente; se avvenuti dopo (come per avvio del tracking o sblocco
@@ -187,13 +210,7 @@ tracking, così come per la richiesta di assistenza in fase di parcheggio,
 essendo un errore che non inficia in alcun modo il pagamento, si procede con
 calcoli e addebito e contemporaneamente si richiede l'intervento di un umano, ma
 senza inviare messaggi di errore.\\
-Non vengono mostrati invece eventuali problemi con il veicolo selezionato
-dall'utente (quando già prenotato, in uso, con batteria scarica o in
-manutenzione): assumiamo che, nel lato \textit{frontend}, l'applicazione mostri
-solo quelli disponibili e che, comunque, la coreografia si possa espandere con
-eccezioni ed altre semplici aggiunte, a costo però di complicarne ulteriormente
-la leggibilità.\\
-Infine, si noti che, nella modellazione, i task di errore di ACMEMobility sono
+Si noti anche che, nella modellazione, i task di errore di ACMEMobility sono
 seguito da \textit{end event} senza il cerchio pieno, per indicare che non tutti
 i processi del pool devono essere conclusi: per quanto appena visto, altri
 processi potrebbero essere stati lanciati in parallelo ed essere ancora in
