@@ -1,3 +1,4 @@
+import logging
 import requests
 from camunda.external_task.external_task import ExternalTask, TaskResult
 
@@ -7,6 +8,9 @@ from util import (
 	REQUEST_TIMEOUT_SECONDS,
 	perform_request,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -54,6 +58,20 @@ def handle_station_lock(task: ExternalTask) -> TaskResult:
 		config.logger.info("Vehicle %s locked successfully at station %s!", vehicle_id, station_id)
 		return task.complete({config.CAMUNDA_STATUS_VEHICLE_LOCKED: True})
 
+	# set to Maintenance
+	def func_on_error(
+		task		: ExternalTask,
+		response	: requests.Response
+	) -> None:
+		DATABASE.update_vehicle( Vehicle(
+			vehicle_id		= vehicle_id,
+			status			= Vehicle.Status.MAINTENANCE,
+			reserved_by		= None,
+			rented_by		= None,
+			current_station	= None,		# not locked anywhere
+			battery_perc	= vehicle.battery_perc
+		))
+
 	return perform_request(
 		task,
 		func_request	= lambda: requests.post(station_url + config.EP_STATION_LOCK, json={
@@ -61,7 +79,8 @@ def handle_station_lock(task: ExternalTask) -> TaskResult:
 			}, timeout	= REQUEST_TIMEOUT_SECONDS),
 		func_success	= func_success,
 		action_name		= "Lock Vehicle at Station",
-		status_var		= config.CAMUNDA_STATUS_VEHICLE_LOCKED
+		status_var		= config.CAMUNDA_STATUS_VEHICLE_LOCKED,
+		func_on_error	= func_on_error
 	)
 
 
@@ -95,13 +114,27 @@ def handle_station_unlock(task: ExternalTask) -> TaskResult:
 		DATABASE.update_vehicle( Vehicle(
 			vehicle_id		= vehicle_id,
 			status			= Vehicle.Status.RENTED,
-			reserved_by		= vehicle.reserved_by,
+			reserved_by		= None,
 			rented_by		= vehicle.rented_by,
 			current_station	= None,
 			battery_perc	= vehicle.battery_perc
 		))
 		config.logger.info("Vehicle %s unlocked successfully at station %s!", vehicle_id, station_id)
 		return task.complete({config.CAMUNDA_STATUS_VEHICLE_LOCKED: True})
+
+	# set to Maintenance
+	def func_on_error(
+		task		: ExternalTask,
+		response	: requests.Response
+	) -> None:
+		DATABASE.update_vehicle( Vehicle(
+			vehicle_id		= vehicle_id,
+			status			= Vehicle.Status.MAINTENANCE,
+			reserved_by		= None,
+			rented_by		= None,
+			current_station	= vehicle.current_station,
+			battery_perc	= vehicle.battery_perc
+		))
 
 	return perform_request(
 		task,
@@ -110,6 +143,7 @@ def handle_station_unlock(task: ExternalTask) -> TaskResult:
 			}, timeout	= REQUEST_TIMEOUT_SECONDS),
 		func_success	= func_success,
 		action_name		= "Unlock Vehicle at Station",
-		status_var		= config.CAMUNDA_STATUS_VEHICLE_UNLOCKED
+		status_var		= config.CAMUNDA_STATUS_VEHICLE_UNLOCKED,
+		func_on_error	= func_on_error
 	)
 

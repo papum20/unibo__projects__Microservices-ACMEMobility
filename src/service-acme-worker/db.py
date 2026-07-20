@@ -1,6 +1,8 @@
+import logging
 from enum import Enum
 from get_env import get_env_or_exit
 
+logger = logging.getLogger(__name__)
 
 
 class User:
@@ -8,6 +10,17 @@ class User:
 		self.user_id	= user_id
 		self.username	= username
 		self.saved_card	= saved_card
+		
+	def __repr__(self):
+		return f"<User id='{self.user_id}' name='{self.username}' card='{self.saved_card}'>"
+
+	def to_dict(self):
+		return {
+			"user_id": self.user_id,
+			"username": self.username,
+			"saved_card": self.saved_card
+		}
+
 
 class Vehicle:
 
@@ -32,6 +45,22 @@ class Vehicle:
 		self.rented_by			= rented_by
 		self.current_station 	= current_station
 		self.battery_perc		= battery_perc
+		
+	def __repr__(self):
+		return (f"<Vehicle id='{self.vehicle_id}' status='{self.status.value}' "
+				f"station='{self.current_station}' battery={self.battery_perc}% "
+				f"reserved_by='{self.reserved_by}' rented_by='{self.rented_by}'>")
+
+	def to_dict(self):
+		return {
+			"vehicle_id": self.vehicle_id,
+			"status": self.status.value,  # Extract the string value of the Enum
+			"reserved_by": self.reserved_by,
+			"rented_by": self.rented_by,
+			"current_station": self.current_station,
+			"battery_perc": self.battery_perc
+		}
+
 
 
 class DataBase:
@@ -45,51 +74,26 @@ class DataBase:
 
 	def __init__(self):
 
+		USER_N			= get_env_or_exit('USER_N')
+		USER_DIGITS		= get_env_or_exit('USER_DIGITS')
+		VEHICLE_N		= get_env_or_exit('VEHICLE_N')
+		VEHICLE_DIGITS	= get_env_or_exit('VEHICLE_DIGITS')
+
 		users = [
-			get_env_or_exit('USER_ID_01'),
-			get_env_or_exit('USER_ID_02'),
-			get_env_or_exit('USER_ID_03'),
-			get_env_or_exit('USER_ID_04'),
-			get_env_or_exit('USER_ID_05')
+			get_env_or_exit(f'USER_ID_{str(i+1).zfill(int(USER_DIGITS))}') for i in range(int(USER_N))
 		]
 		user_names = [
-			get_env_or_exit('USER_01_NAME'),
-			get_env_or_exit('USER_02_NAME'),
-			get_env_or_exit('USER_03_NAME'),
-			get_env_or_exit('USER_04_NAME'),
-			get_env_or_exit('USER_05_NAME')
+			get_env_or_exit(f'USER_{str(i+1).zfill(int(USER_DIGITS))}_NAME') for i in range(int(USER_N))
 		]
 		user_cards = [
-			get_env_or_exit('USER_01_CARD'),
-			get_env_or_exit('USER_02_CARD'),
-			get_env_or_exit('USER_03_CARD'),
-			get_env_or_exit('USER_04_CARD'),
-			get_env_or_exit('USER_05_CARD')
+			get_env_or_exit(f'USER_{str(i+1).zfill(int(USER_DIGITS))}_CARD') for i in range(int(USER_N))
 		]
 
 		vehicles = [
-			get_env_or_exit('VEHICLE_ID_01'),
-			get_env_or_exit('VEHICLE_ID_02'),
-			get_env_or_exit('VEHICLE_ID_03'),
-			get_env_or_exit('VEHICLE_ID_04'),
-			get_env_or_exit('VEHICLE_ID_05'),
-			get_env_or_exit('VEHICLE_ID_06'),
-			get_env_or_exit('VEHICLE_ID_07'),
-			get_env_or_exit('VEHICLE_ID_08'),
-			get_env_or_exit('VEHICLE_ID_09'),
-			get_env_or_exit('VEHICLE_ID_10')
+			get_env_or_exit(f'VEHICLE_ID_{str(i+1).zfill(int(VEHICLE_DIGITS))}') for i in range(int(VEHICLE_N))
 		]
 		vehicle_stations = [
-			get_env_or_exit('VEHICLE_01_START_STATION'),
-			get_env_or_exit('VEHICLE_02_START_STATION'),
-			get_env_or_exit('VEHICLE_03_START_STATION'),
-			get_env_or_exit('VEHICLE_04_START_STATION'),
-			get_env_or_exit('VEHICLE_05_START_STATION'),
-			get_env_or_exit('VEHICLE_06_START_STATION'),
-			get_env_or_exit('VEHICLE_07_START_STATION'),
-			get_env_or_exit('VEHICLE_08_START_STATION'),
-			get_env_or_exit('VEHICLE_09_START_STATION'),
-			get_env_or_exit('VEHICLE_10_START_STATION')
+			get_env_or_exit(f'VEHICLE_{str(i+1).zfill(int(VEHICLE_DIGITS))}_START_STATION') for i in range(int(VEHICLE_N))
 		]
 
 		for idx, user_id in enumerate(users):
@@ -108,6 +112,8 @@ class DataBase:
 				vehicle_stations[idx],
 				100
 			)
+		
+		logger.info("Initialized ACME Database. Users: %s; Vehicles: %s", self.acme_user_db, self.acme_vehicle_db)
 	
 
 	def get_user(self, user_id) -> User | None:
@@ -117,6 +123,14 @@ class DataBase:
 	def get_vehicle(self, vehicle_id) -> Vehicle | None:
 		"""Simulate fetching the vehicle's status from a database or external service."""
 		return self.acme_vehicle_db.get(vehicle_id, None)
+
+	def get_all_users(self) -> list[User]:
+		"""Simulate fetching all users from a database or external service."""
+		return list(self.acme_user_db.values())
+	
+	def get_all_vehicles(self) -> list[Vehicle]:
+		"""Simulate fetching all vehicles from a database or external service."""
+		return list(self.acme_vehicle_db.values())
 
 
 	def update_vehicle(self, vehicle: Vehicle) -> bool:

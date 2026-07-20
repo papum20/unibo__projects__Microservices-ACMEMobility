@@ -1,7 +1,9 @@
+import threading
 import time
 from camunda.external_task.external_task import ExternalTask, TaskResult
 from camunda.external_task.external_task_worker import ExternalTaskWorker
 
+from server import run_server
 from tasks_bank import (
 	handle_bank_preauth,
 	handle_bank_charge,
@@ -64,6 +66,10 @@ def task_dispatcher(task: ExternalTask) -> TaskResult:
 
 
 if __name__ == '__main__':
+	# Start (debugging) server, in a separate background thread.
+	# Setting daemon=True ensures the thread dies when the main program stops
+	threading.Thread(target=run_server, daemon=True).start()
+	
 	config.logger.info("Waiting for Camunda to start...")
 	time.sleep(10)	# Wait for Camunda to fully boot up
 	

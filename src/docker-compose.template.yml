@@ -8,15 +8,20 @@ x-station-template: &station-template
   - .env
   networks:
     - acme-network
+    - vehicle-hw-network
       
 x-vehicle-template: &vehicle-template
   build: ./service-vehicle
   image: acme-vehicle:latest
   env_file:
   - .env
+  depends_on:
+    - graphhopper
   networks:
     - acme-network
     - vehicle-network
+    - vehicle-hw-network
+    
 
 services:
   camunda:
@@ -26,7 +31,7 @@ services:
       - "${DOLLAR}{PORT_LOCAL_CAMUNDA}:${DOLLAR}{PORT_CAMUNDA}"
     volumes:
       # Here you map the folder where you save your .bpmn files
-      - ./camunda-resources/:/camunda/configuration/resources
+      - ./camunda-resources-debug/:/camunda/configuration/resources
     networks:
       - orchestration-network
 
@@ -35,6 +40,8 @@ services:
     container_name: acme-worker
     env_file:
       - .env
+    ports:
+      - "${DOLLAR}{PORT_LOCAL_ACME}:${DOLLAR}{PORT_ACME}"
     depends_on:
       - camunda
     networks:
@@ -58,9 +65,14 @@ services:
       - "${DOLLAR}{PORT_LOCAL_FLEET}:${DOLLAR}{PORT_FLEET}"
     volumes:
       - ./service-fleet-management/nginx.generated.conf:/etc/nginx/nginx.conf:ro
+      - ./service-fleet-visualizer:/usr/share/nginx/html/map:ro
+    depends_on:
+      - fleet-tracking
+      - fleet-battery
     networks:
       - acme-network
       - fleet-internal-network
+      - vehicle-network
 
   fleet-tracking:
     build: ./service-fleet-tracking
@@ -69,6 +81,7 @@ services:
       - .env
     networks:
       - fleet-internal-network
+      - vehicle-network
 
   fleet-battery:
     build: ./service-fleet-battery
@@ -77,6 +90,19 @@ services:
       - .env
     networks:
       - fleet-internal-network
+      - vehicle-network
+
+
+  graphhopper:
+      image: israelhikingmap/graphhopper:latest
+      container_name: acme-graphhopper
+      ports:
+        - "${DOLLAR}{PORT_LOCAL_GRAPHHOPPER}:${DOLLAR}{PORT_GRAPHHOPPER}"
+      volumes:
+        - ./service-graphhopper/data:/data
+      command: --host 0.0.0.0 -i /data/${DOLLAR}{GRAPHHOPPER_MAP_FILE}
+      networks:
+        - vehicle-network
 
 
   # 5-10 stations
@@ -183,16 +209,6 @@ services:
       - "${DOLLAR}{PORT_LOCAL_VEHICLE_10}:${DOLLAR}{PORT_VEHICLES}"
 
 
-  graphhopper:
-      image: israelhikingmap/graphhopper:latest
-      container_name: acme-graphhopper
-      ports:
-        - "${DOLLAR}{PORT_LOCAL_GRAPHHOPPER}:${DOLLAR}{PORT_GRAPHHOPPER}"
-      volumes:
-        - ./service-graphhopper/data:/data
-      command: --host 0.0.0.0 -i /data/${DOLLAR}{GRAPHHOPPER_MAP_FILE}
-      networks:
-        - vehicle-network
 
 networks:
   acme-network:
@@ -204,4 +220,6 @@ networks:
   orchestration-network:
     driver: bridge
   vehicle-network:
+    driver: bridge
+  vehicle-hw-network:
     driver: bridge

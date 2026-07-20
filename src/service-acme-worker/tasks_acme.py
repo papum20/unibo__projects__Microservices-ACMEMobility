@@ -27,6 +27,15 @@ def handle_reserve_vehicle(task: ExternalTask) -> TaskResult:
 		config.logger.error("Vehicle %s not found!", vehicle_id)
 		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
 
+	DATABASE.update_vehicle( Vehicle(
+		vehicle_id		= vehicle_id,
+		status			= Vehicle.Status.RESERVED,
+		reserved_by		= task.get_variable(config.CAMUNDA_USER_ID),
+		rented_by		= None,
+		current_station	= vehicle.current_station,
+		battery_perc	= vehicle.battery_perc
+	))
+
 	# ACME Backend generates the secure, trusted timestamp
 	trusted_now = datetime.now(timezone.utc).isoformat()
 	

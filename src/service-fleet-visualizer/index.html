@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ACMEMobility Live Fleet Map</title>
+    <!-- Load Leaflet CSS and JS from public CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 100vh; width: 100vw; margin: 0; padding: 0; }
+        body { margin: 0; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        // Initialize the map, centered on Bologna, Italy
+        var map = L.map('map').setView([44.4949, 11.3426], 14);
+
+        // Add OpenStreetMap map tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Object to store markers by vehicle ID
+        var markers = {};
+
+        // Function to fetch data and update markers on the map
+        async function fetchAndUpdateMap() {
+            try {
+                // Fetch active vehicle positions from nginx
+                let response = await fetch('http://localhost:4000/tracking/position/all');
+                let vehicles = await response.json();
+
+                for (let vid in vehicles) {
+                    let lat = parseFloat(vehicles[vid].latitude);
+                    let lon = parseFloat(vehicles[vid].longitude);
+
+                    // Safety check to ensure we don't try to plot invalid data
+                    if (isNaN(lat) || isNaN(lon)) {
+                        console.error("Invalid coordinates for vehicle " + vid, vehicles[vid]);
+                        continue;
+                    }
+                    
+                    if (markers[vid]) {
+                        // If marker already exists, move it smoothly to the new coordinate
+                        markers[vid].setLatLng([lat, lon]);
+                    } else {
+                        // Create a new marker and pin it to the map
+                        markers[vid] = L.marker([lat, lon]).addTo(map)
+                            .bindPopup("<b>Vehicle ID: " + vid + "</b><br>Status: IN USE")
+                            .openPopup();
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching vehicle data:", error);
+            }
+        }
+
+        // Poll the backend every 2 seconds to get fresh positions
+        setInterval(fetchAndUpdateMap, 2000);
+    </script>
+</body>
+</html>

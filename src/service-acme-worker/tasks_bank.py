@@ -2,7 +2,7 @@ import requests
 import xml.etree.ElementTree as ET
 from camunda.external_task.external_task import ExternalTask, TaskResult
 
-from db import DATABASE
+from db import DATABASE, Vehicle
 from get_env import config
 from util import (
 	get_soap_body,
@@ -59,7 +59,11 @@ def handle_bank_preauth(task: ExternalTask) -> TaskResult:
 			})
 		else:
 			config.logger.error("Bank PreAuth failed! Could not find <token> in SOAP response.")
-			return task.failure("Parse Error", "Could not find <token> in SOAP response", 0, 0)
+			return task.bpmn_error(
+				error_code		= "Parse Error",
+				error_message	= "Could not find <token> in SOAP response",
+				variables		= {config.CAMUNDA_STATUS_CAUTION_BLOCKED: False}
+			)
 
 
 	return perform_request(
@@ -98,7 +102,11 @@ def handle_bank_charge(task: ExternalTask) -> TaskResult:
 			return task.complete({config.CAMUNDA_STATUS_PAYMENT: status})
 		else:
 			config.logger.error("Bank Charge failed! Could not find <status> in SOAP response.")
-			return task.failure("Parse Error", "Could not find <status> in SOAP response", 0, 0)
+			return task.bpmn_error(
+				error_code		= "Parse Error",
+				error_message	= "Could not find <status> in SOAP response",
+				variables		= {config.CAMUNDA_STATUS_PAYMENT: "Error"}
+			)
 
 	return perform_request(
 		task,
@@ -129,10 +137,14 @@ def handle_bank_unlock_caution(task: ExternalTask) -> TaskResult:
 		if success_element is not None:
 			success = (success_element.text == 'true')  # type: ignore
 			config.logger.info("Bank Unlock Caution Success: %s", success)
-			return task.complete({"cautionUnlocked": success})
+			return task.complete({config.CAMUNDA_STATUS_CAUTION_UNLOCKED: success})
 		else:
 			config.logger.error("Bank Unlock Caution failed! Could not find <success> in SOAP response.")
-			return task.failure("Parse Error", "Could not find <success> in SOAP response", 0, 0)
+			return task.bpmn_error(
+				error_code		= "Parse Error",
+				error_message	= "Could not find <success> in SOAP response",
+				variables		= {config.CAMUNDA_STATUS_CAUTION_UNLOCKED: False}
+			)
 
 	return perform_request(
 		task,
@@ -145,6 +157,24 @@ def handle_bank_unlock_caution(task: ExternalTask) -> TaskResult:
 
 def handle_bank_convert_caution(task: ExternalTask) -> TaskResult:
 	"""Topic: bank-convert-caution (convert blocked caution into actual charge)"""
+
+	# first set the vehicle to available again
+	vehicle_id	= task.get_variable(config.CAMUNDA_VEHICLE_ID)
+	vehicle		= DATABASE.get_vehicle(vehicle_id)
+
+	if vehicle is None:
+		config.logger.error("Vehicle %s not found!", vehicle_id)
+		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
+
+	DATABASE.update_vehicle( Vehicle(
+		vehicle_id		= vehicle_id,
+		status			= Vehicle.Status.AVAILABLE,
+		reserved_by		= None,
+		rented_by		= None,
+		current_station	= vehicle.current_station,
+		battery_perc	= vehicle.battery_perc
+	))
+
 
 	token		= task.get_variable(config.CAMUNDA_BANK_TOKEN)
 	soap_body	= get_soap_body(
@@ -167,7 +197,11 @@ def handle_bank_convert_caution(task: ExternalTask) -> TaskResult:
 			return task.complete({config.CAMUNDA_STATUS_CONVERT_CAUTION: status})
 		else:
 			config.logger.error("Bank Convert Caution failed! Could not find <status> in SOAP response.")
-			return task.failure("Parse Error", "Could not find <status> in SOAP response", 0, 0)
+			return task.bpmn_error(
+				error_code		= "Parse Error",
+				error_message	= "Could not find <status> in SOAP response",
+				variables		= {config.CAMUNDA_STATUS_CONVERT_CAUTION: "Error"}
+			)
 
 	return perform_request(
 		task,

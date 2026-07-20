@@ -1,4 +1,6 @@
+import logging
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from datetime import datetime
 import requests
 
@@ -8,15 +10,19 @@ from get_env import get_env_or_exit
 
 
 app = Flask(__name__)
+CORS(app)	# allows the browser to fetch data from this API
+logger = logging.getLogger(__name__)
 
 
 UPDATE_TIMER_S	= 5
 
 VEHICLE_PREFIX      = get_env_or_exit('VEHICLE_PREFIX')
 URL_VEHICLE_PARAM   = get_env_or_exit('URL_VEHICLE_PARAM')
+PORT_FLEET_TRACKING	= int(get_env_or_exit('PORT_FLEET_TRACKING'))
 
 EP_VEHICLE_START    = get_env_or_exit('ENDPOINT_VEHICLE_TRACK_START')
 EP_VEHICLE_STOP     = get_env_or_exit('ENDPOINT_VEHICLE_TRACK_STOP')
+
 
 # Memorizzazione in memoria
 vehicles = {}
@@ -27,7 +33,7 @@ tracked_vehicles = set()
 
 
 def get_vehicle_url(vehicle_id: str) -> str:
-	vehicle_suffix = vehicle_id.split(f'{VEHICLE_PREFIX}-')[1]
+	vehicle_suffix = vehicle_id.rsplit(f'{VEHICLE_PREFIX}-', 1)[-1]
 	return URL_VEHICLE_PARAM.replace("{vehicleSuffix}", vehicle_suffix)
 
 
@@ -44,12 +50,15 @@ def start_tracking():
 	# notify vehicle itself
 	vehicle_url = f"{get_vehicle_url(vehicle_id)}{EP_VEHICLE_START}"
 	try:
-		requests.post(vehicle_url, timeout=UPDATE_TIMER_S)
+		response = requests.post(vehicle_url, timeout=UPDATE_TIMER_S)
+		response.raise_for_status()
 		tracked_vehicles.add(vehicle_id)
 
-		return jsonify({"success": True, "message": "Tracking started"}), 200
-	except requests.exceptions.RequestException:
-		return jsonify({"success": False, "message": "Vehicle offline"}), 503
+		logger.info("[%s] Tracking STARTED.", vehicle_id)
+		return jsonify({"success": True, "message": f"Tracking started for {vehicle_id}"}), 200
+	except requests.exceptions.RequestException as e:
+		logger.error("Failed to start vehicle %s: %s", vehicle_id, e)
+		return jsonify({"success": False, "message": f"Vehicle offline or error: {e}"}), 503
 
 
 # POST /tracking/stop
@@ -63,12 +72,15 @@ def stop_tracking():
 
 	vehicle_url = f"{get_vehicle_url(vehicle_id)}{EP_VEHICLE_STOP}"
 	try:
-		requests.post(vehicle_url, timeout=UPDATE_TIMER_S)
+		response = requests.post(vehicle_url, timeout=UPDATE_TIMER_S)
+		response.raise_for_status()
 		tracked_vehicles.discard(vehicle_id)
 
-		return jsonify({"success": True, "message": "Tracking stopped"}), 200
-	except requests.exceptions.RequestException:
-		return jsonify({"success": False, "message": "Vehicle offline"}), 503
+		logger.info("[%s] Tracking STOPPED.", vehicle_id)
+		return jsonify({"success": True, "message": f"Tracking stopped for {vehicle_id}"}), 200
+	except requests.exceptions.RequestException as e:
+		logger.error("Failed to stop vehicle %s: %s", vehicle_id, e)
+		return jsonify({"success": False, "message": f"Vehicle offline or error: {e}"}), 503
 
 
 # POST /position/update
@@ -78,18 +90,19 @@ def update_position(vehicle_id):
 	data = request.get_json()
 
 	if not data:
-		return jsonify({"error": "JSON non valido"}), 400
+		return jsonify({"error": "Invalid JSON"}), 400
 
-	x = data.get("x")
-	y = data.get("y")
+	coordinates = data.get("coordinates")
+	lat = coordinates.get("latitude") if coordinates else ""
+	lon = coordinates.get("longitude") if coordinates else ""
 
 	# Verifica dei dati
-	if not vehicle_id or x is None or y is None:
-		return jsonify({"error": "vehicleId, x, y sono obbligatori"}), 400
+	if not vehicle_id or lat is None or lon is None:
+		return jsonify({"error": "vehicleId, x, y are required"}), 400
 
 	position = {
-		"x": x,
-		"y": y,
+		"latitude": lat,
+		"longitude": lon,
 		"timestamp": datetime.now().isoformat()
 	}
 
@@ -107,9 +120,10 @@ def update_position(vehicle_id):
 		if len(vehicles[vehicle_id]["history"]) > 100:
 			vehicles[vehicle_id]["history"].pop(0)
 
+	logging.info("[%s] Position updated: latitude=%s, longitude=%s", vehicle_id, lat, lon)
 	return jsonify({
-		"status": "successo",
-		"message": "Posizione aggiornata"
+		"status": "success",
+		"message": "Position updated"
 	}), 200
 
 
@@ -118,8 +132,9 @@ def update_position(vehicle_id):
 @app.route('/position/<vehicle_id>', methods=['GET'])
 def get_position(vehicle_id):
 	if vehicle_id not in vehicles:
-		return jsonify({"error": "Veicolo non trovato"}), 404
+		return jsonify({"error": "Vehicle not found"}), 404
 
+	logging.info("[%s] Position requested: latitude=%s, longitude=%s", vehicle_id, vehicles[vehicle_id]["current"]["latitude"], vehicles[vehicle_id]["current"]["longitude"])
 	return jsonify({
 		"vehicleId": vehicle_id,
 		"current": vehicles[vehicle_id]["current"]
@@ -142,7 +157,7 @@ def get_active_vehicles():
 @app.route('/position/<vehicle_id>/history', methods=['GET'])
 def get_history(vehicle_id):
 	if vehicle_id not in vehicles:
-		return jsonify({"error": "Veicolo non trovato"}), 404
+		return jsonify({"error": "Vehicle not found"}), 404
 
 	return jsonify({
 		"vehicleId": vehicle_id,
@@ -150,6 +165,14 @@ def get_history(vehicle_id):
 	})
 
 
+# GET /position/all
+# needed for leaflet/graphhopper
+@app.route('/position/all', methods=['GET'])
+def get_all_positions():
+	last_positions = {vehicle_id: vehicles[vehicle_id]["current"] for vehicle_id in tracked_vehicles}
+	return jsonify(last_positions), 200
+
+
 
 if __name__ == "__main__":
-	app.run(debug=True)
+	app.run(debug=True, host='0.0.0.0', port=PORT_FLEET_TRACKING)

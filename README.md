@@ -23,8 +23,11 @@ wget -O service-graphhopper/data/geofabrik_italy-nord-est-260517.osm.pbf https:/
 
 ## Notes
 
-http://localhost:8080/camunda/app/cockpit/  
+Camunda cockpit: http://localhost:8080/camunda/app/cockpit/  
 Login: demo / demo  
+
+GraphHopper routing service: http://localhost:8989/  
+FleetManagement map visualizer: http://localhost:4000/map/  
 
 
 ## Commands
@@ -48,6 +51,19 @@ python3 src/user/user.py cancel u001 v001
 python3 src/user/user.py park u001 v001 s001
 ```
 
+### Debugging
+
+Fetch current ACME database:  
+```bash
+curl localhost/db
+```
+
+
 ## Diagrams
 
 `docs/diagrams/diagram-SOA.uml`: SOA diagram in UML (TinySOA) (to paste in https://www.planttext.com/)  
+
+
+## Refs
+https://leafletjs.com/  
+https://docs.graphhopper.com/openapi/getroute  

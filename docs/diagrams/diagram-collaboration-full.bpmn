@@ -98,7 +98,6 @@
         <bpmn2:flowNodeRef>Event_1f6c1dh</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_00746uo</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_1rf3qak</bpmn2:flowNodeRef>
-        <bpmn2:flowNodeRef>Gateway_1etasnx</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_1hhw63q</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_16b9np2</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_09wm64c</bpmn2:flowNodeRef>
@@ -120,6 +119,7 @@
         <bpmn2:flowNodeRef>Event_13bjvof</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_0s8xva3</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_1edi7pb</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Gateway_1etasnx</bpmn2:flowNodeRef>
         <bpmn2:childLaneSet id="LaneSet_1b892uc">
           <bpmn2:lane id="Lane_19s52vs" name="Automated system">
             <bpmn2:flowNodeRef>Event_08v9rhx</bpmn2:flowNodeRef>
@@ -163,7 +163,6 @@
             <bpmn2:flowNodeRef>Event_1f6c1dh</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Event_00746uo</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Gateway_1rf3qak</bpmn2:flowNodeRef>
-            <bpmn2:flowNodeRef>Gateway_1etasnx</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Event_1hhw63q</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Event_16b9np2</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Event_09wm64c</bpmn2:flowNodeRef>
@@ -184,6 +183,7 @@
             <bpmn2:flowNodeRef>Event_13bjvof</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Gateway_0s8xva3</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Gateway_1edi7pb</bpmn2:flowNodeRef>
+            <bpmn2:flowNodeRef>Gateway_1etasnx</bpmn2:flowNodeRef>
           </bpmn2:lane>
           <bpmn2:lane id="Lane_13e8wrj" name="Human assistance">
             <bpmn2:flowNodeRef>Event_1lh4kem</bpmn2:flowNodeRef>
@@ -220,7 +220,7 @@
     <bpmn2:sequenceFlow id="Flow_1ik2fze" sourceRef="Gateway_0py7o6q" targetRef="Gateway_0hmwj6a" />
     <bpmn2:sequenceFlow id="Flow_0gwsri1" sourceRef="Gateway_0d5h9ei" targetRef="Activity_1u45vh2" />
     <bpmn2:sequenceFlow id="Flow_0ssu50l" sourceRef="Event_0ipqjc2" targetRef="Gateway_1qz9qsj" />
-    <bpmn2:sequenceFlow id="Flow_0krnqzv" sourceRef="Gateway_1etasnx" targetRef="Gateway_1qz9qsj" />
+    <bpmn2:sequenceFlow id="Flow_0krnqzv" sourceRef="Gateway_1etasnx" targetRef="Gateway_0s8xva3" />
     <bpmn2:sequenceFlow id="Flow_1bke38m" sourceRef="Event_1hhw63q" targetRef="Gateway_1rf3qak" />
     <bpmn2:sequenceFlow id="Flow_1vvmp74" sourceRef="Event_0kt26kv" targetRef="Activity_1vz5gma" />
     <bpmn2:sequenceFlow id="Flow_0cjjj7y" sourceRef="Activity_1vz5gma" targetRef="Gateway_0smo2i7" />
@@ -282,11 +282,6 @@
       <bpmn2:outgoing>Flow_1bke38m</bpmn2:outgoing>
       <bpmn2:errorEventDefinition id="ErrorEventDefinition_1a9prod" />
     </bpmn2:boundaryEvent>
-    <bpmn2:parallelGateway id="Gateway_1etasnx">
-      <bpmn2:incoming>Flow_1g83bwb</bpmn2:incoming>
-      <bpmn2:outgoing>Flow_0krnqzv</bpmn2:outgoing>
-      <bpmn2:outgoing>Flow_0nhboox</bpmn2:outgoing>
-    </bpmn2:parallelGateway>
     <bpmn2:exclusiveGateway id="Gateway_1rf3qak">
       <bpmn2:incoming>Flow_03x5c1w</bpmn2:incoming>
       <bpmn2:incoming>Flow_0nhboox</bpmn2:incoming>
@@ -553,7 +548,6 @@
       <bpmn2:incoming>Flow_1itm6cr</bpmn2:incoming>
       <bpmn2:incoming>Flow_1vjldcy</bpmn2:incoming>
       <bpmn2:incoming>Flow_0ssu50l</bpmn2:incoming>
-      <bpmn2:incoming>Flow_0krnqzv</bpmn2:incoming>
       <bpmn2:incoming>Flow_04yc6s9</bpmn2:incoming>
       <bpmn2:outgoing>Flow_1wfc7u4</bpmn2:outgoing>
     </bpmn2:exclusiveGateway>
@@ -566,12 +560,18 @@
       <bpmn2:incoming>Flow_0le1i3b</bpmn2:incoming>
       <bpmn2:incoming>Flow_0x0jlxp</bpmn2:incoming>
       <bpmn2:incoming>Flow_1786sbr</bpmn2:incoming>
+      <bpmn2:incoming>Flow_0krnqzv</bpmn2:incoming>
       <bpmn2:outgoing>Flow_01dwlqr</bpmn2:outgoing>
     </bpmn2:exclusiveGateway>
     <bpmn2:parallelGateway id="Gateway_1edi7pb">
       <bpmn2:incoming>Flow_0aoceos</bpmn2:incoming>
       <bpmn2:outgoing>Flow_0pja5dz</bpmn2:outgoing>
       <bpmn2:outgoing>Flow_0le1i3b</bpmn2:outgoing>
+    </bpmn2:parallelGateway>
+    <bpmn2:parallelGateway id="Gateway_1etasnx">
+      <bpmn2:incoming>Flow_1g83bwb</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_0krnqzv</bpmn2:outgoing>
+      <bpmn2:outgoing>Flow_0nhboox</bpmn2:outgoing>
     </bpmn2:parallelGateway>
     <bpmn2:textAnnotation id="TextAnnotation_19ri2kw">
       <bpmn2:text>Not a terminate end event: manual action could still be running</bpmn2:text>
@@ -1129,7 +1129,8 @@
         <di:waypoint x="290" y="105" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0nhboox_di" bpmnElement="Flow_0nhboox">
-        <di:waypoint x="2230" y="545" />
+        <di:waypoint x="2155" y="500" />
+        <di:waypoint x="2230" y="500" />
         <di:waypoint x="2230" y="775" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_07dtv52_di" bpmnElement="Flow_07dtv52">
@@ -1250,8 +1251,9 @@
         <di:waypoint x="2205" y="800" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0krnqzv_di" bpmnElement="Flow_0krnqzv">
-        <di:waypoint x="2230" y="495" />
-        <di:waypoint x="2230" y="455" />
+        <di:waypoint x="2134" y="479" />
+        <di:waypoint x="2160" y="360" />
+        <di:waypoint x="2295" y="360" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0ssu50l_di" bpmnElement="Flow_0ssu50l">
         <di:waypoint x="2230" y="148" />
@@ -1280,8 +1282,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1g83bwb_di" bpmnElement="Flow_1g83bwb">
         <di:waypoint x="2130" y="562" />
-        <di:waypoint x="2130" y="520" />
-        <di:waypoint x="2205" y="520" />
+        <di:waypoint x="2130" y="525" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_03x5c1w_di" bpmnElement="Flow_03x5c1w">
         <di:waypoint x="2180" y="620" />
@@ -1382,9 +1383,6 @@
         <di:waypoint x="1750" y="440" />
         <di:waypoint x="1705" y="440" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Gateway_08v5osc_di" bpmnElement="Gateway_1etasnx">
-        <dc:Bounds x="2205" y="495" width="50" height="50" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1rf3qak_di" bpmnElement="Gateway_1rf3qak" isMarkerVisible="true">
         <dc:Bounds x="2205" y="775" width="50" height="50" />
       </bpmndi:BPMNShape>
@@ -1456,6 +1454,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0oad8iq_di" bpmnElement="Event_077bmsk">
         <dc:Bounds x="2112" y="242" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_08v5osc_di" bpmnElement="Gateway_1etasnx">
+        <dc:Bounds x="2105" y="475" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_14k9ls8_di" bpmnElement="Activity_14k9ls8" isExpanded="true">
         <dc:Bounds x="760" y="460" width="318" height="260" />
