@@ -157,7 +157,7 @@ def handle_fleet_fetch_battery(task: ExternalTask) -> TaskResult:
 		response	: requests.Response
 	) -> TaskResult:
 		data = response.json()
-		battery_level = data.get(config.CAMUNDA_BATTERY_LEVEL)
+		battery_level = data.get(config.CAMUNDA_BATTERY_PERC)
 		config.logger.info("Received battery level for %s: %s%%", vehicle_id, battery_level)
 		DATABASE.update_vehicle( Vehicle(
 			vehicle_id		= vehicle_id,
@@ -167,7 +167,7 @@ def handle_fleet_fetch_battery(task: ExternalTask) -> TaskResult:
 			current_station	= vehicle.current_station,
 			battery_perc	= battery_level
 		))
-		return task.complete({config.CAMUNDA_BATTERY_LEVEL: battery_level})
+		return task.complete({config.CAMUNDA_BATTERY_PERC: battery_level})
 
 	# set to Maintenance
 	def func_on_error(
@@ -190,7 +190,7 @@ def handle_fleet_fetch_battery(task: ExternalTask) -> TaskResult:
 				"vehicleId": vehicle_id
 			}, timeout	= REQUEST_TIMEOUT_SECONDS),
 		action_name		= "Fetch Fleet Battery Level for " + str(vehicle_id),
-		status_var		= config.CAMUNDA_BATTERY_LEVEL,
+		status_var		= config.CAMUNDA_BATTERY_PERC,
 		func_success	= func_success,
 		func_on_error	= func_on_error
 	)

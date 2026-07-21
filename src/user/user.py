@@ -1,8 +1,9 @@
-import os
 import requests
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
+
+from get_env import get_env_or_exit
 
 
 
@@ -10,48 +11,28 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 
-def get_env_or_exit(key: str) -> str:
-	val = os.environ.get(key)
-	if val is None:
-		print(f"Missing required environment variable (make sure .env is configured in the parent directory): {key}", file=sys.stderr)
-		sys.exit(2)
-	return val
+
+STATION_PREFIX		= get_env_or_exit('STATION_PREFIX')
+STATION_N			= int(get_env_or_exit('STATION_N'))
+STATION_DIGITS		= int(get_env_or_exit('STATION_DIGITS'))
+VEHICLE_PREFIX      = get_env_or_exit('VEHICLE_PREFIX')
+VEHICLE_N			= int(get_env_or_exit('VEHICLE_N'))
+VEHICLE_DIGITS		= int(get_env_or_exit('VEHICLE_DIGITS'))
 
 URL_CAMUNDA_MESSAGE		= get_env_or_exit("URL_CAMUNDA_MESSAGE")
-URL_STATION_01			= get_env_or_exit("URL_STATION_01")
-URL_STATION_02			= get_env_or_exit("URL_STATION_02")
-URL_STATION_03			= get_env_or_exit("URL_STATION_03")
-URL_STATION_04			= get_env_or_exit("URL_STATION_04")
-URL_STATION_05			= get_env_or_exit("URL_STATION_05")
-URL_VEHICLE_01			= get_env_or_exit("URL_VEHICLE_01")
-URL_VEHICLE_02			= get_env_or_exit("URL_VEHICLE_02")
-URL_VEHICLE_03			= get_env_or_exit("URL_VEHICLE_03")
-URL_VEHICLE_04			= get_env_or_exit("URL_VEHICLE_04")
-URL_VEHICLE_05			= get_env_or_exit("URL_VEHICLE_05")
-URL_VEHICLE_06			= get_env_or_exit("URL_VEHICLE_06")
-URL_VEHICLE_07			= get_env_or_exit("URL_VEHICLE_07")
-URL_VEHICLE_08			= get_env_or_exit("URL_VEHICLE_08")
-URL_VEHICLE_09			= get_env_or_exit("URL_VEHICLE_09")
-URL_VEHICLE_10			= get_env_or_exit("URL_VEHICLE_10")
+URL_STATION_PARAM_LOCAL	= get_env_or_exit('URL_STATION_PARAM_LOCAL')
+URL_VEHICLE_PARAM_LOCAL	= get_env_or_exit('URL_VEHICLE_PARAM_LOCAL')
 EP_STATION_HW_INSERT	= get_env_or_exit("ENDPOINT_STATION_HW_INSERT")
 EP_VEHICLE_SIM_THEFT	= get_env_or_exit("ENDPOINT_VEHICLE_SIM_THEFT")
 
-STATION_01_ID = get_env_or_exit("STATION_ID_01")
-STATION_02_ID = get_env_or_exit("STATION_ID_02")
-STATION_03_ID = get_env_or_exit("STATION_ID_03")
-STATION_04_ID = get_env_or_exit("STATION_ID_04")
-STATION_05_ID = get_env_or_exit("STATION_ID_05")
-
-VEHICLE_01_ID	= get_env_or_exit("VEHICLE_ID_01")
-VEHICLE_02_ID	= get_env_or_exit("VEHICLE_ID_02")
-VEHICLE_03_ID	= get_env_or_exit("VEHICLE_ID_03")
-VEHICLE_04_ID	= get_env_or_exit("VEHICLE_ID_04")
-VEHICLE_05_ID	= get_env_or_exit("VEHICLE_ID_05")
-VEHICLE_06_ID	= get_env_or_exit("VEHICLE_ID_06")
-VEHICLE_07_ID	= get_env_or_exit("VEHICLE_ID_07")
-VEHICLE_08_ID	= get_env_or_exit("VEHICLE_ID_08")
-VEHICLE_09_ID	= get_env_or_exit("VEHICLE_ID_09")
-VEHICLE_10_ID	= get_env_or_exit("VEHICLE_ID_10")
+PORT_LOCAL_STATION_MAP = {
+	str(i).zfill(STATION_DIGITS):
+		get_env_or_exit(f'PORT_LOCAL_STATION_{str(i).zfill(STATION_DIGITS)}') for i in range(1, STATION_N + 1)
+}
+PORT_LOCAL_VEHICLE_MAP = {
+	str(i).zfill(VEHICLE_DIGITS):
+		get_env_or_exit(f'PORT_LOCAL_VEHICLE_{str(i).zfill(VEHICLE_DIGITS)}') for i in range(1, VEHICLE_N + 1)
+}
 
 MESSAGE_USER_START_IMMEDIATE	= get_env_or_exit("MESSAGE_USER_START_IMMEDIATE")
 MESSAGE_USER_START_RESERVE		= get_env_or_exit("MESSAGE_USER_START_RESERVE")
@@ -60,28 +41,19 @@ MESSAGE_USER_RESERVE_SCAN		= get_env_or_exit("MESSAGE_USER_RESERVE_SCAN")
 MESSAGE_USER_LOCKED				= get_env_or_exit("MESSAGE_USER_LOCKED")
 MESSAGE_USER_ASSISTANCE_LOCK	= get_env_or_exit("MESSAGE_USER_ASSISTANCE_LOCK")
 
-STATION_ID_URL_MAP = {
-	STATION_01_ID: URL_STATION_01,
-	STATION_02_ID: URL_STATION_02,
-	STATION_03_ID: URL_STATION_03,
-	STATION_04_ID: URL_STATION_04,
-	STATION_05_ID: URL_STATION_05
-}
-
-VEHICLE_ID_URL_MAP = {
-	VEHICLE_01_ID: URL_VEHICLE_01,
-	VEHICLE_02_ID: URL_VEHICLE_02,
-	VEHICLE_03_ID: URL_VEHICLE_03,
-	VEHICLE_04_ID: URL_VEHICLE_04,
-	VEHICLE_05_ID: URL_VEHICLE_05,
-	VEHICLE_06_ID: URL_VEHICLE_06,
-	VEHICLE_07_ID: URL_VEHICLE_07,
-	VEHICLE_08_ID: URL_VEHICLE_08,
-	VEHICLE_09_ID: URL_VEHICLE_09,
-	VEHICLE_10_ID: URL_VEHICLE_10
-}
-
 REQUEST_TIMEOUT_SECONDS = 10
+
+
+def get_vehicle_url(vehicle_id: str) -> str:
+	vehicle_suffix	= vehicle_id.rsplit(f'{VEHICLE_PREFIX}-', 1)[-1]
+	vehicle_number	= vehicle_suffix
+	return URL_VEHICLE_PARAM_LOCAL.replace("{vehiclePort}", PORT_LOCAL_VEHICLE_MAP[vehicle_number])
+
+def get_station_url(station_id: str) -> str:
+	station_suffix = station_id.rsplit(f'{STATION_PREFIX}-', 1)[-1]
+	station_number = station_suffix.rsplit("-", 1)[-1]
+	return URL_STATION_PARAM_LOCAL.replace("{stationPort}", PORT_LOCAL_STATION_MAP[station_number])
+
 
 
 
@@ -112,8 +84,15 @@ def send_message(message_name, vehicle_id, user_id, variables=None):
 def print_usage():
 	print("\nUsage: python user.py <action> <user_id> <vehicle_id> [station_id]")
 	print("Actions: scan, reserve, cancel, scan_reserved, park, lock, lock_assistance, steal")
-	print("Example: python user.py scan u001 v001")
-	print("Example: python user.py park u001 v001 s001\n")
+	print("Example: python user.py scan U-001 V-01")
+	print("Example: python user.py reserve U-001 V-01")
+	print("Example: python user.py cancel U-001 V-01")
+	print("Example: python user.py scan_reserved U-001 V-01")
+	print("Example: python user.py park U-001 V-01 STATION-bologna-01")
+	print("Example: python user.py lock U-001 V-01 STATION-bologna-01")
+	print("Example: python user.py lock_assistance U-001 V-01 STATION-bologna-01")
+	print("Example: python user.py steal U-001 V-01")
+	print("")
 
 
 
@@ -146,7 +125,7 @@ if __name__ == "__main__":
 		station_id = sys.argv[4]
 
 		# Simulate the physical insertion into the station hardware
-		hardware_resp = requests.post(f"{STATION_ID_URL_MAP.get(station_id)}{EP_STATION_HW_INSERT}", timeout=REQUEST_TIMEOUT_SECONDS,
+		hardware_resp = requests.post(f"{get_station_url(station_id)}{EP_STATION_HW_INSERT}", timeout=REQUEST_TIMEOUT_SECONDS,
 			json={
 				"vehicleId": vehicle_id
 			})
@@ -170,7 +149,7 @@ if __name__ == "__main__":
 	elif action == "steal":
 
 		# Simulate theft
-		resp = requests.post(f"{VEHICLE_ID_URL_MAP.get(vehicle_id)}{EP_VEHICLE_SIM_THEFT}", timeout=REQUEST_TIMEOUT_SECONDS,
+		resp = requests.post(f"{get_vehicle_url(vehicle_id)}{EP_VEHICLE_SIM_THEFT}", timeout=REQUEST_TIMEOUT_SECONDS,
 			json={})
 		print(f"Simulate theft response: {resp.status_code} - {resp.text}")
 		if resp.status_code != 200:

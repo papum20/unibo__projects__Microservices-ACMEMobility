@@ -14,17 +14,21 @@ app = Flask(__name__)
 logger = logging.getLogger(__name__)
 
 
-REQUEST_TIMEOUT_SECONDS = 10
+REQUEST_TIMEOUT_SECONDS	= 10
+BATTERY_DISCHARGE_PER_S	= 1.0
 SPEED_KMH				= 30
 THEFT_LATLON_DIFF		= (1, 1)
 THEFT_SPEED_KMH			= 100
 UPDATE_TIMER_S			= 5
 
-# "Firmware" Configuration loaded docker-compose environment
+# "Firmware" Configuration (docker-compose environment)
 VEHICLE_ID		= get_env_or_exit('VEHICLE_ID')
 URL_FLEET		= get_env_or_exit('URL_FLEET')
 URL_GRAPHHOPPER = get_env_or_exit('URL_GRAPHHOPPER')
 PORT_VEHICLES	= int(get_env_or_exit('PORT_VEHICLES'))
+ENDPOINT_FLEET_BATTERY_PARAM	= get_env_or_exit('ENDPOINT_FLEET_BATTERY_PARAM')
+ENDPOINT_FLEET_POSITION_PARAM	= get_env_or_exit('ENDPOINT_FLEET_POSITION_PARAM')
+
 STATION_ID_01	= get_env_or_exit('URL_STATION_01')
 STATION_ID_02	= get_env_or_exit('URL_STATION_02')
 STATION_ID_03	= get_env_or_exit('URL_STATION_03')
@@ -70,6 +74,9 @@ last_latlon		= route_start_latlon
 last_time_s		= 0
 last_route_idx	= 0
 last_speed_kmh	= 0
+
+# state for battery
+battery_perc	= 100.0
 
 
 
@@ -183,7 +190,7 @@ def update_position(latlon, speed_kmh, status: str, time_epoch_s: float) -> bool
 	}
 
 	try:
-		target_url = f"{URL_FLEET}/tracking/position/{VEHICLE_ID}"
+		target_url = f"{URL_FLEET}/{ENDPOINT_FLEET_POSITION_PARAM.replace('{vehicleId}', VEHICLE_ID)}"
 		response = requests.post(target_url, json=payload, timeout=REQUEST_TIMEOUT_SECONDS)
 
 		if response.status_code in [200, 204]:
@@ -192,8 +199,31 @@ def update_position(latlon, speed_kmh, status: str, time_epoch_s: float) -> bool
 		else:
 			logger.error("[%s] Fleet Tracking rejected data: %s", VEHICLE_ID, response.text)
 	except Exception as e:
-		logger.error("[%s] Network error: %s", VEHICLE_ID, e)
+		logger.error("[%s] Fleet Tracking network error: %s", VEHICLE_ID, e)
 	return False
+
+def update_battery(battery_perc, time_epoch_s: float) -> bool:
+	"""
+	@return True in case of success
+	"""
+	payload = {
+		"battery"	: battery_perc,
+		"timeEpochS": time_epoch_s
+	}
+
+	try:
+		target_url = f"{URL_FLEET}/{ENDPOINT_FLEET_BATTERY_PARAM.replace('{vehicleId}', VEHICLE_ID)}"
+		response = requests.post(target_url, json=payload, timeout=REQUEST_TIMEOUT_SECONDS)
+
+		if response.status_code in [200, 204]:
+			logger.info("[%s] Pushed battery data to %s", VEHICLE_ID, target_url)
+			return True
+		else:
+			logger.error("[%s] Fleet Battery rejected data: %s", VEHICLE_ID, response.text)
+	except Exception as e:
+		logger.error("[%s] Fleet Battery network error: %s", VEHICLE_ID, e)
+	return False
+
 
 # Makes a vehicle start moving without ACME knowing
 @app.route('/simulate/force_move', methods=['POST'])
@@ -219,6 +249,7 @@ def tracking_loop():
 	global last_route_idx
 	global last_speed_kmh
 	global last_time_s
+	global battery_perc
 	
 	while True:
 		if is_tracking:
@@ -229,24 +260,27 @@ def tracking_loop():
 			next_dist		= 0
 			next_latlon		= last_latlon
 
-			while True:
-				if last_route_idx == len(route_coordinates) - 1:
-					logger.info("[%s] Reached route end.", VEHICLE_ID)
-					break
-				
-				next_latlon = (
-					route_coordinates[last_route_idx][1],
-					route_coordinates[last_route_idx][0]
-				)
-				# expects (lat, lon)
-				next_dist	= geodesic(last_latlon, next_latlon).kilometers
+			if battery_perc <= 0:
+				logger.warning("[%s] Battery at 0%%. Stopping tracking.", VEHICLE_ID)
+			else:
+				while True:
+					if last_route_idx == len(route_coordinates) - 1:
+						logger.warning("[%s] Reached route end.", VEHICLE_ID)
+						break
+					
+					next_latlon = (
+						route_coordinates[last_route_idx][1],
+						route_coordinates[last_route_idx][0]
+					)
+					# expects (lat, lon)
+					next_dist	= geodesic(last_latlon, next_latlon).kilometers
 
-				if next_dist < dist_at_speed:
-					# move to next point and keep checking
-					last_route_idx += 1
-				else:
-					# next point is too far, stay at last_latlon
-					break
+					if next_dist < dist_at_speed:
+						# move to next point and keep checking
+						last_route_idx += 1
+					else:
+						# next point is too far, stay at last_latlon
+						break
 
 
 			speed_kmh	= next_dist / diff_time * 3600 if diff_time > 0 else 0
@@ -257,7 +291,13 @@ def tracking_loop():
 			last_latlon		= next_latlon
 			last_speed_kmh	= speed_kmh
 			last_time_s		= curr_time
-				
+
+			# battery
+			battery_diff	= BATTERY_DISCHARGE_PER_S * diff_time
+			battery_perc	= max(0, battery_perc - battery_diff)
+
+			update_battery(battery_perc, curr_time)
+
 		time.sleep(UPDATE_TIMER_S)
 
 

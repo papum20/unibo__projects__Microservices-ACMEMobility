@@ -1,5 +1,5 @@
 # Microservices-ACMEMobility
-Project for the Microservice Architecture course at University of Bologna 2025/2026. ACMEMobility: vehicle renting and sharing service.
+Project for the Microservice Architecture course at University of bologna 2025/2026. ACMEMobility: vehicle renting and sharing service.
 
 ## Requirements
 
@@ -44,11 +44,14 @@ Stop all services:
 
 Launch commands as user:
 ```bash
-python3 src/user/user.py scan u001 v001
-python3 src/user/user.py reserve u001 v001
-python3 src/user/user.py scan_reserved u001 v001
-python3 src/user/user.py cancel u001 v001
-python3 src/user/user.py park u001 v001 s001
+python3 src/user/user.py scan USER-001 V-01
+python3 src/user/user.py reserve USER-001 V-01
+python3 src/user/user.py cancel USER-001 V-01
+python3 src/user/user.py scan_reserved USER-001 V-01
+python3 src/user/user.py park USER-001 V-01 STATION-bologna-01
+python3 src/user/user.py lock USER-001 V-01 STATION-bologna-01
+python3 src/user/user.py lock_assistance USER-001 V-01 STATION-bologna-01
+python3 src/user/user.py steal USER-001 V-01
 ```
 
 ### Debugging
@@ -56,6 +59,15 @@ python3 src/user/user.py park u001 v001 s001
 Fetch current ACME database:  
 ```bash
 curl localhost/db
+```
+
+Fetch a station's info:
+```bash
+curl localhost:5001/station
+curl localhost:5002/station
+curl localhost:5003/station
+curl localhost:5004/station
+curl localhost:5005/station
 ```
 
 

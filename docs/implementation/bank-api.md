@@ -10,7 +10,7 @@ The Bank Service is implemented in Jolie and exposes the same business logic thr
 
 ---
 
-## 1. Pre-Authorization (`preAuth`)
+## Pre-Authorization (`preAuth`)
 Blocks a specified amount on the user's card as a caution/deposit. Returns a unique transaction token.
 
 *   **REST Endpoint:** `POST /preAuth`
@@ -43,7 +43,7 @@ Blocks a specified amount on the user's card as a caution/deposit. Returns a uni
 
 ---
 
-## 2. Charge (`charge`)
+## Charge (`charge`)
 Captures the final rental cost from the previously blocked caution.
 
 *   **REST Endpoint:** `POST /charge`
@@ -64,7 +64,7 @@ Captures the final rental cost from the previously blocked caution.
 
 ---
 
-## 3. Unlock Caution (`unlock`)
+## Unlock Caution (`unlock`)
 Releases the remaining uncharged funds from the pre-authorization block. Used at the normal end of a rental after the charge is complete.
 
 *   **REST Endpoint:** `POST /unlock`
@@ -84,7 +84,7 @@ Releases the remaining uncharged funds from the pre-authorization block. Used at
 
 ---
 
-## 4. Cancel Authorization (`convertCaution`)
+## Cancel Authorization (`convertCaution`)
 Converts the entire pre-authorized caution into a charge. Used when a user incurs a penalty (e.g., late cancellation or no-show).
 
 *   **REST Endpoint:** `POST /convertCaution`

@@ -27,6 +27,12 @@ services:
   camunda:
     build: ./camunda
     container_name: acme-camunda
+    environment:
+      # these variables set the database to be in memory, so that it is reset every time
+      # the container is restarted (useful so that all processes get cleaned and don't interfere)
+      - DB_URL=jdbc:h2:mem:camunda;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+      - DB_USERNAME=sa
+      - DB_PASSWORD=
     ports:
       - "${PORT_LOCAL_CAMUNDA}:${PORT_CAMUNDA}"
     volumes:
@@ -107,32 +113,42 @@ services:
 
   # 5-10 stations
 
-  station-BOLOGNA-01:
+  station-bologna-01:
     # Merge all properties from station-template
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_01}
     environment:
       - STATION_ID=${STATION_PREFIX}-${STATION_SUFFIX_01}
-  station-BOLOGNA-02:
+    ports:
+      - "${PORT_LOCAL_STATION_01}:${PORT_STATIONS}"
+  station-bologna-02:
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_02}
     environment:
       - STATION_ID=${STATION_PREFIX}-${STATION_SUFFIX_02}
-  station-BOLOGNA-03:
+    ports:
+      - "${PORT_LOCAL_STATION_02}:${PORT_STATIONS}"
+  station-bologna-03:
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_03}
     environment:
       - STATION_ID=${STATION_PREFIX}-${STATION_SUFFIX_03}
-  station-BOLOGNA-04:
+    ports:
+      - "${PORT_LOCAL_STATION_03}:${PORT_STATIONS}"
+  station-bologna-04:
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_04}
     environment:
       - STATION_ID=${STATION_PREFIX}-${STATION_SUFFIX_04}
-  station-BOLOGNA-05:
+    ports:
+      - "${PORT_LOCAL_STATION_04}:${PORT_STATIONS}"
+  station-bologna-05:
     <<: *station-template
     container_name: acme-station-${STATION_SUFFIX_05}
     environment:
       - STATION_ID=${STATION_PREFIX}-${STATION_SUFFIX_05}
+    ports:
+      - "${PORT_LOCAL_STATION_05}:${PORT_STATIONS}"
 
 
   # 10 vehicles

@@ -1,6 +1,8 @@
 .vscode
 *.pbf
 
+__pycache__
+
 src/service-graphhopper/data/*
 !.gitkeep
 

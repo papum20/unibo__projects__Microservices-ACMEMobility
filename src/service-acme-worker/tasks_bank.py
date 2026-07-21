@@ -48,7 +48,7 @@ def handle_bank_preauth(task: ExternalTask) -> TaskResult:
 		
 		if token_element is not None:
 			token   = token_element.text
-			success = (success_element.text == 'true')  # type: ignore
+			success	= (success_element.text == 'true')  # type: ignore
 			
 			config.logger.info("Bank PreAuth Success! Token: %s", token)
 			
@@ -84,7 +84,7 @@ def handle_bank_charge(task: ExternalTask) -> TaskResult:
 	soap_body	= get_soap_body(
 		f"""<{config.EP_BANK_CHARGE}>
 			<token>{token}</token>
-			<amount>{amount}</amount>
+			<finalAmount>{amount}</finalAmount>
 		</{config.EP_BANK_CHARGE}>""")
 
 	def func_success(
@@ -93,18 +93,18 @@ def handle_bank_charge(task: ExternalTask) -> TaskResult:
 		response	: requests.Response
 	) -> TaskResult:
 		root = ET.fromstring(response.content)
-		status_element = root.find(".//status")
+		status_element = root.find(".//success")
 		
 		if status_element is not None:
-			status = status_element.text
-			config.logger.info("Bank Charge Status: %s", status)
+			success = status_element.text
+			config.logger.info("Bank Charge Status: %s", success)
 			
-			return task.complete({config.CAMUNDA_STATUS_PAYMENT: status})
+			return task.complete({config.CAMUNDA_STATUS_PAYMENT: success})
 		else:
-			config.logger.error("Bank Charge failed! Could not find <status> in SOAP response.")
+			config.logger.error("Bank Charge failed! Could not find <success> in SOAP response.")
 			return task.bpmn_error(
 				error_code		= "Parse Error",
-				error_message	= "Could not find <status> in SOAP response",
+				error_message	= "Could not find <success> in SOAP response",
 				variables		= {config.CAMUNDA_STATUS_PAYMENT: "Error"}
 			)
 
@@ -188,18 +188,18 @@ def handle_bank_convert_caution(task: ExternalTask) -> TaskResult:
 		response	: requests.Response
 	) -> TaskResult:
 		root = ET.fromstring(response.content)
-		status_element = root.find(".//status")
+		status_element = root.find(".//success")
 		
 		if status_element is not None:
-			status = status_element.text
-			config.logger.info("Bank Convert Caution Status: %s", status)
+			success = status_element.text
+			config.logger.info("Bank Convert Caution Success: %s", success)
 			
-			return task.complete({config.CAMUNDA_STATUS_CONVERT_CAUTION: status})
+			return task.complete({config.CAMUNDA_STATUS_CONVERT_CAUTION: success})
 		else:
-			config.logger.error("Bank Convert Caution failed! Could not find <status> in SOAP response.")
+			config.logger.error("Bank Convert Caution failed! Could not find <success> in SOAP response.")
 			return task.bpmn_error(
 				error_code		= "Parse Error",
-				error_message	= "Could not find <status> in SOAP response",
+				error_message	= "Could not find <success> in SOAP response",
 				variables		= {config.CAMUNDA_STATUS_CONVERT_CAUTION: "Error"}
 			)
 

@@ -2,7 +2,7 @@
 
 As per the architectural constraints, Fleet Management is a composite microservice consisting of a Tracking Service and a Battery/State Monitoring Service.
 
-## Domain A: Tracking Service
+## Domain 1: Tracking Service
 Responsible for tracking the real-time geographical position and movement state of the vehicles.
 *   **Base URL:** `http://<fleet-tracking-host>:<PORT_FLEET>`
 
@@ -120,7 +120,7 @@ Upload the vehicle's current location.
 
 ---
 
-## Domain B: Battery & State Service
+## Domain 2: Battery & State Service
 Responsible for monitoring vehicle status, information and health (mostly battery level).
 *   **Base URL:** `http://<fleet-battery-host>:4002`
 

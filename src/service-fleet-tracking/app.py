@@ -6,6 +6,7 @@ import requests
 
 from db import DATABASE
 from get_env import get_env_or_exit
+from util import get_vehicle_url
 
 
 
@@ -29,12 +30,6 @@ vehicles = {}
 
 # currently tracked vehicles
 tracked_vehicles = set()
-
-
-
-def get_vehicle_url(vehicle_id: str) -> str:
-	vehicle_suffix = vehicle_id.rsplit(f'{VEHICLE_PREFIX}-', 1)[-1]
-	return URL_VEHICLE_PARAM.replace("{vehicleSuffix}", vehicle_suffix)
 
 
 

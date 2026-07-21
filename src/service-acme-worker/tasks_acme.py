@@ -73,7 +73,7 @@ def handle_check_cancellation_delay(task: ExternalTask) -> TaskResult:
 		logger.info("Reservation was made at %s. Now is %s. Delay: %.2f min", reserve_datetime, now, diff_minutes)
 
 		# Return 'cancelMinutes' back to Camunda
-		return task.complete({"cancelMinutes": diff_minutes})
+		return task.complete({config.CAMUNDA_CANCEL_MINUTES: diff_minutes})
 
 	except Exception as e:
 		logger.error("Error calculating delay: %s", e)
@@ -87,18 +87,18 @@ def handle_calculate_charge(task: ExternalTask) -> TaskResult:
 	# In a real app, you'd calculate time difference here.
 	base_cost = 15.00 # Simulated base cost for the ride
 	
-	return task.complete({"baseAmount": base_cost, "finalAmountToCharge": base_cost})
+	return task.complete({config.CAMUNDA_AMOUNT_BASE: base_cost, config.CAMUNDA_AMOUNT_TO_CHARGE: base_cost})
 
 
 def handle_add_penalty(task: ExternalTask) -> TaskResult:
 	"""Topic: apply-penalty (add 10% penalty)"""
 	logger.info("Applying 10% battery penalty")
 	
-	base_cost = task.get_variable("baseAmount") or 15.00
+	base_cost = task.get_variable(config.CAMUNDA_AMOUNT_BASE) or 15.00
 	penalty = base_cost * 0.10
 	final_amount = base_cost + penalty
 	
-	return task.complete({"finalAmountToCharge": final_amount, "penaltyApplied": True})
+	return task.complete({config.CAMUNDA_AMOUNT_TO_CHARGE: final_amount, config.CAMUNDA_PENALTY_APPLIED: True})
 
 
 def handle_rejection(task: ExternalTask) -> TaskResult:

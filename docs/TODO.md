@@ -33,3 +33,6 @@
 
 *	add stations on map
 *	test all, all paths
+*	fleets: use db
+*	fetch fleet db, vehicle info
+*	bash scripts for automatic tests
