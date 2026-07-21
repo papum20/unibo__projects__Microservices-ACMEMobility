@@ -41,7 +41,10 @@ def handle_reserve_vehicle(task: ExternalTask) -> TaskResult:
 	
 	# Save the trusted time into the Camunda process
 	logger.info("Reservation time securely set to: %s", {trusted_now})
-	return task.complete({config.CAMUNDA_RESERVE_TIME: trusted_now})
+	return task.complete({
+		config.CAMUNDA_RESERVE_TIME:			trusted_now,
+		config.CAMUNDA_CANCELLATION_TIMEOUT:	config.CANCELLATION_TIMEOUT,
+	})
 
 def handle_check_cancellation_delay(task: ExternalTask) -> TaskResult:
 	logger.info("Checking cancellation delay...")
@@ -70,10 +73,26 @@ def handle_check_cancellation_delay(task: ExternalTask) -> TaskResult:
 		diff = now - reserve_datetime
 		diff_minutes = diff.total_seconds() / 60
 
-		logger.info("Reservation was made at %s. Now is %s. Delay: %.2f min", reserve_datetime, now, diff_minutes)
+		logger.info("Reservation was made at %s. Now is %s. Delay: %.2f min. Penalty at %d remaining minutes.", reserve_datetime, now, diff_minutes, config.PENALTY_CANCELLATION_MINUTES)
+
+		# set the vehicle to available again
+		vehicle_id	= task.get_variable(config.CAMUNDA_VEHICLE_ID)
+		vehicle		= DATABASE.get_vehicle(vehicle_id)
+
+		if vehicle is None:
+			config.logger.error("Vehicle %s not found!", vehicle_id)
+		else:
+			DATABASE.update_vehicle( Vehicle(
+				vehicle_id		= vehicle_id,
+				status			= Vehicle.Status.AVAILABLE,
+				reserved_by		= None,
+				rented_by		= None,
+				current_station	= vehicle.current_station,
+				battery_perc	= vehicle.battery_perc
+			))
 
 		# Return 'cancelMinutes' back to Camunda
-		return task.complete({config.CAMUNDA_CANCEL_MINUTES: diff_minutes})
+		return task.complete({config.CAMUNDA_CANCEL_MINUTES: config.PENALTY_CANCELLATION_MINUTES - diff_minutes})
 
 	except Exception as e:
 		logger.error("Error calculating delay: %s", e)

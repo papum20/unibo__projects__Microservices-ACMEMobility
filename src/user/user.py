@@ -41,6 +41,8 @@ MESSAGE_USER_RESERVE_SCAN		= get_env_or_exit("MESSAGE_USER_RESERVE_SCAN")
 MESSAGE_USER_LOCKED				= get_env_or_exit("MESSAGE_USER_LOCKED")
 MESSAGE_USER_ASSISTANCE_LOCK	= get_env_or_exit("MESSAGE_USER_ASSISTANCE_LOCK")
 
+CAMUNDA_TIMER_EVENT_ID = "Event_0s7sh38"
+
 REQUEST_TIMEOUT_SECONDS = 10
 
 
@@ -83,15 +85,16 @@ def send_message(message_name, vehicle_id, user_id, variables=None):
 
 def print_usage():
 	print("\nUsage: python user.py <action> <user_id> <vehicle_id> [station_id]")
-	print("Actions: scan, reserve, cancel, scan_reserved, park, lock, lock_assistance, steal")
+	print("Actions: scan, reserve, cancel, scan_reserved, park, lock, lock_assistance, steal, force_timeout")
 	print("Example: python user.py scan U-001 V-01")
 	print("Example: python user.py reserve U-001 V-01")
 	print("Example: python user.py cancel U-001 V-01")
 	print("Example: python user.py scan_reserved U-001 V-01")
 	print("Example: python user.py park U-001 V-01 STATION-bologna-01")
 	print("Example: python user.py lock U-001 V-01 STATION-bologna-01")
-	print("Example: python user.py lock_assistance U-001 V-01 STATION-bologna-01")
+	print("Example: python user.py lock_assistance U-001 V-01")
 	print("Example: python user.py steal U-001 V-01")
+	print("Example: python user.py force_timeout U-001 V-01")
 	print("")
 
 
@@ -154,6 +157,26 @@ if __name__ == "__main__":
 		print(f"Simulate theft response: {resp.status_code} - {resp.text}")
 		if resp.status_code != 200:
 			sys.exit(1)
+
+	elif action == "force_timeout":
+		# Ask Camunda for any active jobs matching the vehicle's Business Key and the Timer Event ID
+		jobs_url = f"http://localhost:8080/engine-rest/job?processInstanceBusinessKey={vehicle_id}&activityId={CAMUNDA_TIMER_EVENT_ID}"
+
+		try:
+			resp = requests.get(jobs_url, timeout=REQUEST_TIMEOUT_SECONDS)
+			jobs = resp.json()
+			
+			if jobs:
+				job_id = jobs[0]["id"]
+				# Force Camunda to execute the timer job immediately
+				execute_url = f"http://localhost:8080/engine-rest/job/{job_id}/execute"
+				requests.post(execute_url, timeout=REQUEST_TIMEOUT_SECONDS)
+				print("Success: Forced 30-minute timeout to expire immediately.")
+			else:
+				print("No active 30-minute reservation timer found.")
+				
+		except Exception as e:
+			print(f"Failed to communicate with Camunda: {e}")
 
 	else:
 		print("Unknown action.")

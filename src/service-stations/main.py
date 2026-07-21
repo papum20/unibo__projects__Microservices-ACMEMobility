@@ -6,6 +6,7 @@
 
 import logging
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import uvicorn
 
@@ -73,31 +74,33 @@ class ParkRequest(BaseModel):
 # Controllo stato del servizio
 @app.get("/health")
 def health():
-	return {"status": "running", "stationId": STATION_ID, "stationName": STATION_NAME}
+	return {"status": "running", "stationId": STATION_ID, "stationName": STATION_NAME}, 200
 
 # Restituisce le informazioni della stazione e i suoi veicoli
 @app.get("/station")
 def get_station():
-	return station
+	return station, 200
 
 # Sblocca un veicolo (inizio noleggio) - cambia stato in 'rented'
 @app.post("/vehicle/unlock")
 def unlock_vehicle(req: UnlockRequest):
 	# Controlla se il veicolo esiste in questa stazione
 	if req.vehicleId not in vehicles:
-		return {
+		logger.error("[STATION %s] Vehicle %s not found!", STATION_ID, req.vehicleId)
+		return JSONResponse(status_code=404, content={
 			"success": False,
 			"message": f"Vehicle {req.vehicleId} not found at station {STATION_ID}"
-		}
+		})
 
 	vehicle = vehicles[req.vehicleId]
 
 	# Controlla se il veicolo è disponibile o prenotato
-	if vehicle["status"] != VehicleStatus.PARKED.name:
-		return {
+	if vehicle["status"] != VehicleStatus.LOCKED.name:
+		logger.error("[STATION %s] Vehicle %s is not available (status: %s)", STATION_ID, req.vehicleId, vehicle["status"])
+		return JSONResponse(status_code=400, content={
 			"success": False,
 			"message": f"Vehicle {req.vehicleId} is not available (status: {vehicle['status']})"
-		}
+		})
 
 	# Sblocca il veicolo
 	vehicles.pop(req.vehicleId)
@@ -116,19 +119,21 @@ def unlock_vehicle(req: UnlockRequest):
 def lock_vehicle(req: LockRequest):
 	# Controlla se il veicolo esiste in questa stazione
 	if req.vehicleId not in vehicles:
-		return {
+		logger.error("[STATION %s] Vehicle %s not found!", STATION_ID, req.vehicleId)
+		return JSONResponse(status_code=404, content={
 			"success": False,
 			"message": f"Vehicle {req.vehicleId} not found at station {STATION_ID}"
-		}
+		})
 
 	vehicle = vehicles[req.vehicleId]
 
 	# Controlla se il veicolo è attualmente noleggiato
 	if vehicle["status"] != VehicleStatus.PARKED.name:
-		return {
+		logger.error("[STATION %s] Vehicle %s is not currently parked (status: %s)", STATION_ID, req.vehicleId, vehicle["status"])
+		return JSONResponse(status_code=400, content={
 			"success": False,
-			"message": f"Vehicle {req.vehicleId} is not currently rented (status: {vehicle['status']})"
-		}
+			"message": f"Vehicle {req.vehicleId} is not currently parked (status: {vehicle['status']})"
+		})
 
 	# Ripristina lo stato e aggiorna la batteria se fornita
 	vehicle["status"] = VehicleStatus.LOCKED.name

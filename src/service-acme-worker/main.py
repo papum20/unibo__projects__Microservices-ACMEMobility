@@ -7,7 +7,8 @@ from server import run_server
 from tasks_bank import (
 	handle_bank_preauth,
 	handle_bank_charge,
-	handle_bank_unlock_caution
+	handle_bank_unlock_caution,
+	handle_bank_convert_caution
 )
 from tasks_stations import (
 	handle_station_unlock,
@@ -35,7 +36,7 @@ TOPIC_MAP = {
 	config.TOPIC_BANK_PREAUTH				: handle_bank_preauth,
 	config.TOPIC_BANK_CHARGE				: handle_bank_charge,
 	config.TOPIC_BANK_UNLOCK_CAUTION		: handle_bank_unlock_caution,
-	config.TOPIC_BANK_CONVERT_CAUTION		: handle_bank_charge,
+	config.TOPIC_BANK_CONVERT_CAUTION		: handle_bank_convert_caution,
 	config.TOPIC_STATION_UNLOCK				: handle_station_unlock,
 	config.TOPIC_STATION_LOCK				: handle_station_lock,
 	config.TOPIC_FLEET_TRACK_INFO			: handle_fleet_track_info,

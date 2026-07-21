@@ -133,7 +133,7 @@ Retrieves the current battery percentage of the vehicle.
 ```json
 {
   "vehicleId": "V-123",
-  "batteryLevel": 12
+  "battery": 12
 }
 ```
 

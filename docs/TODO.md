@@ -18,16 +18,6 @@
 		3.  **The 30-Minute Rule:** Reserve a vehicle -> Wait 31 minutes (simulated). *Check: Does the system automatically cancel and charge the 10€ deposit?*
 		4.  **The Cancellation Path:** Reserve -> Cancel after 2 minutes. *Check: Is it free?* Cancel after 6 minutes. *Check: Is the 10€ charged?*
 
-*	db (for test)
-*	graphhopper, leaflet
-*	additional serice (leaflet) (in diagram)
-*	updated bpmn images
-*	debugging bpmn
-	*	instructions
-*	our names
-*	instructions (urls...)
-*	other testing endpoints (eg simulate theft, change end)
-
 
 ## other
 
@@ -36,3 +26,5 @@
 *	fleets: use db
 *	fetch fleet db, vehicle info
 *	bash scripts for automatic tests
+*	add descriptions to tests
+*	error user already rented

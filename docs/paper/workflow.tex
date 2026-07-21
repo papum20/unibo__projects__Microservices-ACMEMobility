@@ -14,7 +14,15 @@ Per Camunda è stato modellato un altro diagramma di collaborazione eseguibile\\
 (file \mbox{\textit{src/camunda-resources/diagram-collaboration-camunda.bpmn}}),
 con la principale differenza che non implementa nel dettaglio tutti i
 partecipanti, ma solo il servizio principale di ACMEMobility, che era richiesto
-che fosse gestito tramite BPMS.\\
+che fosse gestito tramite BPMS.\@Esiste anche un altro diagramma eseguibile di
+debugging (file
+\mbox{\textit{src/camunda-resources-debug/diagram-collaboration-camunda-debug.bpmn}}),
+che presenta degli \textit{user task} prima di ogni end task, per semplificare
+l'osservazione manuale dei processi: poiché i due diagrammi eseguibili sono per
+il resto identici (hanno le stesse variabili, etc.), si possono scambiare
+direttamente dal file di \textit{docker-compose}
+(\mbox{\textit{docker-compose.template.yml}}), selezionando la cartella
+opportuna come volume per il servizio di \textit{Camunda}.\\
 Successivamente, sono stati realizzati un diagramma di documentazione della SOA
 in UML, con profilo TinySOA (file \mbox{\textit{docs/diagrams/diagram-SOA.uml}}
 e \mbox{\textit{docs/diagrams/diagram-SOA-UML.uml}}), e una coreografia con
@@ -37,11 +45,15 @@ I servizi implementati, invece, sono:
 		\item Fleet Management Tracking (\textit{src/service-fleet-tracking/}):
 		microservizio per gestire posizione e informazioni aggiuntive dei
 		veicoli, in \textit{python} con \textit{Flask};
+		\item Fleet Management Visualizer
+		(\textit{src/service-fleet-visualizer/}): semplice file \textit{html}
+		per visualizzare una mappa con spostamenti in tempo reale (implementata
+		tramite la libreria javascript \textit{leaflet}), servito come
+		pagina statica da \textit{Nginx};
 	\end{itemize}
 	\item grapphopper (\textit{src/service-graphhopper/}): routing service per
 	fornire dei percorsi reali ai veicoli, date posizione di partenza e
-	destinazione, nonché per visualizzarli in tempo reale; configurato con il
-	container \textit{docker} già esistente;
+	destinazione; configurato con il container \textit{docker} già esistente;
 	\item station (\textit{src/service-stations/}): implementazione di una
 	singola stazione, in \textit{python} con \textit{Flast};
 	\item vehicle (\textit{src/service-vehicle/}): implementazione di un singolo

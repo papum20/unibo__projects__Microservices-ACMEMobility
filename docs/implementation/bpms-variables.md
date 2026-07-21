@@ -8,7 +8,7 @@ Global variables used inside Camunda, in processes, choice branches etc.
 *	**`userId`** (*String*): The unique identifier of the user performing the action. This simulates the user authentication (e.g. to fetch his saved credit card).  
 *   **`vehicleId`** (*String*): The unique identifier of the rented vehicle. Used as the Business Key to correlate messages.
 
-#### Bank & Payment Variables (Jolie Integration)
+#### Bank & Payment Variables (Jolie service)
 *   **`amountToCharge`** (*Double*): The final calculated cost of the rental, sent to the Bank during the charge phase.
 *   **`bankToken`** (*String*): The secure authorization token returned by the Jolie Bank service after a successful pre-authorization.
 *   **`statusCautionBlocked`** / **`statusCautionUnlocked`** (*Boolean*): `True` if the (10€) caution was successfully held / unlocked by the bank.
@@ -25,6 +25,9 @@ Global variables used inside Camunda, in processes, choice branches etc.
 *   **`statusVehicleUnlocked`** / **`statusVehicleLocked`** (*Boolean*): Flags confirming successful physical interaction with the Station service.
 
 #### Internal Business Logic Variables
-*   **`cancelMinutes`** (*Double*): The calculated time difference (in minutes) between the `reserveTime` and the moment the user cancels. Used in the gateway to decide if a penalty applies.
 *   **`amountBase`** (*Double*): The standard cost of the ride based on time/distance.
+*	**`batteryLowThreshold`** (*Integer*): battery percentage threshold below which a vehicle is considered low on battery and incurs a penalty.
+*	**`cancellationTimeout`** (*Integer*): timeout (in minutes) after which a reservation is automatically canceled if not confirmed by the user.
+*   **`cancelMinutes`** (*Double*): the minutes remaining from the time limit for cancellation (from the reservation to the cancellation moment): below a certain threshold, a penalty will be triggered.
 *   **`penaltyApplied`** (*Boolean*): `True` if the `batteryLevel` was < 15%, triggering the 10% penalty rule.
+*	**`pollingDelay`** (*Integer*): delay (in seconds) for polling the Camunda engine for job execution.

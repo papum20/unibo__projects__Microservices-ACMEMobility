@@ -7,11 +7,40 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         #map { height: 100vh; width: 100vw; margin: 0; padding: 0; }
-        body { margin: 0; }
+        body { margin: 0; font-family: Arial, sans-serif; }
+        .info-box {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .legend {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .legend span {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
+    <div class="info-box">
+        <h3 style="margin-top: 0; margin-bottom: 10px;">ACME Live Map</h3>
+        <p style="margin: 0;">Active Vehicles: <b id="vehicle-count">0</b></p>
+        <div class="legend">
+            <div><span style="background: #2A81CB;"></span> Moving Vehicle</div>
+            <div><span style="background: #FF0033;"></span> Charging Station</div>
+        </div>
+    </div>
 
     <script>
         // Initialize the map, centered on Bologna, Italy
@@ -23,6 +52,27 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
+        const acmeStations = [
+            { id: "STATION-bologna-01", name: "Stazione Centrale", lat: 44.5058, lon: 11.3429 },
+            { id: "STATION-bologna-02", name: "Piazza Maggiore", lat: 44.4938, lon: 11.3430 },
+            { id: "STATION-bologna-03", name: "Universita", lat: 44.4973, lon: 11.3535 },
+            { id: "STATION-bologna-04", name: "Fiera", lat: 44.5091, lon: 11.3680 },
+            { id: "STATION-bologna-05", name: "Aeroporto", lat: 44.5354, lon: 11.2887 }
+        ];
+
+        // Draw the stations on the map as Red Circles
+        acmeStations.forEach(st => {
+            L.circleMarker([st.lat, st.lon], {
+                color: 'red',
+                fillColor: '#f03',
+                fillOpacity: 0.8,
+                radius: 8,
+                weight: 2
+            }).addTo(map)
+            .bindPopup(`<b>${st.name}</b><br><small>${st.id}</small>`);
+        });
+
+
         // Object to store markers by vehicle ID
         var markers = {};
 
@@ -33,7 +83,10 @@
                 let response = await fetch('http://localhost:4000/tracking/position/all');
                 let vehicles = await response.json();
 
+                let activeCount = 0;
+
                 for (let vid in vehicles) {
+                    activeCount++;
                     let lat = parseFloat(vehicles[vid].latitude);
                     let lon = parseFloat(vehicles[vid].longitude);
 
@@ -53,6 +106,9 @@
                             .openPopup();
                     }
                 }
+
+                document.getElementById("vehicle-count").innerText = activeCount;
+
             } catch (error) {
                 console.error("Error fetching vehicle data:", error);
             }

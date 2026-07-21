@@ -50,8 +50,9 @@ python3 src/user/user.py cancel USER-001 V-01
 python3 src/user/user.py scan_reserved USER-001 V-01
 python3 src/user/user.py park USER-001 V-01 STATION-bologna-01
 python3 src/user/user.py lock USER-001 V-01 STATION-bologna-01
-python3 src/user/user.py lock_assistance USER-001 V-01 STATION-bologna-01
+python3 src/user/user.py lock_assistance USER-001 V-01
 python3 src/user/user.py steal USER-001 V-01
+python3 src/user/user.py force_timeout USER-001 V-01
 ```
 
 ### Debugging

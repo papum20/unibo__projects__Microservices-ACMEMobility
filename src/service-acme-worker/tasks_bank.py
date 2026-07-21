@@ -1,3 +1,4 @@
+import logging
 import requests
 import xml.etree.ElementTree as ET
 from camunda.external_task.external_task import ExternalTask, TaskResult
@@ -10,6 +11,8 @@ from util import (
 	soap_request,
 )
 
+
+logger = logging.getLogger(__name__)
 
 
 # =====================================================================
@@ -26,14 +29,15 @@ def handle_bank_preauth(task: ExternalTask) -> TaskResult:
 
 	card_id		= user.saved_card
 	if card_id is None:
-		config.logger.error("User %s has no saved card!", task.get_variable(config.CAMUNDA_USER_ID))
-		return task.failure("User Not Found or No Saved Card", f"User {task.get_variable(config.CAMUNDA_USER_ID)} not found or has no saved card.", 0, 0)
+		config.logger.error("User %s has no saved card!", user.user_id)
+		return task.failure("User Not Found or No Saved Card", f"User {user.user_id} not found or has no saved card.", 0, 0)
 
 	soap_body	= get_soap_body(
 		f"""<{config.EP_BANK_PREAUTH}>
 			<cardId>{card_id}</cardId>
 			<amount>{config.BANK_CAUTION}</amount>
 		</{config.EP_BANK_PREAUTH}>""")
+	logger.info("Bank PreAuth: Blocking caution for user %s with card %s", user.user_id, card_id)
 
 	def func_success(
 		task		: ExternalTask,
@@ -86,6 +90,7 @@ def handle_bank_charge(task: ExternalTask) -> TaskResult:
 			<token>{token}</token>
 			<finalAmount>{amount}</finalAmount>
 		</{config.EP_BANK_CHARGE}>""")
+	logger.info("Bank Charge: Charging %s with token %s", amount, token)
 
 	def func_success(
 		task		: ExternalTask,
@@ -125,6 +130,7 @@ def handle_bank_unlock_caution(task: ExternalTask) -> TaskResult:
 		f"""<{config.EP_BANK_UNLOCK_CAUTION}>
 			<token>{token}</token>
 		</{config.EP_BANK_UNLOCK_CAUTION}>""")
+	logger.info("Bank Unlock Caution: Unlocking caution with token %s", token)
 
 	def func_success(
 		task		: ExternalTask,
@@ -181,6 +187,7 @@ def handle_bank_convert_caution(task: ExternalTask) -> TaskResult:
 		f"""<{config.EP_BANK_CONVERT_CAUTION}>
 			<token>{token}</token>
 		</{config.EP_BANK_CONVERT_CAUTION}>""")
+	logger.info("Bank Convert Caution: Converting caution with token %s", token)
 
 	def func_success(
 		task		: ExternalTask,

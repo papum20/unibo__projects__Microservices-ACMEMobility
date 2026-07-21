@@ -1,7 +1,7 @@
 \section{Avvio e utilizzo}\label{sec:usage}
 
 L'intera architettura, comprendente tutti i servizi, con il codice nella
-cartella \textit{src/} può essere avviata e gestita tramite i comandi di
+cartella \textit{src/}, può essere avviata e gestita tramite i comandi di
 \textit{docker compose}; per comodità, sono presenti due script \textit{bash}
 (per sistemi Linux). \textit{start.sh} lancia l'infrastruttura:
 \begin{lstlisting}[language=Bash]
@@ -65,13 +65,13 @@ Scansione del veicolo precedentemente prenotato:
 Parcheggio del veicolo (simulazione dell'inserimento del veicolo nel dock della
 stazione con id \mbox{\textit{STATION-BOLOGNA-01}}):
 \begin{lstlisting}[language=Bash]
-	python src/user/user.py park USER-001 V-01 STATION-BOLOGNA-01
+	python src/user/user.py park USER-001 V-01 STATION-bologna-01
 \end{lstlisting}
 
 Richiesta di fine corsa e, dunque, blocco del veicolo precedentemente
 parcheggiato:
 \begin{lstlisting}[language=Bash]
-	python src/user/user.py lock USER-001 V-01 STATION-BOLOGNA-01
+	python src/user/user.py lock USER-001 V-01 STATION-bologna-01
 \end{lstlisting}
 
 Richiesta di assistenza a fine corsa, in caso di problemi con il blocco:
@@ -84,8 +84,39 @@ Simulazione furto di un veicolo:
 	python src/user/user.py steal USER-001 V-01
 \end{lstlisting}
 
+Invia un'istruzione a Camunda per eseguire immediatamente il task di timeout
+per il tempo di cancellazione di una prenotazione (utile per testare
+l'applicazione della penalità):
+\begin{lstlisting}[language=Bash]
+	python3 src/user/user.py force_timeout USER-001 V-01
+\end{lstlisting}
+
 
 Una volta avviata l'infrastruttura, è possibile accedere alla visualizzazione di
 Camunda al link \\
 \mbox{\url{http://localhost:8080/camunda/app/cockpit/}}, con username
-\textit{demo} e password \textit{demo}.
+\textit{demo} e password \textit{demo}.\\
+Al link \mbox{\url{http://localhost:4000/map/}}, invece, è possibile
+visualizzare una mappa di Bologna, con dei segnali per le stazioni ed eventuali
+veicoli in movimento.\\
+I veicoli utilizzano coordinate reali e ricevono dei percorsi da un'istanza,
+eseguita in locale, di \textit{GraphHopper} --- che espone anche un'interfaccia
+web al link \mbox{\url{http://localhost:8989/}}, non particolarmente rilevante
+per il progetto.\\
+\\
+Sono inoltre disponibili altri endpoint, esposti dai vari servizi per
+debugging. Seguono quelli più utili per il debugging.\\
+
+Il servizio di ACMEMobility espone il suo database:  
+\begin{lstlisting}[language=Bash]
+	curl localhost/db
+\end{lstlisting}
+
+Ogni stazione espone il suo stato:
+\begin{lstlisting}[language=Bash]
+	curl localhost:5001/station
+	curl localhost:5002/station
+	curl localhost:5003/station
+	curl localhost:5004/station
+	curl localhost:5005/station
+\end{lstlisting}

@@ -48,6 +48,7 @@ def handle_fleet_track_info(task: ExternalTask) -> TaskResult:
 
 def handle_fleet_track_start(task: ExternalTask) -> TaskResult:
 	"""Topic: fleet-track-start (start vehicle tracking)"""
+	user_id		= task.get_variable(config.CAMUNDA_USER_ID)
 	vehicle_id	= task.get_variable(config.CAMUNDA_VEHICLE_ID)
 	vehicle		= DATABASE.get_vehicle(vehicle_id)
 
@@ -55,8 +56,8 @@ def handle_fleet_track_start(task: ExternalTask) -> TaskResult:
 		config.logger.error("Vehicle %s not found!", vehicle_id)
 		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
 
-	if vehicle.status != Vehicle.Status.AVAILABLE:
-		config.logger.error("Vehicle %s is not available for tracking! Current status: %s", vehicle_id, vehicle.status.value)
+	if vehicle.status != Vehicle.Status.AVAILABLE and vehicle.reserved_by != user_id:
+		config.logger.error("Vehicle %s is not available for tracking! Current status: %s reserved by %s", vehicle_id, vehicle.status.value, vehicle.reserved_by)
 		return task.failure("Unavailable", f"Vehicle status is {vehicle.status.value}", 0, 0)
 
 	def func_success(
@@ -157,17 +158,23 @@ def handle_fleet_fetch_battery(task: ExternalTask) -> TaskResult:
 		response	: requests.Response
 	) -> TaskResult:
 		data = response.json()
-		battery_level = data.get(config.CAMUNDA_BATTERY_PERC)
-		config.logger.info("Received battery level for %s: %s%%", vehicle_id, battery_level)
-		DATABASE.update_vehicle( Vehicle(
-			vehicle_id		= vehicle_id,
-			status			= vehicle.status,
-			reserved_by		= vehicle.reserved_by,
-			rented_by		= vehicle.rented_by,
-			current_station	= vehicle.current_station,
-			battery_perc	= battery_level
-		))
-		return task.complete({config.CAMUNDA_BATTERY_PERC: battery_level})
+		battery_level = data.get("battery")
+		try:
+			battery_level_int = int(float(battery_level))
+			config.logger.info("Received battery level for %s: %s%%", vehicle_id, battery_level)
+
+			DATABASE.update_vehicle( Vehicle(
+				vehicle_id		= vehicle_id,
+				status			= vehicle.status,
+				reserved_by		= vehicle.reserved_by,
+				rented_by		= vehicle.rented_by,
+				current_station	= vehicle.current_station,
+				battery_perc	= battery_level_int
+			))
+			return task.complete({config.CAMUNDA_BATTERY_PERC: battery_level_int})
+		except (ValueError, TypeError):
+			config.logger.error("Invalid battery level received for %s: %s", vehicle_id, battery_level)
+			return task.bpmn_error("Invalid Battery Level", f"Invalid battery level received for {vehicle_id}: {battery_level}", {})
 
 	# set to Maintenance
 	def func_on_error(

@@ -48,7 +48,7 @@ def handle_station_lock(task: ExternalTask) -> TaskResult:
 		DATABASE.update_vehicle( Vehicle(
 			vehicle_id		= vehicle_id,
 			status			=
-				Vehicle.Status.CHARGING if vehicle.battery_perc < config.CAMUNDA_BATTERY_LOW_THRESHOLD
+				Vehicle.Status.CHARGING if vehicle.battery_perc < config.BATTERY_LOW_THRESHOLD
 				else Vehicle.Status.AVAILABLE,
 			reserved_by		= vehicle.reserved_by,
 			rented_by		= vehicle.rented_by,
@@ -120,7 +120,10 @@ def handle_station_unlock(task: ExternalTask) -> TaskResult:
 			battery_perc	= vehicle.battery_perc
 		))
 		config.logger.info("Vehicle %s unlocked successfully at station %s!", vehicle_id, station_id)
-		return task.complete({config.CAMUNDA_STATUS_VEHICLE_LOCKED: True})
+		return task.complete({
+			config.CAMUNDA_STATUS_VEHICLE_LOCKED:	True,
+			config.CAMUNDA_POLLING_DELAY:			config.POLLING_DELAY
+		})
 
 	# set to Maintenance
 	def func_on_error(

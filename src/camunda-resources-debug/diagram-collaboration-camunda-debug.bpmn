@@ -195,7 +195,7 @@
       <bpmn2:incoming>Flow_1tfsykj</bpmn2:incoming>
       <bpmn2:outgoing>Flow_1p8k80z</bpmn2:outgoing>
       <bpmn2:timerEventDefinition id="TimerEventDefinition_1v6ubok">
-        <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression">PT30M</bpmn2:timeDuration>
+        <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression">${cancellationTimeout}</bpmn2:timeDuration>
       </bpmn2:timerEventDefinition>
     </bpmn2:intermediateCatchEvent>
     <bpmn2:exclusiveGateway id="Gateway_0d5h9ei">
@@ -268,7 +268,7 @@
         <bpmn2:incoming>Flow_0z210ba</bpmn2:incoming>
         <bpmn2:outgoing>Flow_1ln952t</bpmn2:outgoing>
         <bpmn2:timerEventDefinition id="TimerEventDefinition_0ypb3dt">
-          <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression">PT5S</bpmn2:timeDuration>
+          <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression">${pollingDelay}</bpmn2:timeDuration>
         </bpmn2:timerEventDefinition>
       </bpmn2:intermediateCatchEvent>
       <bpmn2:sequenceFlow id="Flow_04i15po" sourceRef="Gateway_17xwdqj" targetRef="Activity_1kwkkh8" />
