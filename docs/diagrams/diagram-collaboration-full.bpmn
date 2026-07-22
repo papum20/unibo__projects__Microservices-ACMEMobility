@@ -540,7 +540,7 @@
       <bpmn2:outgoing>Flow_0ssu50l</bpmn2:outgoing>
       <bpmn2:errorEventDefinition id="ErrorEventDefinition_11fzdrb" />
     </bpmn2:boundaryEvent>
-    <bpmn2:manualTask id="Activity_1oyzc0k" name="a human must intevene">
+    <bpmn2:manualTask id="Activity_1oyzc0k" name="a human must intervene">
       <bpmn2:incoming>Flow_01dwlqr</bpmn2:incoming>
       <bpmn2:outgoing>Flow_19m1bau</bpmn2:outgoing>
     </bpmn2:manualTask>
@@ -1455,9 +1455,6 @@
       <bpmndi:BPMNShape id="Event_0oad8iq_di" bpmnElement="Event_077bmsk">
         <dc:Bounds x="2112" y="242" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_08v5osc_di" bpmnElement="Gateway_1etasnx">
-        <dc:Bounds x="2105" y="475" width="50" height="50" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_14k9ls8_di" bpmnElement="Activity_14k9ls8" isExpanded="true">
         <dc:Bounds x="760" y="460" width="318" height="260" />
         <bpmndi:BPMNLabel />
@@ -1607,6 +1604,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0gxwx8a_di" bpmnElement="Gateway_1edi7pb">
         <dc:Bounds x="1345" y="335" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_08v5osc_di" bpmnElement="Gateway_1etasnx">
+        <dc:Bounds x="2105" y="475" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_19ri2kw_di" bpmnElement="TextAnnotation_19ri2kw">
         <dc:Bounds x="2371" y="508" width="118" height="64" />

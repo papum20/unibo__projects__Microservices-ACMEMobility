@@ -63,7 +63,7 @@ C_{res} = \\
 & \ req\_res: U \rightarrow A ; \\
 & \ caut\_lock: A \rightarrow B ; ( \\
 & \quad \quad caut\_lock\_err: B \rightarrow A ; C_{err\_reject} + \\
-& \quad \quad caut\_locked: B \rightarrow A ; reserved: A \rightarrow U ; ( C_{cancel} + C_{scan\_res} ) \\
+& \quad \quad caut\_locked: B \rightarrow A ; notify\_eserved: A \rightarrow U ; ( C_{cancel} + C_{scan\_res} ) \\
 & \ )
 \end{align*}
 
@@ -135,7 +135,7 @@ C_{ride\_end} = \\
 & \ ask\_batt: A \rightarrow F ; ( \\
 & \quad \quad (err\_share\_batt: F \rightarrow A ; C_{err\_manual\_notify}) + \\
 & \quad \quad share\_batt: F \rightarrow A ; \\
-& \quad \quad track\_stop: A \rightarrow F ; share\_stop: F \rightarrow V , share\_stopped: V \rightarrow F ; \\
+& \quad \quad track\_stop: A \rightarrow F ; share\_stop: F \rightarrow V ; share\_stopped: V \rightarrow F ; \\
 & \quad \quad ( track\_stopped: F \rightarrow A + (err\_track\_stopped: F \rightarrow A \mid C_{err\_manual})) ; \\
 & \quad \quad charge: A \rightarrow B ; ( \\
 & \quad \quad \quad \quad charge\_err: B \rightarrow A ; C_{err\_manual\_notify} + \\
@@ -225,7 +225,7 @@ proj(C_{ride\_end}, B) = \\
 \begin{align*}
 proj(C, F) = & \ ( \\
 & \quad \quad 1 + \\
-& \quad \quad track\_start@A ; share\_start@V ; \overline{share\_started}@V ; \\
+& \quad \quad track\_start@A ; \overline{share\_start}@V ; share\_started@V ; \\
 & \quad \quad (\overline{track\_err}@A + \overline{track\_started}@A ; proj(C_{ride}, F) ) \\
 & \ ) \\
 proj(C_{ride}, F) = & \ (pos\_fetch@A ; \overline{pos\_fetched}@A )^* ; proj(C_{ride\_end}, F) \\
@@ -265,7 +265,7 @@ proj(C_{ride}, A) = \\
 proj(C_{park\_attempt}, A) = & \ park@U ; \overline{lock}@S ; lock\_err@S ; \overline{park\_err}@U \\
 proj(C_{ride\_end}, A) = & \ \overline{ask\_batt}@F ; ( \\
 & \quad \quad err\_share\_batt@F ; \overline{notify\_err\_manual}@U + \\
-& \quad \quad \overline{share\_batt}@F ; \overline{track\_stop}@F ; ((err\_track\_stopped@F \mid 1) + track\_stopped@F) ; \\
+& \quad \quad share\_batt@F ; \overline{track\_stop}@F ; ((err\_track\_stopped@F \mid 1) + track\_stopped@F) ; \\
 & \quad \quad \overline{charge}@B ; ( \\
 & \quad \quad \quad \quad charge\_err@B ; \overline{notify\_err\_manual}@U + \\
 & \quad \quad \quad \quad charged@B ; \overline{receipt}@U ; \\
@@ -294,7 +294,7 @@ proj(C, S) = & \ ( \\
 
 \subsubsection{Proiezione per User (U)}
 \begin{align*}
-proj(C_{imm}, U) = & \ \overline{req\_imm}@A ; proj(C_{scan}, U) \\
+proj(C_{imm}, U) = & \ \overline{req\_imm}@A ; notify\_imm@A ; proj(C_{scan}, U) \\
 proj(C_{res}, U) = & \ \overline{req\_res}@A ; ( \\
 & \quad \quad notify\_reject@A + \\
 & \quad \quad notify\_reserved@A ; (\overline{cancel}@A + \overline{scan}@A ; proj(C_{scan}, U)) \\
@@ -307,7 +307,7 @@ quella dopo una prenotazione:\\
 proj(C_{scan}, U) = & \ notify\_reject@A + unlocked@A ; proj(C_{ride}, U) \\
 proj(C_{ride}, U) = & \ (\overline{park}@A ; park\_err@A )^* ; \overline{park}@A ; ( \\
 & \quad \quad park\_err@A ; \overline{assist}@A + \\
-& \quad \quad park\_ok@A ; (notify\_err\_manual@A + receipt@A) \\
+& (notify\_err\_manual@A + receipt@A) \\
 & \ )
 \end{align*}
 
@@ -322,9 +322,10 @@ proj(C_{ride}, U) = & \ (\overline{park}@A ; park\_err@A )^* ; \overline{park}@A
 
 Come per la definizione formale, sono stati omessi alcuni errori e il loop di
 condivisione della posizione del veicolo.\\
-Un esempio di loop di interazione tra FleetManagement e Vehicle sarebbe:\\
+Un esempio di loop di interazione tra FleetManagement e Vehicle sarebbe l'invio
+asincrono di posizioni:\\
 \begin{align*}
-proj(C_{ride\_loop}, V) = & \ {( pos\_fetch@F ; \overline{pos\_fetched}@F )}^*
+proj(C_{ride\_loop}, V) = & \ {( \overline{push\_pos}@F )}^*
 \end{align*}
 
 
@@ -351,7 +352,7 @@ verso FleetManagement, che, come specificato più volte, abbiamo omesso dalle
 modellazioni per semplicità, essendo banale. Difatti, esso comporta operazioni
 completamente separate da quelle della coreografia, che non la intaccheranno in
 alcun modo: FleetManagement continua solo ad accumulare dati nel suo database; a
-una richiesta di ACMEMobility, ritornera gli ultimi disponibili.\\
+una richiesta di ACMEMobility, ritornerà gli ultimi disponibili.\\
 \\
 Considerando quindi la nostra coreografia sincrona, si può verificare la
 \textit{connectedness} in quanto, per ogni sequenza \mbox{$o: a \rightarrow b ;
@@ -363,7 +364,7 @@ una serie di comunicazioni nella stessa direzione (\mbox{$a=c$}), oppure un
 servizio che fa da ponte, ricevendo da uno e ritrasmettendo a un altro
 (\mbox{$b=c$}).\\
 In generale, quasi ogni passo del processo può essere ricondotto a una topologia
-a stella in cui ACMEMobility agisce da orchestratore centrale: è presente in
+a stella in cui \mbox{ACMEMobility} agisce da orchestratore centrale: è presente in
 quasi ogni comunicazione (come mittente o destinatario), facendo da ponte tra
 l'utente e i vari microservizi che usa come dipendenze per ambiti specifici.
 Esempi in cui non compare per qualche passaggio sono invece catene come quella

@@ -55,7 +55,7 @@ guida, o che magari funzioni solo quando un utente correttamente autorizzato
 (attraverso la \textbf{fase 1}) sia nelle vicinanze (il che potrebbe essere
 confermato dalla vicinanza del suo telefono, per esempio via
 \textit{Bluetooth}).\\
-Nel parcheggio, mentre il blocco del veicolo passa attraverso ACMEMobility
+Durante il parcheggio, mentre il bloccaggio del veicolo passa attraverso ACMEMobility
 (attraverso un \textit{message intermediate throw event}), il precedente
 inserimento è modellato direttamente come un messaggio verso la stazione: nel
 mondo reale, infatti, immaginiamo che veicolo e terminale possano essere
@@ -67,7 +67,7 @@ ordine, a chiedere alla stazione il bloccaggio, effettuare l'addebito di fine
 corsa e confermare l'operazione all'utente con una notifica. La separazione in
 inserimento e bloccaggio è stata fatta per rendere più solido il design di
 questa parte: in questo modo, l'applicazione dell'utente deve solo comunicare
-gli identificativo di stazione e veicolo, e la stazione saprà automaticamente
+gli identificativi di stazione e veicolo e la stazione saprà automaticamente
 quale terminale bloccare; la comunicazione a breve raggio, inoltre, permette a
 veicolo e stazione di scambiare eventuali informazioni di conferma.\\
 
@@ -199,7 +199,7 @@ del veicolo prima della corsa), si richiede lo sblocco della cauzione, prima di
 inviare una notifica. Per altri errori in fasi più critiche, si richiede
 l'intervento di un umano ma, allo stesso tempo, si manda sempre avanti, in
 qualche modo, il processo, con l'obiettivo di non lasciare mai l'utente fermo e
-costretto ad aspettare --- d'altra parte, la coreografia ammette attese
+costretto ad aspettare --- d'altra parte, si ammettono attese
 ``asincrone'', come un pagamento ritardato di qualche ora, cioè che non lo
 bloccano fisicamente. Ciò avviene in particolare per gli errori in fase di
 conclusione e pagamento (richiesta del livello della batteria oppure addebito o
@@ -211,7 +211,7 @@ essendo un errore che non inficia in alcun modo il pagamento, si procede con
 calcoli e addebito e contemporaneamente si richiede l'intervento di un umano, ma
 senza inviare messaggi di errore.\\
 Si noti anche che, nella modellazione, i task di errore di ACMEMobility sono
-seguito da \textit{end event} senza il cerchio pieno, per indicare che non tutti
+seguiti da \textit{end event} senza il cerchio pieno, per indicare che non tutti
 i processi del pool devono essere conclusi: per quanto appena visto, altri
 processi potrebbero essere stati lanciati in parallelo ed essere ancora in
 esecuzione.\\
@@ -263,12 +263,14 @@ avviato da una richiesta di ACME e che ritorna un risultato a sua volta. Le
 uniche eccezioni sono costituite da alcuni loop, per FleetManagement e veicolo,
 nella fase del \textbf{tragitto}. Infatti, quando ACMEMobility le richiede
 l'inizio del tracking, FleetManagement si mette in ascolto, in attesa di
-informazioni, fino all'interruzione del tracking; allo stesso tempo, il veicolo
-noleggiato avrà ricevuto, dallo stesso FleetManagement, una richiesta di
+informazioni (più precisamente, i due moduli di posizione e batteria sono in ascolto in maniera
+indipendente); allo stesso tempo, il veicolo noleggiato avrà ricevuto, dallo
+stesso FleetManagement, una richiesta di
 iniziare a condividere il suo stato periodicamente (con una \textit{POST} via
-\textit{http}), anch'esso fino a una notifica di terminazione. Le query di ACME
+\textit{http}), anch'esso fino a una richiesta di terminazione del tracking. Le query di ACME
 sono invece gestite tramite un task separato di FleetManagement: il motivo è che
-i dati trasmessi dai veicoli vengono salvati in un database (di FleetManagement)
+i dati trasmessi dai veicoli vengono salvati nei database di FleetManagement
+(separati per batteria e posizione)
 e, al momento dell'interrogazione, vengono ritornati quelli più recenti.\\
 La modellazione raffigura FleetManagement come un unico pool e un'unica lane,
 invece che dividere i task di condivisione batteria e condivisione posizione,
@@ -327,7 +329,7 @@ stazione e veicolo, con informazioni aggiornate su ognuno dopo ciascuna
 operazione (come la stazione in cui si trova parcheggiato, oppure l'utente che
 l'ha noleggiato). La cronologia del livello di batteria e dei movimenti dei
 mezzi sono invece mantenute dai rispettivi sotto-servizi di FleetManagement: il
-core di ACMEMobility li richiede in tempo reale e non ha al bisogno di
+core di ACMEMobility li richiede in tempo reale e non ha bisogno di
 salvarli più a portata di mano, al momento.\\
 All'avvio dell'architettura con \textit{docker-compose}, i database vengono
 riempiti con alcuni dati di esempio, per identificativi e informazioni su
