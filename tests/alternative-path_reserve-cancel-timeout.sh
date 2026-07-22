@@ -25,9 +25,11 @@ curl localhost/db
 
 echo
 python src/user/user.py force_timeout ${USER} ${VEHICLE}
-sleep 2
+sleep 3
 # Expected output:
 # Success
 curl localhost/db
 # Expected output:
 # db reset like before reservation
+
+# Check docker logs: we expect the bank converting the caution to payment

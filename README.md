@@ -78,6 +78,31 @@ curl localhost:5004/station
 curl localhost:5005/station
 ```
 
+Fetch a vehicle's info:
+```bash
+curl localhost:6011/status
+curl localhost:6012/status
+curl localhost:6013/status
+curl localhost:6014/status
+curl localhost:6015/status
+curl localhost:6016/status
+curl localhost:6017/status
+curl localhost:6018/status
+curl localhost:6019/status
+curl localhost:6020/status
+```
+
+Fetch FleetManagement databases:  
+```bash
+curl localhost:4000/tracking/position/V-01
+curl localhost:4000/tracking/position/V-01/history
+curl localhost:4000/tracking/position/active
+curl localhost:4000/tracking/position/all
+curl localhost:4000/tracking/battery/V-01
+curl localhost:4000/tracking/battery/all
+```
+
+
 ### Configuration
 
 All variables are in the `src/.env` file.  

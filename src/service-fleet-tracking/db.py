@@ -45,26 +45,26 @@ class Vehicle:
 class DataBase:
 
 	# Simulated Database
-	acme_vehicle_db = {}
+	vehicle_db = {}
 
 	def get_vehicle(self, vehicle_id) -> Vehicle | None:
 		"""Simulate fetching the vehicle's status from a database or external service."""
-		return self.acme_vehicle_db.get(vehicle_id, None)
+		return self.vehicle_db.get(vehicle_id, None)
 
 
 	def get_all_vehicles(self) -> list[Vehicle]:
 		"""Simulate fetching all vehicles from a database or external service."""
-		return list(self.acme_vehicle_db.values())
+		return list(self.vehicle_db.values())
 
 
 	def add_vehicle(self, vehicle_id: str, is_tracked: bool = False) -> Vehicle:
 		"""Simulate adding a new vehicle to the database."""
-		if vehicle_id not in self.acme_vehicle_db:
+		if vehicle_id not in self.vehicle_db:
 			new_vehicle = Vehicle(vehicle_id, is_tracked, [])
-			self.acme_vehicle_db[vehicle_id] = new_vehicle
+			self.vehicle_db[vehicle_id] = new_vehicle
 			return new_vehicle
 		else:
-			return self.acme_vehicle_db[vehicle_id]
+			return self.vehicle_db[vehicle_id]
 		
 
 	def add_vehicle_position(self, vehicle_id: str, entry: HistoryEntry) -> Vehicle:

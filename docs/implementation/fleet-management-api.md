@@ -144,7 +144,8 @@ Fetch the current locations of all vehicles that are currently being tracked.
       "status": "MOVING"
     }
   ]
-}```
+}
+```
 
 ### Upload Vehicle Position (`/tracking/position/{vehicleId}`)
 Upload the vehicle's current location.
@@ -186,6 +187,26 @@ Retrieves the current battery percentage of the vehicle.
 {
   "vehicleId": "V-123",
   "battery": 12
+}
+```
+
+### Fetch All vehicles battery levels (`/battery/all`)
+Retrieves the current battery percentages of all vehicles.
+
+*   **Method:** `GET`
+*   **Response (200 OK):**
+```json
+{
+  "vehicles": [
+    {
+      "vehicleId": "V-123",
+      "battery": 12
+    },
+    {
+      "vehicleId": "V-456",
+      "battery": 85
+    }
+  ]
 }
 ```
 

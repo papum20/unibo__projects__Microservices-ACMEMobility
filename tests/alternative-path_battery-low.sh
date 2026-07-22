@@ -9,44 +9,25 @@ VEHICLE="V-01"
 STATION="STATION-bologna-02"
 STATION_START_PORT="5001"
 STATION_END_PORT="5002"
-RIDE_TIME="10"
+# enough to deplete battery (discharge 1%/s)
+RIDE_TIME="90"
 
 
 curl localhost/db
-# Expected output:
-# V-01 locked in STATION-bologna-01
-# USER-001 has no vehicle
 curl localhost:${STATION_START_PORT}/station
-# Expected output:
-# V-01 locked
 echo
 curl localhost:${STATION_END_PORT}/station
-# Expected output:
-# no V-01
 sleep 3
 # wait after each call for DB update
 
 
 echo
-python src/user/user.py reserve ${USER} ${VEHICLE}
+python src/user/user.py scan ${USER} ${VEHICLE}
 sleep 3
 # Expected output:
 # Success
 curl localhost/db
-# Expected output:
-# USER-001 has reserved V-01
-
-python src/user/user.py scan_reserved ${USER} ${VEHICLE}
-sleep 3
-# Expected output:
-# Success
-curl localhost/db
-# Expected output:
-# V-01 has no station
-# USER-001 has rented V-01
 curl localhost:${STATION_START_PORT}/station
-# Expected output:
-# no V-01
 
 
 sleep $RIDE_TIME
@@ -59,11 +40,7 @@ sleep 3
 # Expected output:
 # Success
 curl localhost/db
-# Expected output:
-# V-01 parked in STATION-bologna-02
 curl localhost:${STATION_END_PORT}/station
-# Expected output:
-# V-01 parked
 
 
 echo
@@ -72,9 +49,6 @@ sleep 3
 # Expected output:
 # Success
 curl localhost/db
-# Expected output:
-# V-01 locked in STATION-bologna-02
-# USER-001 has no vehicle
 curl localhost:${STATION_END_PORT}/station
-# Expected output:
-# V-01 locked
+
+# Check docker logs: we expect to see a message about penalty and the bank charging a 10% penalty

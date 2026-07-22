@@ -22,7 +22,7 @@ echo
 curl localhost:${STATION_END_PORT}/station
 # Expected output:
 # no V-01
-sleep 2
+sleep 3
 # wait after each call for DB update
 
 
@@ -37,7 +37,7 @@ curl localhost/db
 
 echo
 python src/user/user.py cancel ${USER} ${VEHICLE}
-sleep 2
+sleep 3
 # Expected output:
 # Success
 curl localhost/db

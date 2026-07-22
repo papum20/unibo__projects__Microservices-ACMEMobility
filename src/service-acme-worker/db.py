@@ -124,6 +124,13 @@ class DataBase:
 		"""Simulate fetching the vehicle's status from a database or external service."""
 		return self.acme_vehicle_db.get(vehicle_id, None)
 
+	def get_vehicles_by_user(self, user_id) -> list[Vehicle]:
+		"""Fetch all vehicles reserved or rented by a specific user."""
+		return [
+			vehicle for vehicle in self.acme_vehicle_db.values()
+			if vehicle.reserved_by == user_id or vehicle.rented_by == user_id
+		]
+
 	def get_all_users(self) -> list[User]:
 		"""Simulate fetching all users from a database or external service."""
 		return list(self.acme_user_db.values())

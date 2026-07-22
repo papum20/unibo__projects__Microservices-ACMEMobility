@@ -23,6 +23,7 @@ URL_CAMUNDA_MESSAGE		= get_env_or_exit("URL_CAMUNDA_MESSAGE")
 URL_STATION_PARAM_LOCAL	= get_env_or_exit('URL_STATION_PARAM_LOCAL')
 URL_VEHICLE_PARAM_LOCAL	= get_env_or_exit('URL_VEHICLE_PARAM_LOCAL')
 EP_STATION_HW_INSERT	= get_env_or_exit("ENDPOINT_STATION_HW_INSERT")
+EP_VEHICLE_SIM_STATION	= get_env_or_exit("ENDPOINT_VEHICLE_SIM_STATION")
 EP_VEHICLE_SIM_THEFT	= get_env_or_exit("ENDPOINT_VEHICLE_SIM_THEFT")
 
 PORT_LOCAL_STATION_MAP = {
@@ -137,7 +138,18 @@ if __name__ == "__main__":
 		else:
 			print(f"Physical insertion failed: {hardware_resp.text}")
 			sys.exit(1)
-	
+
+		# Simulate the insertion on the vehicle side (i.e. set its position to the station)
+		resp = requests.post(f"{get_vehicle_url(vehicle_id)}{EP_VEHICLE_SIM_STATION}", timeout=REQUEST_TIMEOUT_SECONDS,
+			json={
+				"stationId": station_id
+			})
+		if resp.status_code == 200:
+			print(f"Success: Vehicle {vehicle_id} set to station {station_id}.")
+		else:
+			print(f"Failed to set vehicle station: {resp.text}")
+			sys.exit(1)
+
 	elif action == "lock":
 		if len(sys.argv) < 5:
 			print_usage()
@@ -147,7 +159,7 @@ if __name__ == "__main__":
 		send_message(MESSAGE_USER_LOCKED, vehicle_id, user_id, variables={"stationId": station_id})
 
 	elif action == "lock_assistance":
-		send_message(MESSAGE_USER_ASSISTANCE_LOCK, vehicle_id, user_id)
+		send_message(MESSAGE_USER_ASSISTANCE_LOCK, vehicle_id, user_id, variables={"needsAssistance": True})
 	
 	elif action == "steal":
 

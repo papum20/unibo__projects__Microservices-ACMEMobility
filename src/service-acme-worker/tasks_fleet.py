@@ -1,3 +1,4 @@
+import logging
 import requests
 from camunda.external_task.external_task import ExternalTask, TaskResult
 
@@ -9,6 +10,8 @@ from util import (
 	func_success_status
 )
 
+
+logger = logging.getLogger(__name__)
 
 
 # =====================================================================
@@ -54,11 +57,17 @@ def handle_fleet_track_start(task: ExternalTask) -> TaskResult:
 
 	if vehicle is None:
 		config.logger.error("Vehicle %s not found!", vehicle_id)
-		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
+		return task.bpmn_error("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0)
 
 	if vehicle.status != Vehicle.Status.AVAILABLE and vehicle.reserved_by != user_id:
-		config.logger.error("Vehicle %s is not available for tracking! Current status: %s reserved by %s", vehicle_id, vehicle.status.value, vehicle.reserved_by)
-		return task.failure("Unavailable", f"Vehicle status is {vehicle.status.value}", 0, 0)
+		config.logger.error("Vehicle %s is not available for tracking! Current status: %s rented/reserved by %s/%s",
+					vehicle_id, vehicle.status.value, vehicle.rented_by, vehicle.reserved_by)
+		return task.bpmn_error("Unavailable", f"Vehicle status is {vehicle.status.value}", 0)
+
+	user_vehicles = DATABASE.get_vehicles_by_user(user_id)
+	if any(v.status == Vehicle.Status.RENTED for v in user_vehicles):
+		config.logger.error("User %s already has a rented vehicle! Cannot start tracking for %s", user_id, vehicle_id)
+		return task.bpmn_error("Already Rented", f"User {user_id} already has a rented vehicle.", 0)
 
 	def func_success(
 		task		: ExternalTask,
@@ -114,7 +123,20 @@ def handle_fleet_track_stop(task: ExternalTask) -> TaskResult:
 
 	if vehicle is None:
 		config.logger.error("Vehicle %s not found!", vehicle_id)
-		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
+		return task.bpmn_error("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0)
+
+	# set to maintenance if assistance was requested
+	needs_assistance = task.get_variable(config.CAMUNDA_USER_ASSISTANCE)
+	if needs_assistance:
+		DATABASE.update_vehicle( Vehicle(
+			vehicle_id		= vehicle_id,
+			status			= Vehicle.Status.MAINTENANCE,
+			reserved_by		= vehicle.reserved_by,
+			rented_by		= vehicle.rented_by,
+			current_station	= vehicle.current_station,
+			battery_perc	= vehicle.battery_perc
+		))
+		logger.warning("[%s] Marked as MAINTENANCE due to user assistance request.", vehicle_id)
 
 	# set to Maintenance
 	def func_on_error(
@@ -150,7 +172,8 @@ def handle_fleet_fetch_battery(task: ExternalTask) -> TaskResult:
 
 	if vehicle is None:
 		config.logger.error("Vehicle %s not found!", vehicle_id)
-		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
+		return task.bpmn_error("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0)
+
 
 	def func_success(
 		task		: ExternalTask,
@@ -165,7 +188,10 @@ def handle_fleet_fetch_battery(task: ExternalTask) -> TaskResult:
 
 			DATABASE.update_vehicle( Vehicle(
 				vehicle_id		= vehicle_id,
-				status			= vehicle.status,
+				status			=
+					vehicle.status
+						if vehicle.status == Vehicle.Status.MAINTENANCE or battery_level_int > config.BATTERY_LOW_THRESHOLD
+					else Vehicle.Status.CHARGING,
 				reserved_by		= vehicle.reserved_by,
 				rented_by		= vehicle.rented_by,
 				current_station	= vehicle.current_station,

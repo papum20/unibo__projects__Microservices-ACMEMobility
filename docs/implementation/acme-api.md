@@ -79,13 +79,15 @@ Triggered after the user has parked the vehicle at a station. This signal inform
 ```
 
 ## Assistance Lock (`user_assistance_lock`)
-Emergency signal sent if the user cannot physically lock the vehicle at a station and requires backend intervention to secure the vehicle and stop billing.
+Emergency signal sent if the user cannot physically lock the vehicle at a station and requires backend intervention to secure the vehicle and stop billing.  
+Note: `needsAssistance` is needed for implementation purposes (as a process variable in Camunda).  
 
 *   **Method:** `POST`
 *   **Request Body (JSON):**
 ```json
 {
   "messageName": "user_assistance_lock",
-  "businessKey": "V-123"
+  "businessKey": "V-123",
+  "needsAssistance": true
 }
 ```

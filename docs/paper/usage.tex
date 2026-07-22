@@ -112,13 +112,27 @@ Il servizio di ACMEMobility espone il suo database:
 	curl localhost/db
 \end{lstlisting}
 
-Ogni stazione espone il suo stato:
+Ogni stazione espone il suo stato (porte 5001--5005):
 \begin{lstlisting}[language=Bash]
 	curl localhost:5001/station
 	curl localhost:5002/station
 	curl localhost:5003/station
 	curl localhost:5004/station
 	curl localhost:5005/station
+\end{lstlisting}
+
+Altri endpoint sono:
+\begin{lstlisting}[language=Bash]
+	# veicoli (porte 6011-6020)
+	curl localhost:6011/status
+	# FleetManagement tracking
+	curl localhost:4000/tracking/position/V-01
+	curl localhost:4000/tracking/position/V-01/history
+	curl localhost:4000/tracking/position/active
+	curl localhost:4000/tracking/position/all
+	# FleetManagement battery
+	curl localhost:4000/tracking/battery/V-01
+	curl localhost:4000/tracking/battery/all
 \end{lstlisting}
 
 Per finire, nella cartella \textit{tests/} sono disponibili degli script in

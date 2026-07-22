@@ -47,27 +47,22 @@ logger.info("Vehicle %s. Start station %s.", VEHICLE_ID, START_STATION_ID)
 END_STATION_VAR_NAME	= f"VEHICLE_{VEHICLE_SUFFIX}_END_STATION"
 END_STATION_ID			= get_env_or_exit(END_STATION_VAR_NAME)
 
-# get starting coordinates
-_station_suffix			= START_STATION_ID.split(f'{STATION_PREFIX}-')[1]
-_station_number			= _station_suffix.split('-')[1]
-_station_lat_var_name	= f"COORD_STATION_{_station_number}_LAT"
-_station_lon_var_name	= f"COORD_STATION_{_station_number}_LON"
-START_LAT				= get_env_or_exit(_station_lat_var_name)
-START_LON				= get_env_or_exit(_station_lon_var_name)
 
-# get ending coordinates
-_station_suffix			= END_STATION_ID.split(f'{STATION_PREFIX}-')[1]
-_station_number			= _station_suffix.split('-')[1]
-_station_lat_var_name	= f"COORD_STATION_{_station_number}_LAT"
-_station_lon_var_name	= f"COORD_STATION_{_station_number}_LON"
-END_LAT					= get_env_or_exit(_station_lat_var_name)
-END_LON					= get_env_or_exit(_station_lon_var_name)
+def _get_station_coordinates(station_id: str) -> tuple[float, float]:
+	_station_suffix			= station_id.split(f'{STATION_PREFIX}-')[1]
+	_station_number			= _station_suffix.split('-')[1]
+	_station_lat_var_name	= f"COORD_STATION_{_station_number}_LAT"
+	_station_lon_var_name	= f"COORD_STATION_{_station_number}_LON"
+	_lat					= get_env_or_exit(_station_lat_var_name)
+	_lon					= get_env_or_exit(_station_lon_var_name)
+	return (float(_lat), float(_lon))
 
 
 is_tracking			= False
+current_station_id	= START_STATION_ID
 route_coordinates	= []
-route_end_latlon	: tuple[float, float]	= (float(END_LAT), float(END_LON))
-route_start_latlon	: tuple[float, float]	= (float(START_LAT), float(START_LON))
+route_end_latlon	: tuple[float, float]	= _get_station_coordinates(END_STATION_ID)
+route_start_latlon	: tuple[float, float]	= _get_station_coordinates(START_STATION_ID)
 
 # state for speed calculation
 last_latlon		= route_start_latlon
@@ -156,6 +151,48 @@ def stop():
 
 
 
+@app.route('/status', methods=['GET'])
+def get_status():
+	return jsonify({
+		"vehicleId": VEHICLE_ID,
+		"coordinates": {
+			"latitude": last_latlon[0],
+			"longitude": last_latlon[1]
+		},
+		"batteryLevel": battery_perc,
+		"speedKmH": last_speed_kmh,
+		"status": VehicleStatus.MOVING.name if last_speed_kmh > 0 else VehicleStatus.HALTED.name,
+		"timeEpochS": time.time_ns() * 1e-9,
+		"isTracking": is_tracking,
+		"routeEnd": {
+			"latitude": route_end_latlon[0],
+			"longitude": route_end_latlon[1]
+		}
+	}), 200
+
+
+# set route start (e.g. also when parking at a station, the hw will detect it)
+@app.route('/simulate/station', methods=['POST'])
+def simulate_set_station():
+	data = request.get_json()
+	if not data:
+		return jsonify({"error": "Invalid JSON"}), 400
+
+	station_id = data.get("stationId")
+	if not station_id:
+		return jsonify({"error": "stationId is required"}), 400
+
+	global current_station_id
+	global route_start_latlon
+	current_station_id = station_id
+	route_start_latlon = _get_station_coordinates(station_id)
+
+	return jsonify({
+		"success": True,
+		"message": f"Current station set to {current_station_id}. Route start coordinates updated to {route_start_latlon}."
+	}), 200
+
+	
 # set route end
 @app.route('/simulate/end', methods=['POST'])
 def simulate_route_end():
@@ -163,16 +200,21 @@ def simulate_route_end():
 	if not data:
 		return jsonify({"error": "Invalid JSON"}), 400
 
-	end_latlon = data.get("endLatLon")
-	if not end_latlon:
-		return jsonify({"error": "endLatLon is required"}), 400
+	coordinates = data.get("coordinates")
+	if not coordinates:
+		return jsonify({"error": "coordinates is required"}), 400
+	lat = coordinates.get("latitude")
+	lon = coordinates.get("longitude")
+	if lat is None or lon is None:
+		return jsonify({"error": "Both latitude and longitude are required"}), 400
 	global route_end_latlon
-	route_end_latlon = tuple(end_latlon)
+	route_end_latlon = tuple((lat, lon))
 	
 	return jsonify({
 		"success": True,
-		"message": f"Route end set to {end_latlon}"
+		"message": f"Route end set to {route_end_latlon}"
 	}), 200
+
 
 
 def update_position(latlon, speed_kmh, status: str, time_epoch_s: float) -> bool:

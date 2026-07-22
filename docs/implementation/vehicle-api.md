@@ -38,9 +38,50 @@ Stop the vehicle's sharing of position and other information.
 }
 ```
 
+## Get Vehicle Information (`/status`)
+Get the vehicle's current status, including position, battery level, and other relevant information.
+
+*   **Method:** `GET`
+*   **Response (200 OK):**
+```json
+{
+  "vehicleId": "V-123",
+  "coordinates": {
+    "latitude": 44.4949,
+    "longitude": 11.3426
+  },
+  "batteryLevel": 75,
+  "speedKmH": 22.5,
+  "status": "MOVING",
+  "timeEpochS": 1697040000,
+  "isTracking": true,
+  "routeEnd": {
+    "latitude": 44.4965,
+    "longitude": 11.3410
+  }
+}
+```
+
 ## Simulation
 
-### Set route start (`/simulate/end`)
+### Set route parking station (`/simulate/station`)
+Set current station (e.g. when parking at a station).
+
+*   **Method:** `POST`
+*   **Request Body (JSON):**
+```json
+{
+  "stationId": "STATION-1"
+}```
+*   **Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Current station set to STATION-1."
+}
+```
+
+### Set route end (`/simulate/end`)
 Set route end station (the start is where it is now).  
 
 *   **Method:** `POST`

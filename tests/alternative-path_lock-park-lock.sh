@@ -23,13 +23,13 @@ echo
 curl localhost:${STATION_END_PORT}/station
 # Expected output:
 # no V-01
-sleep 2
+sleep 3
 # wait after each call for DB update
 
 
 echo
 python src/user/user.py scan ${USER} ${VEHICLE}
-sleep 2
+sleep 3
 # Expected output:
 # Success
 curl localhost/db
@@ -47,7 +47,7 @@ sleep $RIDE_TIME
 
 echo
 python src/user/user.py lock ${USER} ${VEHICLE} ${STATION}
-sleep 2
+sleep 3
 # Expected output:
 # Some error (in docker logs): won't have locked nor parked
 curl localhost/db
@@ -56,7 +56,7 @@ curl localhost:${STATION_END_PORT}/station
 
 echo
 python src/user/user.py park ${USER} ${VEHICLE} ${STATION}
-sleep 2
+sleep 3
 # Expected output:
 # Success
 curl localhost/db
@@ -69,7 +69,7 @@ curl localhost:${STATION_END_PORT}/station
 
 echo
 python src/user/user.py lock ${USER} ${VEHICLE} ${STATION}
-sleep 2
+sleep 3
 # Expected output:
 # Success
 curl localhost/db

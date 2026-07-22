@@ -25,12 +25,12 @@ def handle_bank_preauth(task: ExternalTask) -> TaskResult:
 	user	= DATABASE.get_user(task.get_variable(config.CAMUNDA_USER_ID))
 	if user is None:
 		config.logger.error("User %s not found or has no saved card!", task.get_variable(config.CAMUNDA_USER_ID))
-		return task.failure("User Not Found or No Saved Card", f"User {task.get_variable(config.CAMUNDA_USER_ID)} not found or has no saved card.", 0, 0)
+		return task.bpmn_error("User Not Found or No Saved Card", f"User {task.get_variable(config.CAMUNDA_USER_ID)} not found or has no saved card.", 0)
 
 	card_id		= user.saved_card
 	if card_id is None:
 		config.logger.error("User %s has no saved card!", user.user_id)
-		return task.failure("User Not Found or No Saved Card", f"User {user.user_id} not found or has no saved card.", 0, 0)
+		return task.bpmn_error("User Not Found or No Saved Card", f"User {user.user_id} not found or has no saved card.", 0)
 
 	soap_body	= get_soap_body(
 		f"""<{config.EP_BANK_PREAUTH}>
@@ -170,7 +170,7 @@ def handle_bank_convert_caution(task: ExternalTask) -> TaskResult:
 
 	if vehicle is None:
 		config.logger.error("Vehicle %s not found!", vehicle_id)
-		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
+		return task.bpmn_error("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0)
 
 	DATABASE.update_vehicle( Vehicle(
 		vehicle_id		= vehicle_id,

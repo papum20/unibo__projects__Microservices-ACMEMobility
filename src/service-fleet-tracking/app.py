@@ -80,16 +80,16 @@ def update_position(vehicle_id):
 	if not data:
 		return jsonify({"error": "Invalid JSON"}), 400
 
-	coordinates = data.get("coordinates")
-	lat = coordinates.get("latitude") if coordinates else ""
-	lon = coordinates.get("longitude") if coordinates else ""
-	speedKmH = data.get("speedKmH")
-	status = data.get("status")
-	timeEpochS = data.get("timeEpochS")
+	coordinates	= data.get("coordinates")
+	lat			= coordinates.get("latitude") if coordinates else ""
+	lon			= coordinates.get("longitude") if coordinates else ""
+	speedKmH	= data.get("speedKmH")
+	status		= data.get("status")
+	timeEpochS	= data.get("timeEpochS")
 
 	# Verifica dei dati
 	if not vehicle_id or lat is None or lon is None or speedKmH is None or status is None or timeEpochS is None:
-		return jsonify({"error": "vehicleId, x, y are required"}), 400
+		return jsonify({"error": "vehicleId, missing required fields"}), 400
 
 	lat, lon = float(lat), float(lon)
 	history_entry = HistoryEntry(
@@ -178,7 +178,7 @@ def get_all_positions():
 	
 	# Loop through all vehicles and grab the latest position if they are actively tracked
 	for vehicle in DATABASE.get_all_vehicles():
-		if vehicle.is_tracked and vehicle.current:
+		if vehicle.current:
 			all_positions[vehicle.vehicle_id] = vehicle.current.to_dict()
 			
 	return jsonify(all_positions), 200

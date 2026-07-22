@@ -102,9 +102,21 @@ def handle_check_cancellation_delay(task: ExternalTask) -> TaskResult:
 def handle_calculate_charge(task: ExternalTask) -> TaskResult:
 	"""Topic: calculate-charge"""
 	logger.info("Calculating final amount to charge...")
-	
-	# In a real app, you'd calculate time difference here.
-	base_cost = 15.00 # Simulated base cost for the ride
+
+	ride_start_time = task.get_variable(config.CAMUNDA_RIDE_START_EPOCHS_S)
+
+	if ride_start_time is None:
+		base_cost = config.BANK_CHARGE_DEFAULT
+		logger.error("%s not found in process variables! Default base cost: %.2f", config.CAMUNDA_RIDE_START_EPOCHS_S, base_cost)
+	else:
+		# Calculate the ride duration in seconds
+		now = datetime.now(timezone.utc).timestamp()
+		duration_seconds = now - ride_start_time
+
+		# Calculate the base cost based on duration
+		base_cost = config.BANK_PRICE_PER_S * duration_seconds
+
+		logger.info("Ride duration: %.2f seconds. Base cost: %.2f", duration_seconds, base_cost)
 	
 	return task.complete({config.CAMUNDA_AMOUNT_BASE: base_cost, config.CAMUNDA_AMOUNT_TO_CHARGE: base_cost})
 
@@ -113,9 +125,11 @@ def handle_add_penalty(task: ExternalTask) -> TaskResult:
 	"""Topic: apply-penalty (add 10% penalty)"""
 	logger.info("Applying 10% battery penalty")
 	
-	base_cost = task.get_variable(config.CAMUNDA_AMOUNT_BASE) or 15.00
-	penalty = base_cost * 0.10
-	final_amount = base_cost + penalty
+	base_cost		= task.get_variable(config.CAMUNDA_AMOUNT_BASE) or config.BANK_CHARGE_DEFAULT
+	penalty			= base_cost * config.BANK_CHARGE_BATTERY_PENALTY_PERC / 100
+	final_amount	= base_cost + penalty
+
+	logger.info("Base cost: %.2f, Penalty: %.2f, Final amount to charge: %.2f", base_cost, penalty, final_amount)
 	
 	return task.complete({config.CAMUNDA_AMOUNT_TO_CHARGE: final_amount, config.CAMUNDA_PENALTY_APPLIED: True})
 

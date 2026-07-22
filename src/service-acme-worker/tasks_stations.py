@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 import requests
 from camunda.external_task.external_task import ExternalTask, TaskResult
 
@@ -28,16 +29,16 @@ def handle_station_lock(task: ExternalTask) -> TaskResult:
 	vehicle	= DATABASE.get_vehicle(vehicle_id)
 	if vehicle is None:
 		config.logger.error("Vehicle %s not found!", vehicle_id)
-		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
+		return task.bpmn_error("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0)
 
 	if station_id is None:
 		config.logger.error("Station ID not provided for vehicle %s!", vehicle_id)
-		return task.failure("Station ID Not Provided", f"Station ID not provided for vehicle {vehicle_id}.", 0, 0)
+		return task.bpmn_error("Station ID Not Provided", f"Station ID not provided for vehicle {vehicle_id}.", 0)
 
 	station_url = config.STATION_ID_URL_MAP.get(station_id)
 	if station_url is None:
 		config.logger.error("No URL configured for station %s!", station_id)
-		return task.failure("Station URL Not Configured", f"No URL configured for station {station_id}.", 0, 0)
+		return task.bpmn_error("Station URL Not Configured", f"No URL configured for station {station_id}.", 0)
 
 
 	def func_success(
@@ -93,17 +94,17 @@ def handle_station_unlock(task: ExternalTask) -> TaskResult:
 	vehicle	= DATABASE.get_vehicle(vehicle_id)
 	if vehicle is None:
 		config.logger.error("Vehicle %s not found!", vehicle_id)
-		return task.failure("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0, 0)
+		return task.bpmn_error("Vehicle Not Found", f"Vehicle {vehicle_id} not found.", 0)
 
 	station_id = vehicle.current_station
 	if station_id is None:
 		config.logger.error("Vehicle %s is not at any station!", vehicle_id)
-		return task.failure("Vehicle Not at Station", f"Vehicle {vehicle_id} is not at any station.", 0, 0)
+		return task.bpmn_error("Vehicle Not at Station", f"Vehicle {vehicle_id} is not at any station.", 0)
 
 	station_url = config.STATION_ID_URL_MAP.get(station_id)
 	if station_url is None:
 		config.logger.error("No URL configured for station %s!", station_id)
-		return task.failure("Station URL Not Configured", f"No URL configured for station {station_id}.", 0, 0)
+		return task.bpmn_error("Station URL Not Configured", f"No URL configured for station {station_id}.", 0)
 
 
 	def func_success(
@@ -122,7 +123,8 @@ def handle_station_unlock(task: ExternalTask) -> TaskResult:
 		config.logger.info("Vehicle %s unlocked successfully at station %s!", vehicle_id, station_id)
 		return task.complete({
 			config.CAMUNDA_STATUS_VEHICLE_LOCKED:	True,
-			config.CAMUNDA_POLLING_DELAY:			config.POLLING_DELAY
+			config.CAMUNDA_POLLING_DELAY:			config.POLLING_DELAY,
+			config.CAMUNDA_RIDE_START_EPOCHS_S:		datetime.now(timezone.utc).timestamp()
 		})
 
 	# set to Maintenance

@@ -27,3 +27,5 @@ sleep 3
 # Success
 curl localhost/db
 # db reset like before reservation
+
+# Check docker logs: we expect the bank converting the caution to payment
