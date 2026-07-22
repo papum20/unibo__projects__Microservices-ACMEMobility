@@ -11,6 +11,15 @@ class HistoryEntry:
 		self.status			= status
 		self.time_epoch_s	= time_epoch_s
 
+	def to_dict(self):
+		return {
+			"latitude": self.latitude,
+			"longitude": self.longitude,
+			"speed_kmh": self.speed_kmh,
+			"status": self.status.value if hasattr(self.status, 'value') else self.status,
+			"time_epoch_s": self.time_epoch_s
+		}
+
 
 class Vehicle:
 
@@ -18,6 +27,19 @@ class Vehicle:
 		self.vehicle_id			= vehicle_id
 		self.is_tracked			= is_tracked
 		self.history			= history
+
+  # Property helper to easily grab the latest position from the history list
+	@property
+	def current(self) -> HistoryEntry | None:
+		return self.history[-1] if self.history else None
+
+	def to_dict(self):
+		return {
+			"vehicleId": self.vehicle_id,
+			"isTracked": self.is_tracked,
+			"history": [entry.to_dict() for entry in self.history]
+		}
+
 
 
 class DataBase:
@@ -28,6 +50,11 @@ class DataBase:
 	def get_vehicle(self, vehicle_id) -> Vehicle | None:
 		"""Simulate fetching the vehicle's status from a database or external service."""
 		return self.acme_vehicle_db.get(vehicle_id, None)
+
+
+	def get_all_vehicles(self) -> list[Vehicle]:
+		"""Simulate fetching all vehicles from a database or external service."""
+		return list(self.acme_vehicle_db.values())
 
 
 	def add_vehicle(self, vehicle_id: str, is_tracked: bool = False) -> Vehicle:
@@ -47,6 +74,17 @@ class DataBase:
 			vehicle = self.add_vehicle(vehicle_id)
 		
 		vehicle.history.append(entry)
+		return vehicle
+
+
+	def set_vehicle_tracking(self, vehicle_id: str, is_tracked: bool) -> Vehicle:
+		"""Set the tracking status of a vehicle in the database, or create a new one if not present."""
+		vehicle = self.get_vehicle(vehicle_id)
+		if vehicle is None:
+			vehicle = self.add_vehicle(vehicle_id, is_tracked)
+		else:
+			vehicle.is_tracked = is_tracked
+		
 		return vehicle
 
 

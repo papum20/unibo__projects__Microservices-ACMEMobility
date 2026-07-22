@@ -21,16 +21,16 @@ wget -O service-graphhopper/data/geofabrik_italy-nord-est-260517.osm.pbf https:/
 ```
 
 
-## Notes
+## Usage
 
-Camunda cockpit: http://localhost:8080/camunda/app/cockpit/  
-Login: demo / demo  
+Web pages:  
+*	Camunda cockpit: http://localhost:8080/camunda/app/cockpit/  
+	*	Login: demo / demo  
+*	GraphHopper routing service: http://localhost:8989/  
+*	FleetManagement map visualizer: http://localhost:4000/map/  
 
-GraphHopper routing service: http://localhost:8989/  
-FleetManagement map visualizer: http://localhost:4000/map/  
 
-
-## Commands
+### Commands
 
 Start all services:
 ```bash
@@ -55,7 +55,14 @@ python3 src/user/user.py steal USER-001 V-01
 python3 src/user/user.py force_timeout USER-001 V-01
 ```
 
-### Debugging
+In `tests/` there are some bash scripts to test the system with different scenarios. They can used as an example, or launched directly, for example:
+```bash
+# after the system has been launched with ./src/start.sh
+# and has fully started
+./tests/test_happy_path.sh
+```
+
+#### Debugging
 
 Fetch current ACME database:  
 ```bash
@@ -71,12 +78,25 @@ curl localhost:5004/station
 curl localhost:5005/station
 ```
 
+### Configuration
 
-## Diagrams
+All variables are in the `src/.env` file.  
+The infrastructure is in the `docker-compose.template.yml` file.  
+These files are then converted into the final ones for execution by the `src/bash-utils/compile-dockercompose.sh` script, also called by `./src/start.sh`.  
 
-`docs/diagrams/diagram-SOA.uml`: SOA diagram in UML (TinySOA) (to paste in https://www.planttext.com/)  
+Camunda uses a debugging diagram (`src/camunda-resources-debug/diagram-collaboration-camunda-debug.bpmn`), with additional user tasks before all end tasks, to stop the processes for manual inspection; the final diagram (`src/camunda-resources-debug/diagram-collaboration-camunda-debug.bpmn`) can be switched from `docker-compose.template.yml`, changing the volume path for the `camunda` service.  
+
+
+## Documentation
+
+*	`docs/paper/main.pdf`: the report of the project (in italian)
+*	`docs/diagrams/diagram-SOA.uml`: SOA diagram in UML (TinySOA) (to paste in https://www.planttext.com/)  
+*	`docs/diagrams/formal-choreography.md`: formal choreography of the system, in textual form  
+*	`docs/diagrams/diagram-collaboration-full.bpmn`: full BPMN collaboration diagram (for documentation, with all participants defined)
+	*	`docs/diagrams/diagram-collaboration-full.pdf`: image
 
 
 ## Refs
-https://leafletjs.com/  
-https://docs.graphhopper.com/openapi/getroute  
+
+*	leaflet javascript library: https://leafletjs.com/  
+*	GraphHopper routing service - web API usage: https://docs.graphhopper.com/openapi/getroute  

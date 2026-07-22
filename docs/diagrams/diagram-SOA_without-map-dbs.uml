@@ -46,28 +46,14 @@ package "«Entities»\nFleet_Management_Microservice" {
     + startTracking(vehicleId)
     + stopTracking(vehicleId)
     + getPosition(vehicleId)
-    + getAllPositions()
   }
   interface "«ServiceInterface»\nBattery_API" as BattAPI {
     + getBattery(vehicleId)
   }
-  
   component "«Capability»\nTelemetry_Management" as Fleet_Cap
-
-  interface "«ServiceInterface»\nMap_Visualizer_UI" as MapUI {
-    + renderMap()
-  }
-  component "«Utility»\nMap_Visualizer" as Map_Vis
-  
-  database "Fleet-Tracking_DB\n(Position history)" as Track_DB
-  database "Fleet-Battery_DB\n(Vehicles battery)" as Batt_DB
   
   TrackAPI <|.. Fleet_Cap : «Expose»
   BattAPI <|.. Fleet_Cap : «Expose»
-  MapUI <|.. Map_Vis : «Expose»
-
-  Fleet_Cap -down-> Track_DB : "Reads/Writes State"
-  Fleet_Cap -down-> Batt_DB : "Reads/Writes State"
 }
 
 package "«Entities»\nStation_Microservices [5-10 Instances]" <<Node>> {
@@ -81,15 +67,10 @@ package "«Entities»\nStation_Microservices [5-10 Instances]" <<Node>> {
 
 ' --- DEPENDENCIES (Software) ---
 UserApp --> ROAPI : "Initiates (REST)"
-UserApp --> MapUI : "Accesses Map (HTTP/HTML)"
-
 pBank ..> BankAPI : «use» (SOAP)
 pFleet ..> TrackAPI : «use» (REST)
 pFleet ..> BattAPI : «use» (REST)
 pStation ..> StationAPI : «use» (REST)
-
-' The Map Visualizer queries the Tracking API to draw the vehicle markers
-Map_Vis ..> TrackAPI : «use» (REST JSON)
 
 ' --- DEPENDENCIES (Hardware/IoT) ---
 VehicleHardware <-up-> Fleet_Cap : "Telemetry"
@@ -104,11 +85,6 @@ end note
 note bottom of Station_Cap
   The Station can detect if a vehicle was
   parked, and in which terminal.
-end note
-
-note bottom of Map_Vis
-  Served statically via the 
-  Fleet NGINX Gateway (/map/).
 end note
 
 @enduml

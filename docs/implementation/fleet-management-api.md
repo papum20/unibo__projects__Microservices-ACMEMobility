@@ -64,6 +64,38 @@ Fetch the vehicle's current location.
 }
 ```
 
+### Get Vehicle Position History (`/tracking/position/{vehicleId}/history`)
+Fetch the historical locations of a specific vehicle.
+
+*   **Method:** `GET`
+*   **URL Parameter:** `vehicleId` (e.g., `/tracking/position/V-123/history`)
+*   **Response (200 OK):**
+```json
+{
+  "vehicleId": "V-123",
+  "history": [
+    {
+      "coordinates": {
+        "latitude": 44.4949,
+        "longitude": 11.3426
+      },
+      "speedKmH": 22.5,
+      "status": "MOVING",
+      "timeEpochS": 1690000000.2
+    },
+    {
+      "coordinates": {
+        "latitude": 44.4950,
+        "longitude": 11.3427
+      },
+      "speedKmH": 20.0,
+      "status": "STOPPED",
+      "timeEpochS": 1690000050.5
+    }
+  ]
+}
+```
+
 ### Get All vehicles positions (`/tracking/position`)
 Fetch the current locations of all vehicles.
 
@@ -93,6 +125,26 @@ Fetch the current locations of all vehicles.
   ]
 }
 ```
+
+### Get All active vehicles positions (`/tracking/position/active`)
+Fetch the current locations of all vehicles that are currently being tracked.
+
+*   **Method:** `GET`
+*   **Response (200 OK):**
+```json
+{
+  "vehicles": [
+    {
+      "vehicleId": "V-123",
+      "coordinates": {
+        "latitude": 44.4949,
+        "longitude": 11.3426
+      },
+      "speedKmH": 22.5,
+      "status": "MOVING"
+    }
+  ]
+}```
 
 ### Upload Vehicle Position (`/tracking/position/{vehicleId}`)
 Upload the vehicle's current location.

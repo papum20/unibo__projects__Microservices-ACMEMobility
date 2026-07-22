@@ -103,21 +103,3 @@ much broader term. It usually refers to **Realizability** and **Semantic Correct
 *   **Realizability:** Can this choreography actually be implemented as a set of microservices without them getting stuck (deadlock)? If your choreography is *Connected*, it is a huge step toward being *Realizable*.
 *   **Liveness:** Does the process always reach the end? (e.g., the car is always eventually locked and paid for).
 *   **Safety:** Does the process avoid "bad" states? (e.g., the car is unlocked but the bank never authorized the payment).
-
----
-
-##### Why the distinction matters for your project:
-The prompt says: *"...discuss its properties of connectedness and eventually refine the choreography to improve such properties. Project the choreography into a system of roles."*
-
-1.  **Step 1:** Draw the flow of messages between Customer, ACMEMobility, Bank, Stations, and Fleet.
-2.  **Step 2:** Look for "jumps" where a service speaks without being triggered. This is a **Connectedness violation**.
-3.  **Step 3 (Refinement):** Add a message (e.g., an acknowledgment or a trigger) to fix the jump.
-4.  **Step 4 (Projection):** Once it is connected, you "slice" the diagram. You take all the messages sent/received by the "Bank" and that becomes the **Jolie code**. You take all messages for "ACMEMobility" and that becomes the **Camunda process**.
-
-##### Summary Table
-| Feature | Connectedness | Correctness |
-| :--- | :--- | :--- |
-| **What is it?** | Causal flow (A knows it's their turn). | The system is bug-free and follows logic. |
-| **Level** | Choreography (The "Dance"). | Implementation (The "Dancers"). |
-| **How to fix?** | Add coordination messages. | Fix logic, prevent deadlocks. |
-| **Requirement** | Explicitly asked in your prompt. | Implied for the final delivery. |

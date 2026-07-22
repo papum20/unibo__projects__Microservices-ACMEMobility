@@ -1,7 +1,8 @@
 import logging
 from flask import Flask, request, jsonify
-from datetime import datetime
+from datetime import datetime, timezone
 
+# Stockage en mémoire uniquement des batteries
 from db import DATABASE
 from get_env import get_env_or_exit
 
@@ -14,8 +15,6 @@ logger = logging.getLogger(__name__)
 PORT_FLEET_BATTERY	= int(get_env_or_exit('PORT_FLEET_BATTERY'))
 
 
-# Stockage en mémoire uniquement des batteries
-batteries = {}
 
 # POST /battery/update
 @app.route('/battery/<vehicle_id>', methods=['POST'])
@@ -30,10 +29,13 @@ def update_battery(vehicle_id):
     if not vehicle_id or battery is None:
         return jsonify({"error": "vehicleId and battery are required"}), 400
 
-    batteries[vehicle_id] = {
-        "battery": battery,
-        "timestamp": datetime.now().isoformat()
-    }
+    vehicle = DATABASE.get_vehicle(vehicle_id)
+    if not vehicle:
+        return jsonify({"error": "Vehicle not found"}), 404
+
+    vehicle.battery_perc = battery
+    vehicle.time_epoch_s = datetime.now(timezone.utc).timestamp()
+    DATABASE.update_vehicle(vehicle)
 
     warning = None
     if battery < 15:
@@ -50,14 +52,15 @@ def update_battery(vehicle_id):
 # GET /battery/<vehicle_id>
 @app.route('/battery/<vehicle_id>', methods=['GET'])
 def get_battery(vehicle_id):
-    if vehicle_id not in batteries:
+    vehicle = DATABASE.get_vehicle(vehicle_id)
+    if not vehicle:
         return jsonify({"error": "Vehicle not found"}), 404
 
-    logger.info("[%s] Battery requested: %s%%", vehicle_id, batteries[vehicle_id]["battery"])
+    logger.info("[%s] Battery requested: %s%%", vehicle_id, vehicle.battery_perc)
     return jsonify({
         "vehicleId": vehicle_id,
-        "battery": batteries[vehicle_id]["battery"],
-        "timestamp": batteries[vehicle_id]["timestamp"]
+        "battery": vehicle.battery_perc,
+        "timestamp": vehicle.time_epoch_s
     })
 
 

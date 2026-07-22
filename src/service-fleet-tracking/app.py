@@ -1,10 +1,10 @@
 import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from datetime import datetime
 import requests
 
-from db import DATABASE
+# Memorizzazione in memoria
+from db import DATABASE, HistoryEntry
 from get_env import get_env_or_exit
 from util import get_vehicle_url
 
@@ -25,13 +25,6 @@ EP_VEHICLE_START    = get_env_or_exit('ENDPOINT_VEHICLE_TRACK_START')
 EP_VEHICLE_STOP     = get_env_or_exit('ENDPOINT_VEHICLE_TRACK_STOP')
 
 
-# Memorizzazione in memoria
-vehicles = {}
-
-# currently tracked vehicles
-tracked_vehicles = set()
-
-
 
 # POST /tracking/start
 
@@ -47,8 +40,8 @@ def start_tracking():
 	try:
 		response = requests.post(vehicle_url, timeout=UPDATE_TIMER_S)
 		response.raise_for_status()
-		tracked_vehicles.add(vehicle_id)
 
+		DATABASE.set_vehicle_tracking(vehicle_id, True)
 		logger.info("[%s] Tracking STARTED.", vehicle_id)
 		return jsonify({"success": True, "message": f"Tracking started for {vehicle_id}"}), 200
 	except requests.exceptions.RequestException as e:
@@ -69,7 +62,7 @@ def stop_tracking():
 	try:
 		response = requests.post(vehicle_url, timeout=UPDATE_TIMER_S)
 		response.raise_for_status()
-		tracked_vehicles.discard(vehicle_id)
+		DATABASE.set_vehicle_tracking(vehicle_id, False)
 
 		logger.info("[%s] Tracking STOPPED.", vehicle_id)
 		return jsonify({"success": True, "message": f"Tracking stopped for {vehicle_id}"}), 200
@@ -90,30 +83,29 @@ def update_position(vehicle_id):
 	coordinates = data.get("coordinates")
 	lat = coordinates.get("latitude") if coordinates else ""
 	lon = coordinates.get("longitude") if coordinates else ""
+	speedKmH = data.get("speedKmH")
+	status = data.get("status")
+	timeEpochS = data.get("timeEpochS")
 
 	# Verifica dei dati
-	if not vehicle_id or lat is None or lon is None:
+	if not vehicle_id or lat is None or lon is None or speedKmH is None or status is None or timeEpochS is None:
 		return jsonify({"error": "vehicleId, x, y are required"}), 400
 
-	position = {
-		"latitude": lat,
-		"longitude": lon,
-		"timestamp": datetime.now().isoformat()
-	}
+	lat, lon = float(lat), float(lon)
+	history_entry = HistoryEntry(
+		latitude		= lat,
+		longitude		= lon,
+		speed_kmh		= speedKmH,
+		status			= status,
+		time_epoch_s	= timeEpochS
+	)
+
+	vehicle = DATABASE.get_vehicle(vehicle_id)
 
 	# Nuovo veicolo
-	if vehicle_id not in vehicles:
-		vehicles[vehicle_id] = {
-			"current": position,
-			"history": [position]
-		}
-	else:
-		vehicles[vehicle_id]["current"] = position
-		vehicles[vehicle_id]["history"].append(position)
-
-		# Limitare la cronologia a 100 posizioni
-		if len(vehicles[vehicle_id]["history"]) > 100:
-			vehicles[vehicle_id]["history"].pop(0)
+	if vehicle is None:
+		vehicle = DATABASE.add_vehicle(vehicle_id)
+	DATABASE.add_vehicle_position(vehicle_id, history_entry)
 
 	logging.info("[%s] Position updated: latitude=%s, longitude=%s", vehicle_id, lat, lon)
 	return jsonify({
@@ -126,24 +118,24 @@ def update_position(vehicle_id):
 
 @app.route('/position/<vehicle_id>', methods=['GET'])
 def get_position(vehicle_id):
-	if vehicle_id not in vehicles:
+	vehicle = DATABASE.get_vehicle(vehicle_id)
+	if vehicle is None:
 		return jsonify({"error": "Vehicle not found"}), 404
 
-	logging.info("[%s] Position requested: latitude=%s, longitude=%s", vehicle_id, vehicles[vehicle_id]["current"]["latitude"], vehicles[vehicle_id]["current"]["longitude"])
+	current_position = vehicle.current
+	if current_position is None:
+		return jsonify({"error": "No position data available for this vehicle"}), 404
+
+	logging.info("[%s] Position requested: %s", vehicle_id, str(current_position.to_dict()))
 	return jsonify({
 		"vehicleId": vehicle_id,
-		"current": vehicles[vehicle_id]["current"]
-	})
-
-
-# GET /position/active
-
-@app.route('/position/active', methods=['GET'])
-def get_active_vehicles():
-	active_ids = list(vehicles.keys())
-
-	return jsonify({
-		"activeVehicles": active_ids
+		"coordinates": {
+			"latitude": current_position.latitude,
+			"longitude": current_position.longitude
+		},
+		"speedKmH": current_position.speed_kmh,
+		"status": current_position.status,
+		"timeEpochS": current_position.time_epoch_s
 	})
 
 
@@ -151,21 +143,45 @@ def get_active_vehicles():
 
 @app.route('/position/<vehicle_id>/history', methods=['GET'])
 def get_history(vehicle_id):
-	if vehicle_id not in vehicles:
+	vehicle = DATABASE.get_vehicle(vehicle_id)
+	if vehicle is None:
 		return jsonify({"error": "Vehicle not found"}), 404
 
 	return jsonify({
 		"vehicleId": vehicle_id,
-		"history": vehicles[vehicle_id]["history"]
+		"history": [entry.to_dict() for entry in vehicle.history]
 	})
+
+
+# GET /position/active
+
+@app.route('/position/active', methods=['GET'])
+def get_active_vehicles():
+	vehicles = DATABASE.get_all_vehicles()
+	active_vehicles = [v for v in vehicles if v.is_tracked]
+
+	return jsonify({
+		"activeVehicles": [{
+				"vehicleId": v.vehicle_id,
+				"currentPosition": v.current.to_dict() if v.current else None
+			}
+			for v in active_vehicles
+		]
+	}), 200
 
 
 # GET /position/all
 # needed for leaflet/graphhopper
 @app.route('/position/all', methods=['GET'])
 def get_all_positions():
-	last_positions = {vehicle_id: vehicles[vehicle_id]["current"] for vehicle_id in tracked_vehicles}
-	return jsonify(last_positions), 200
+	all_positions = {}
+	
+	# Loop through all vehicles and grab the latest position if they are actively tracked
+	for vehicle in DATABASE.get_all_vehicles():
+		if vehicle.is_tracked and vehicle.current:
+			all_positions[vehicle.vehicle_id] = vehicle.current.to_dict()
+			
+	return jsonify(all_positions), 200
 
 
 
