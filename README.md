@@ -6,6 +6,16 @@ Project for the Microservice Architecture course at University of bologna 2025/2
 - docker
 - Java Runtime Environment 17
 
+The only python requirements for running the project are those for the `src/user/` scripts:
+```bash
+pip install -r src/user/requirements.txt
+```
+
+For development, you may want to install the packages required for all services:
+```bash
+pip install -r src/requirements.txt
+```
+
 ### Data
 
 For the GraphHopper routing service, we use the OpenStreetMap data for the north-eastern region of Italy.
@@ -17,7 +27,7 @@ For the GraphHopper routing service, we use the OpenStreetMap data for the north
 
 Or with a one-line bash command:
 ```bash
-wget -O service-graphhopper/data/geofabrik_italy-nord-est-260517.osm.pbf https://download.geofabrik.de/europe/italy/nord-est-latest.osm.pbf
+wget -O src/service-graphhopper/data/geofabrik_italy-nord-est-260517.osm.pbf https://download.geofabrik.de/europe/italy/nord-est-latest.osm.pbf
 ```
 
 

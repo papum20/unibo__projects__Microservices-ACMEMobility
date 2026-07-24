@@ -79,7 +79,6 @@
         <bpmn2:flowNodeRef>Gateway_0py7o6q</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_0d5h9ei</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_1lh4kem</bpmn2:flowNodeRef>
-        <bpmn2:flowNodeRef>Event_077bmsk</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_0ipqsi2</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_0hmwj6a</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_1e0jzf6</bpmn2:flowNodeRef>
@@ -120,6 +119,7 @@
         <bpmn2:flowNodeRef>Gateway_0s8xva3</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_1edi7pb</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_1etasnx</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Event_077bmsk</bpmn2:flowNodeRef>
         <bpmn2:childLaneSet id="LaneSet_1b892uc">
           <bpmn2:lane id="Lane_19s52vs" name="Automated system">
             <bpmn2:flowNodeRef>Event_08v9rhx</bpmn2:flowNodeRef>
@@ -144,7 +144,6 @@
             <bpmn2:flowNodeRef>Activity_1fxg6d0</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Gateway_0py7o6q</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Gateway_0d5h9ei</bpmn2:flowNodeRef>
-            <bpmn2:flowNodeRef>Event_077bmsk</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Activity_0ipqsi2</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Gateway_0hmwj6a</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Activity_1e0jzf6</bpmn2:flowNodeRef>
@@ -184,6 +183,7 @@
             <bpmn2:flowNodeRef>Gateway_0s8xva3</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Gateway_1edi7pb</bpmn2:flowNodeRef>
             <bpmn2:flowNodeRef>Gateway_1etasnx</bpmn2:flowNodeRef>
+            <bpmn2:flowNodeRef>Event_077bmsk</bpmn2:flowNodeRef>
           </bpmn2:lane>
           <bpmn2:lane id="Lane_13e8wrj" name="Human assistance">
             <bpmn2:flowNodeRef>Event_1lh4kem</bpmn2:flowNodeRef>
@@ -365,10 +365,6 @@
       <bpmn2:incoming>Flow_1s9jodm</bpmn2:incoming>
       <bpmn2:outgoing>Flow_03x5c1w</bpmn2:outgoing>
     </bpmn2:serviceTask>
-    <bpmn2:endEvent id="Event_077bmsk">
-      <bpmn2:incoming>Flow_08ep7v7</bpmn2:incoming>
-      <bpmn2:terminateEventDefinition id="TerminateEventDefinition_0iefy90" />
-    </bpmn2:endEvent>
     <bpmn2:subProcess id="Activity_14k9ls8" name="ride">
       <bpmn2:incoming>Flow_04z4qqc</bpmn2:incoming>
       <bpmn2:startEvent id="Event_0n1u9ev">
@@ -573,6 +569,9 @@
       <bpmn2:outgoing>Flow_0krnqzv</bpmn2:outgoing>
       <bpmn2:outgoing>Flow_0nhboox</bpmn2:outgoing>
     </bpmn2:parallelGateway>
+    <bpmn2:endEvent id="Event_077bmsk">
+      <bpmn2:incoming>Flow_08ep7v7</bpmn2:incoming>
+    </bpmn2:endEvent>
     <bpmn2:textAnnotation id="TextAnnotation_19ri2kw">
       <bpmn2:text>Not a terminate end event: manual action could still be running</bpmn2:text>
     </bpmn2:textAnnotation>
@@ -842,7 +841,6 @@
         <bpmn2:flowNodeRef>Event_1g666ml</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_15c5818</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_0nbh2tl</bpmn2:flowNodeRef>
-        <bpmn2:flowNodeRef>Activity_0atc36d</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_1l7lkr9</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_0584kdy</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_1edj3mh</bpmn2:flowNodeRef>
@@ -854,6 +852,7 @@
         <bpmn2:flowNodeRef>Event_0ex0oxk</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_173huaj</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_1w4npj8</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Activity_0atc36d</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_1qj25u4</bpmn2:flowNodeRef>
         <bpmn2:childLaneSet id="LaneSet_0v6f7hk" />
       </bpmn2:lane>
@@ -893,29 +892,6 @@
     <bpmn2:endEvent id="Event_1w4npj8">
       <bpmn2:incoming>Flow_0zu2jfx</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:boundaryEvent id="Event_1qj25u4" attachedToRef="Activity_0atc36d">
-      <bpmn2:outgoing>Flow_0trhwvm</bpmn2:outgoing>
-      <bpmn2:messageEventDefinition id="MessageEventDefinition_0462r27" />
-    </bpmn2:boundaryEvent>
-    <bpmn2:subProcess id="Activity_0atc36d" name="receive vehicles information">
-      <bpmn2:incoming>Flow_0zcdccx</bpmn2:incoming>
-      <bpmn2:startEvent id="Event_0cbuy92">
-        <bpmn2:outgoing>Flow_1ksqy6m</bpmn2:outgoing>
-      </bpmn2:startEvent>
-      <bpmn2:intermediateCatchEvent id="Event_1qqao6f" name="wait vehicle&#10;info">
-        <bpmn2:incoming>Flow_1ot5qft</bpmn2:incoming>
-        <bpmn2:outgoing>Flow_06wvy0k</bpmn2:outgoing>
-        <bpmn2:messageEventDefinition id="MessageEventDefinition_1079179" />
-      </bpmn2:intermediateCatchEvent>
-      <bpmn2:exclusiveGateway id="Gateway_0js4iom">
-        <bpmn2:incoming>Flow_1ksqy6m</bpmn2:incoming>
-        <bpmn2:incoming>Flow_06wvy0k</bpmn2:incoming>
-        <bpmn2:outgoing>Flow_1ot5qft</bpmn2:outgoing>
-      </bpmn2:exclusiveGateway>
-      <bpmn2:sequenceFlow id="Flow_1ksqy6m" sourceRef="Event_0cbuy92" targetRef="Gateway_0js4iom" />
-      <bpmn2:sequenceFlow id="Flow_06wvy0k" sourceRef="Event_1qqao6f" targetRef="Gateway_0js4iom" />
-      <bpmn2:sequenceFlow id="Flow_1ot5qft" sourceRef="Gateway_0js4iom" targetRef="Event_1qqao6f" />
-    </bpmn2:subProcess>
     <bpmn2:sequenceFlow id="Flow_0pzxh8h" sourceRef="Event_15c5818" targetRef="Event_0nbh2tl" />
     <bpmn2:sequenceFlow id="Flow_0w0662t" sourceRef="Activity_1edj3mh" targetRef="Event_15c5818" />
     <bpmn2:sequenceFlow id="Flow_00d0v42" sourceRef="Event_1g666ml" targetRef="Activity_1edj3mh" />
@@ -950,6 +926,29 @@
       <bpmn2:outgoing>Flow_1ur0en9</bpmn2:outgoing>
       <bpmn2:messageEventDefinition id="MessageEventDefinition_1xes0m4" />
     </bpmn2:startEvent>
+    <bpmn2:boundaryEvent id="Event_1qj25u4" attachedToRef="Activity_0atc36d">
+      <bpmn2:outgoing>Flow_0trhwvm</bpmn2:outgoing>
+      <bpmn2:messageEventDefinition id="MessageEventDefinition_0462r27" />
+    </bpmn2:boundaryEvent>
+    <bpmn2:subProcess id="Activity_0atc36d" name="receive vehicles information">
+      <bpmn2:incoming>Flow_0zcdccx</bpmn2:incoming>
+      <bpmn2:startEvent id="Event_0cbuy92">
+        <bpmn2:outgoing>Flow_1ksqy6m</bpmn2:outgoing>
+      </bpmn2:startEvent>
+      <bpmn2:intermediateCatchEvent id="Event_1qqao6f" name="wait vehicle&#10;info">
+        <bpmn2:incoming>Flow_1ot5qft</bpmn2:incoming>
+        <bpmn2:outgoing>Flow_06wvy0k</bpmn2:outgoing>
+        <bpmn2:messageEventDefinition id="MessageEventDefinition_1079179" />
+      </bpmn2:intermediateCatchEvent>
+      <bpmn2:exclusiveGateway id="Gateway_0js4iom">
+        <bpmn2:incoming>Flow_1ksqy6m</bpmn2:incoming>
+        <bpmn2:incoming>Flow_06wvy0k</bpmn2:incoming>
+        <bpmn2:outgoing>Flow_1ot5qft</bpmn2:outgoing>
+      </bpmn2:exclusiveGateway>
+      <bpmn2:sequenceFlow id="Flow_1ksqy6m" sourceRef="Event_0cbuy92" targetRef="Gateway_0js4iom" />
+      <bpmn2:sequenceFlow id="Flow_06wvy0k" sourceRef="Event_1qqao6f" targetRef="Gateway_0js4iom" />
+      <bpmn2:sequenceFlow id="Flow_1ot5qft" sourceRef="Gateway_0js4iom" targetRef="Event_1qqao6f" />
+    </bpmn2:subProcess>
     <bpmn2:textAnnotation id="TextAnnotation_17tb1qh">
       <bpmn2:text>The fetch loop actually happens separately, at the same time, for both battery and position</bpmn2:text>
     </bpmn2:textAnnotation>
@@ -1452,7 +1451,7 @@
       <bpmndi:BPMNShape id="BPMNShape_1q3v71u" bpmnElement="Activity_0ipqsi2">
         <dc:Bounds x="2080" y="580" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0oad8iq_di" bpmnElement="Event_077bmsk">
+      <bpmndi:BPMNShape id="Event_1tnwyih_di" bpmnElement="Event_077bmsk">
         <dc:Bounds x="2112" y="242" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_14k9ls8_di" bpmnElement="Activity_14k9ls8" isExpanded="true">

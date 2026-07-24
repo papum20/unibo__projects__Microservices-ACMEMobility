@@ -67,7 +67,6 @@
         <bpmn2:flowNodeRef>Gateway_0py7o6q</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_0lh4esc</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_0ipqsi2</bpmn2:flowNodeRef>
-        <bpmn2:flowNodeRef>Event_077bmsk</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_0vpco51</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_0xqs3bt</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Event_1g2ix8y</bpmn2:flowNodeRef>
@@ -117,6 +116,7 @@
         <bpmn2:flowNodeRef>Event_1lh4kem</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Activity_1oyzc0k</bpmn2:flowNodeRef>
         <bpmn2:flowNodeRef>Gateway_1etasnx</bpmn2:flowNodeRef>
+        <bpmn2:flowNodeRef>Event_077bmsk</bpmn2:flowNodeRef>
       </bpmn2:lane>
     </bpmn2:laneSet>
     <bpmn2:exclusiveGateway id="Gateway_1lnorv8">
@@ -219,10 +219,6 @@
       <bpmn2:incoming>Flow_1286uhn</bpmn2:incoming>
       <bpmn2:outgoing>Flow_03x5c1w</bpmn2:outgoing>
     </bpmn2:serviceTask>
-    <bpmn2:endEvent id="Event_077bmsk">
-      <bpmn2:incoming>Flow_08ep7v7</bpmn2:incoming>
-      <bpmn2:terminateEventDefinition id="TerminateEventDefinition_0iefy90" />
-    </bpmn2:endEvent>
     <bpmn2:boundaryEvent id="Event_0vpco51" attachedToRef="Activity_0ipqsi2">
       <bpmn2:outgoing>Flow_1g83bwb</bpmn2:outgoing>
       <bpmn2:errorEventDefinition id="ErrorEventDefinition_0pgkva8" />
@@ -523,6 +519,9 @@
       <bpmn2:outgoing>Flow_0r8tdmy</bpmn2:outgoing>
       <bpmn2:outgoing>Flow_0upo168</bpmn2:outgoing>
     </bpmn2:parallelGateway>
+    <bpmn2:endEvent id="Event_077bmsk">
+      <bpmn2:incoming>Flow_08ep7v7</bpmn2:incoming>
+    </bpmn2:endEvent>
     <bpmn2:textAnnotation id="TextAnnotation_19ri2kw">
       <bpmn2:text>Not a terminate end event: manual action could still be running</bpmn2:text>
     </bpmn2:textAnnotation>
@@ -1113,9 +1112,6 @@
       <bpmndi:BPMNShape id="BPMNShape_1q3v71u" bpmnElement="Activity_0ipqsi2">
         <dc:Bounds x="2570" y="1320" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0oad8iq_di" bpmnElement="Event_077bmsk">
-        <dc:Bounds x="2522" y="982" width="36" height="36" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0jlhgy7_di" bpmnElement="Activity_0xqs3bt">
         <dc:Bounds x="620" y="870" width="100" height="80" />
       </bpmndi:BPMNShape>
@@ -1127,6 +1123,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_013b81r_di" bpmnElement="Gateway_013b81r" isMarkerVisible="true">
         <dc:Bounds x="1215" y="1065" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0jdqsuu_di" bpmnElement="Event_077bmsk">
+        <dc:Bounds x="2522" y="982" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_14k9ls8_di" bpmnElement="Activity_14k9ls8" isExpanded="true">
         <dc:Bounds x="1280" y="1200" width="320" height="260" />
